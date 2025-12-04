@@ -17,11 +17,14 @@
 
 using namespace Csm;
 
+std::string LAppPal::SHADER_DIR = "";
+
 csmByte* LAppPal::LoadFileAsBytes(const std::string filePath, csmSizeInt* outSize)
 {
     //filePath;//
-    const char* pathStr = filePath.c_str();
-    std::filesystem::path path = std::filesystem::u8path(filePath);
+    std::string pathStr = filePath;
+    interceptShaderLoading(pathStr);
+    std::filesystem::path path = std::filesystem::u8path(pathStr);
 
     size_t size = 0;
     if (std::filesystem::exists(path))
@@ -29,13 +32,13 @@ csmByte* LAppPal::LoadFileAsBytes(const std::string filePath, csmSizeInt* outSiz
         size = std::filesystem::file_size(path);
         if (size == 0)
         {
-            Info("Stat succeeded but file size is zero. path:%s", pathStr);
+            Info("Stat succeeded but file size is zero. path:%s", pathStr.c_str());
             return NULL;
         }
     }
     else
     {
-        Info("Stat failed. errno:%d path:%s", errno, pathStr);
+        Info("Stat failed. errno:%d path:%s", errno, pathStr.c_str());
         return NULL;
     }
 
@@ -43,7 +46,7 @@ csmByte* LAppPal::LoadFileAsBytes(const std::string filePath, csmSizeInt* outSiz
     file.open(path, std::ios::in | std::ios::binary);
     if (!file.is_open())
     {
-        Info("File open failed. path:%s", pathStr);
+        Info("File open failed. path:%s", pathStr.c_str());
         return NULL;
     }
 
@@ -72,4 +75,20 @@ void LAppPal::PrintLn(const Csm::csmChar *message)
 double LAppPal::GetCurrentTimePoint()
 {
     return std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
+}
+
+void LAppPal::InitShaderDir(const std::string& path)
+{
+    SHADER_DIR = std::move(path);
+    SHADER_DIR += std::filesystem::path::preferred_separator;
+    Info("[Pal] Init Shader Dir: %s", SHADER_DIR.c_str());
+}
+
+void LAppPal::interceptShaderLoading(std::string &filePath)
+{
+    if (filePath.substr(0, 17) == "FrameworkShaders/") 
+    {
+        Info("[Pal] intercept for shader: %s", filePath.c_str());
+        filePath = SHADER_DIR + (char)std::filesystem::path::preferred_separator + filePath;
+    }
 }

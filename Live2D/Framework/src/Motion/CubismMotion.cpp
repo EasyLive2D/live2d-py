@@ -280,18 +280,29 @@ CubismMotion::CubismMotion()
 
 CubismMotion::~CubismMotion()
 {
-    CSM_DELETE(_motionData);
+    if(_motionData != NULL)
+    {
+        CSM_DELETE(_motionData);
+    }
 }
 
-CubismMotion* CubismMotion::Create(const csmByte* buffer, csmSizeInt size, FinishedMotionCallback onFinishedMotionHandler, BeganMotionCallback onBeganMotionHandler)
+CubismMotion* CubismMotion::Create(const csmByte* buffer, csmSizeInt size, FinishedMotionCallback onFinishedMotionHandler, BeganMotionCallback onBeganMotionHandler, csmBool shouldCheckMotionConsistency)
 {
     CubismMotion* ret = CSM_NEW CubismMotion();
 
-    ret->Parse(buffer, size);
-    ret->_sourceFrameRate = ret->_motionData->Fps;
-    ret->_loopDurationSeconds = ret->_motionData->Duration;
-    ret->_onFinishedMotion = onFinishedMotionHandler;
-    ret->_onBeganMotion = onBeganMotionHandler;
+    ret->Parse(buffer, size, shouldCheckMotionConsistency);
+    if(ret->_motionData)
+    {
+        ret->_sourceFrameRate = ret->_motionData->Fps;
+        ret->_loopDurationSeconds = ret->_motionData->Duration;
+        ret->_onFinishedMotion = onFinishedMotionHandler;
+        ret->_onBeganMotion = onBeganMotionHandler;
+    }
+    else
+    {
+        CSM_DELETE_SELF(CubismMotion, ret);
+        ret = NULL;
+    }
 
     // NOTE: Editorではループありのモーション書き出しは非対応
     // ret->_loop = (ret->_motionData->Loop > 0);
@@ -455,6 +466,12 @@ void CubismMotion::DoUpdateParameters(CubismModel* model, csmFloat32 userTimeSec
             }
         }
 
+        // 互換性のためリピートのみ処理する
+        if (model->IsRepeat(parameterIndex))
+        {
+            value = model->GetParameterRepeatValue(parameterIndex, value);
+        }
+
         csmFloat32 v;
         // パラメータごとのフェード
         if (curves[c].FadeInTime < 0.0f && curves[c].FadeOutTime < 0.0f)
@@ -603,10 +620,8 @@ void CubismMotion::UpdateForNextLoop(CubismMotionQueueEntry* motionQueueEntry, c
     }
 }
 
-void CubismMotion::Parse(const csmByte* motionJson, const csmSizeInt size)
+void CubismMotion::Parse(const csmByte* motionJson, const csmSizeInt size, csmBool shouldCheckMotionConsistency)
 {
-    _motionData = CSM_NEW CubismMotionData;
-
     CubismMotionJson* json = CSM_NEW CubismMotionJson(motionJson, size);
 
     if (!json->IsValid())
@@ -615,9 +630,20 @@ void CubismMotion::Parse(const csmByte* motionJson, const csmSizeInt size)
         return;
     }
 
-#if _DEBUG
-    json->HasConsistency();
-#endif // _DEBUG
+    if (shouldCheckMotionConsistency)
+    {
+        csmBool consistency = json->HasConsistency();
+        if(!consistency)
+        {
+            CSM_DELETE(json);
+
+            // 整合性が確認できなければ処理しない
+            CubismLogError("Inconsistent motion3.json.");
+            return;
+        }
+    }
+
+    _motionData = CSM_NEW CubismMotionData;
 
     _motionData->Duration = json->GetMotionDuration();
     _motionData->Loop = json->IsMotionLoop();
@@ -782,7 +808,6 @@ void CubismMotion::Parse(const csmByte* motionJson, const csmSizeInt size)
             ++totalSegmentCount;
         }
     }
-
 
     for (csmInt32 userdatacount = 0; userdatacount < json->GetEventCount(); ++userdatacount)
     {

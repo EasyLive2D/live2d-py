@@ -40,7 +40,6 @@ const csmVector<CubismBreath::BreathParameterData>& CubismBreath::GetParameters(
 
 void CubismBreath::UpdateParameters(CubismModel* model, csmFloat32 deltaTimeSeconds)
 {
-    // printf("%f\n", _currentTime);
     _currentTime += deltaTimeSeconds;
 
     const csmFloat32 t = _currentTime * 2.0f * CubismMath::Pi;
@@ -50,8 +49,6 @@ void CubismBreath::UpdateParameters(CubismModel* model, csmFloat32 deltaTimeSeco
         BreathParameterData* data = &_breathParameters[i];
 
         model->AddParameterValue(data->ParameterId, data->Offset + (data->Peak * sinf(t / data->Cycle)), data->Weight);
-        // printf("%f %f %f %f %f %f\n", _currentTime, deltaTimeSeconds, t, data->Offset, data->Peak, data->Cycle);
-        // printf("%s %f %f\n", data->ParameterId->GetString().GetRawString(), data->Offset + (data->Peak * sinf(t / data->Cycle)), data->Weight);
     }
 }
 

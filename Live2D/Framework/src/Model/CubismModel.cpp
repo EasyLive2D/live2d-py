@@ -9,6 +9,7 @@
 #include "Rendering/CubismRenderer.hpp"
 #include "Id/CubismId.hpp"
 #include "Id/CubismIdManager.hpp"
+#include "Math/CubismMath.hpp"
 
 namespace Live2D { namespace Cubism { namespace Framework {
 
@@ -23,9 +24,10 @@ CubismModel::CubismModel(Core::csmModel* model)
     , _parameterMaximumValues(NULL)
     , _parameterMinimumValues(NULL)
     , _partOpacities(NULL)
-    , _isOverwrittenModelMultiplyColors(false)
-    , _isOverwrittenModelScreenColors(false)
-    , _isOverwrittenCullings(false)
+    , _isOverriddenParameterRepeat(true)
+    , _isOverriddenModelMultiplyColors(false)
+    , _isOverriddenModelScreenColors(false)
+    , _isOverriddenCullings(false)
     , _modelOpacity(1.0f)
 { }
 
@@ -221,18 +223,108 @@ void CubismModel::SetParameterValue(csmInt32 parameterIndex, csmFloat32 value, c
     //インデックスの範囲内検知
     CSM_ASSERT(0 <= parameterIndex && parameterIndex < GetParameterCount());
 
-    if (Core::csmGetParameterMaximumValues(_model)[parameterIndex] < value)
+    if (IsRepeat(parameterIndex))
     {
-        value = Core::csmGetParameterMaximumValues(_model)[parameterIndex];
+        value = GetParameterRepeatValue(parameterIndex, value);
     }
-    if (Core::csmGetParameterMinimumValues(_model)[parameterIndex] > value)
+    else
     {
-        value = Core::csmGetParameterMinimumValues(_model)[parameterIndex];
+        value = GetParameterClampValue(parameterIndex, value);
     }
 
     _parameterValues[parameterIndex] = (weight == 1)
                                       ? value
                                       : _parameterValues[parameterIndex] = (_parameterValues[parameterIndex] * (1 - weight)) + (value * weight);
+}
+
+csmBool CubismModel::IsRepeat(const csmInt32 parameterIndex) const
+{
+    if (_notExistParameterValues.IsExist(parameterIndex))
+    {
+        return false;
+    }
+
+    //インデックスの範囲内検知
+    CSM_ASSERT(0 <= parameterIndex && parameterIndex < GetParameterCount());
+
+    csmBool isRepeat;
+
+    // パラメータリピート処理を行うか判定
+    if (_isOverriddenParameterRepeat || _userParameterRepeatDataList[parameterIndex].IsOverridden)
+    {
+        // SDK側で設定されたリピート情報を使用する
+        isRepeat = _userParameterRepeatDataList[parameterIndex].IsParameterRepeated;
+    }
+    else
+    {
+        // Editorで設定されたリピート情報を使用する
+        isRepeat = Core::csmGetParameterRepeats(_model)[parameterIndex];
+    }
+
+    return isRepeat;
+}
+
+csmFloat32 CubismModel::GetParameterRepeatValue(const csmInt32 parameterIndex, csmFloat32 value) const
+{
+    if (_notExistParameterValues.IsExist(parameterIndex))
+    {
+        return value;
+    }
+
+    //インデックスの範囲内検知
+    CSM_ASSERT(0 <= parameterIndex && parameterIndex < GetParameterCount());
+
+    const csmFloat32 maxValue = Core::csmGetParameterMaximumValues(_model)[parameterIndex];
+    const csmFloat32 minValue = Core::csmGetParameterMinimumValues(_model)[parameterIndex];
+    const csmFloat32 valueSize = maxValue - minValue;
+
+    if (maxValue < value)
+    {
+        csmFloat32 overValue = CubismMath::ModF(value - maxValue, valueSize);
+        if (!isnan(overValue))
+        {
+            value = minValue + overValue;
+        }
+        else
+        {
+            value = maxValue;
+        }
+    }
+    if (value < minValue)
+    {
+        csmFloat32 overValue = CubismMath::ModF(minValue - value, valueSize);
+        if (!isnan(overValue))
+        {
+            value = maxValue - overValue;
+        }
+        else
+        {
+            value = minValue;
+        }
+    }
+
+    return  value;
+}
+
+csmFloat32 CubismModel::GetParameterClampValue(const csmInt32 parameterIndex, const csmFloat32 value) const
+{
+    if (_notExistParameterValues.IsExist(parameterIndex))
+    {
+        return value;
+    }
+
+    //インデックスの範囲内検知
+    CSM_ASSERT(0 <= parameterIndex && parameterIndex < GetParameterCount());
+
+    const csmFloat32 maxValue = Core::csmGetParameterMaximumValues(_model)[parameterIndex];
+    const csmFloat32 minValue = Core::csmGetParameterMinimumValues(_model)[parameterIndex];
+
+    return CubismMath::ClampF(value, minValue, maxValue);
+}
+
+csmBool CubismModel::GetParameterRepeats(csmUint32 parameterIndex) const
+{
+    return Core::csmGetParameterRepeats(_model)[parameterIndex];
 }
 
 csmFloat32 CubismModel::GetCanvasWidthPixel() const
@@ -377,11 +469,16 @@ void CubismModel::Initialize()
     {
         const csmChar** parameterIds = Core::csmGetParameterIds(_model);
         const csmInt32  parameterCount = Core::csmGetParameterCount(_model);
+        ParameterRepeatData parameterRepeatData(false, false);
 
         _parameterIds.PrepareCapacity(parameterCount);
+        _userParameterRepeatDataList.PrepareCapacity(parameterCount);
+
         for (csmInt32 i = 0; i < parameterCount; ++i)
         {
             _parameterIds.PushBack(CubismFramework::GetIdManager()->GetId(parameterIds[i]));
+
+            _userParameterRepeatDataList.PushBack(parameterRepeatData);
         }
     }
 
@@ -411,7 +508,7 @@ void CubismModel::Initialize()
 
         // カリング設定
         DrawableCullingData userCulling;
-        userCulling.IsOverwritten = false;
+        userCulling.IsOverridden = false;
         userCulling.IsCulling = 0;
 
         // 乗算色
@@ -432,12 +529,12 @@ void CubismModel::Initialize()
         {
             // 乗算色
             PartColorData userMultiplyColor;
-            userMultiplyColor.IsOverwritten = false;
+            userMultiplyColor.IsOverridden = false;
             userMultiplyColor.Color = multiplyColor;
 
             // スクリーン色
             PartColorData userScreenColor;
-            userScreenColor.IsOverwritten = false;
+            userScreenColor.IsOverridden = false;
             userScreenColor.Color = screenColor;
 
             for (csmInt32 i = 0; i < partCount; ++i)
@@ -451,12 +548,12 @@ void CubismModel::Initialize()
         {
             // 乗算色
             DrawableColorData userMultiplyColor;
-            userMultiplyColor.IsOverwritten = false;
+            userMultiplyColor.IsOverridden = false;
             userMultiplyColor.Color = multiplyColor;
 
             // スクリーン色
             DrawableColorData userScreenColor;
-            userScreenColor.IsOverwritten = false;
+            userScreenColor.IsOverridden = false;
             userScreenColor.Color = screenColor;
 
             for (csmInt32 i = 0; i < drawableCount; ++i)
@@ -492,6 +589,12 @@ csmInt32 CubismModel::GetPartCount() const
 {
     const csmInt32 partCount = Core::csmGetPartCount(_model);
     return partCount;
+}
+
+const csmInt32* CubismModel::GetPartParentPartIndices() const
+{
+    const csmInt32* partIndices = Core::csmGetPartParentPartIndices(_model);
+    return partIndices;
 }
 
 const csmInt32* CubismModel::GetDrawableRenderOrders() const
@@ -676,7 +779,7 @@ void CubismModel::SaveParameters()
 
 Rendering::CubismRenderer::CubismTextureColor CubismModel::GetMultiplyColor(csmInt32 drawableIndex) const
 {
-    if (GetOverwriteFlagForModelMultiplyColors() || GetOverwriteFlagForDrawableMultiplyColors(drawableIndex))
+    if (GetOverrideFlagForModelMultiplyColors() || GetOverrideFlagForDrawableMultiplyColors(drawableIndex))
     {
         return _userMultiplyColors[drawableIndex].Color;
     }
@@ -688,7 +791,7 @@ Rendering::CubismRenderer::CubismTextureColor CubismModel::GetMultiplyColor(csmI
 
 Rendering::CubismRenderer::CubismTextureColor CubismModel::GetScreenColor(csmInt32 drawableIndex) const
 {
-    if (GetOverwriteFlagForModelScreenColors() || GetOverwriteFlagForDrawableScreenColors(drawableIndex))
+    if (GetOverrideFlagForModelScreenColors() || GetOverrideFlagForDrawableScreenColors(drawableIndex))
     {
         return _userScreenColors[drawableIndex].Color;
     }
@@ -749,7 +852,7 @@ void CubismModel::SetPartColor(
     partColors[partIndex].Color.B = b;
     partColors[partIndex].Color.A = a;
 
-    if (partColors[partIndex].IsOverwritten)
+    if (partColors[partIndex].IsOverridden)
     {
         for (csmUint32 i = 0; i < _partChildDrawables[partIndex].GetSize(); i++)
         {
@@ -777,68 +880,168 @@ void CubismModel::SetPartScreenColor(csmInt32 partIndex, csmFloat32 r, csmFloat3
     SetPartColor(partIndex, r, g, b, a, _userPartScreenColors, _userScreenColors);
 }
 
+csmBool CubismModel::GetOverrideFlagForModelParameterRepeat() const
+{
+    return _isOverriddenParameterRepeat;
+}
+
+void CubismModel::SetOverrideFlagForModelParameterRepeat(csmBool isRepeat)
+{
+    _isOverriddenParameterRepeat = isRepeat;
+}
+
+csmBool CubismModel::GetOverrideFlagForParameterRepeat(csmInt32 parameterIndex) const
+{
+    return _userParameterRepeatDataList[parameterIndex].IsOverridden;
+}
+
+void CubismModel::SetOverrideFlagForParameterRepeat(csmInt32 parameterIndex, csmBool value)
+{
+    _userParameterRepeatDataList[parameterIndex].IsOverridden = value;
+}
+
+csmBool CubismModel::GetRepeatFlagForParameterRepeat(csmInt32 parameterIndex) const
+{
+    return _userParameterRepeatDataList[parameterIndex].IsParameterRepeated;
+}
+
+void CubismModel::SetRepeatFlagForParameterRepeat(csmInt32 parameterIndex, csmBool value)
+{
+    _userParameterRepeatDataList[parameterIndex].IsParameterRepeated = value;
+}
+
 csmBool CubismModel::GetOverwriteFlagForModelMultiplyColors() const
 {
-    return _isOverwrittenModelMultiplyColors;
+    CubismLogWarning("GetOverwriteFlagForModelMultiplyColors() is a deprecated function. Please use GetOverrideFlagForModelMultiplyColors().");
+
+    return GetOverrideFlagForModelMultiplyColors();
+}
+
+csmBool CubismModel::GetOverrideFlagForModelMultiplyColors() const
+{
+    return _isOverriddenModelMultiplyColors;
 }
 
 csmBool CubismModel::GetOverwriteFlagForModelScreenColors() const
 {
-    return _isOverwrittenModelScreenColors;
+    CubismLogWarning("GetOverwriteFlagForModelScreenColors() is a deprecated function. Please use GetOverrideFlagForModelScreenColors().");
+
+    return GetOverrideFlagForModelScreenColors();
+}
+
+csmBool CubismModel::GetOverrideFlagForModelScreenColors() const
+{
+    return _isOverriddenModelScreenColors;
 }
 
 void CubismModel::SetOverwriteFlagForModelMultiplyColors(csmBool value)
 {
-    _isOverwrittenModelMultiplyColors = value;
+    CubismLogWarning("SetOverwriteFlagForModelMultiplyColors(csmBool value) is a deprecated function. Please use SetOverrideFlagForModelMultiplyColors(csmBool value).");
+
+    SetOverrideFlagForModelMultiplyColors(value);
+}
+
+void CubismModel::SetOverrideFlagForModelMultiplyColors(csmBool value)
+{
+    _isOverriddenModelMultiplyColors = value;
 }
 
 void CubismModel::SetOverwriteFlagForModelScreenColors(csmBool value)
 {
-    _isOverwrittenModelScreenColors = value;
+    CubismLogWarning("SetOverwriteFlagForModelScreenColors(csmBool value) is a deprecated function. Please use SetOverrideFlagForModelScreenColors(csmBool value).");
+
+    SetOverrideFlagForModelScreenColors(value);
+}
+
+void CubismModel::SetOverrideFlagForModelScreenColors(csmBool value)
+{
+    _isOverriddenModelScreenColors = value;
 }
 
 csmBool CubismModel::GetOverwriteFlagForDrawableMultiplyColors(csmInt32 drawableIndex) const
 {
-    return _userMultiplyColors[drawableIndex].IsOverwritten;
+    CubismLogWarning("GetOverwriteFlagForDrawableMultiplyColors(csmInt32 drawableIndex) is a deprecated function. Please use GetOverrideFlagForDrawableMultiplyColors(csmInt32 drawableIndex).");
+
+    return GetOverrideFlagForDrawableMultiplyColors(drawableIndex);
+}
+
+csmBool CubismModel::GetOverrideFlagForDrawableMultiplyColors(csmInt32 drawableIndex) const
+{
+    return _userMultiplyColors[drawableIndex].IsOverridden;
 }
 
 csmBool CubismModel::GetOverwriteFlagForDrawableScreenColors(csmInt32 drawableIndex) const
 {
-    return _userScreenColors[drawableIndex].IsOverwritten;
+    CubismLogWarning("GetOverwriteFlagForDrawableScreenColors(csmInt32 drawableIndex) is a deprecated function. Please use GetOverrideFlagForDrawableScreenColors(csmInt32 drawableIndex).");
+
+    return GetOverrideFlagForDrawableScreenColors(drawableIndex);
+}
+
+csmBool CubismModel::GetOverrideFlagForDrawableScreenColors(csmInt32 drawableIndex) const
+{
+    return _userScreenColors[drawableIndex].IsOverridden;
 }
 
 void CubismModel::SetOverwriteFlagForDrawableMultiplyColors(csmUint32 drawableIndex, csmBool value)
 {
-    _userMultiplyColors[drawableIndex].IsOverwritten = value;
+    CubismLogWarning("SetOverwriteFlagForDrawableMultiplyColors(csmUint32 drawableIndex, csmBool value) is a deprecated function. Please use SetOverrideFlagForDrawableMultiplyColors(csmUint32 drawableIndex, csmBool value).");
+
+    SetOverrideFlagForDrawableMultiplyColors(drawableIndex, value);
+}
+
+void CubismModel::SetOverrideFlagForDrawableMultiplyColors(csmUint32 drawableIndex, csmBool value)
+{
+    _userMultiplyColors[drawableIndex].IsOverridden = value;
 }
 
 void CubismModel::SetOverwriteFlagForDrawableScreenColors(csmUint32 drawableIndex, csmBool value)
 {
-    _userScreenColors[drawableIndex].IsOverwritten = value;
+    CubismLogWarning("SetOverwriteFlagForDrawableScreenColors(csmUint32 drawableIndex, csmBool value) is a deprecated function. Please use SetOverrideFlagForDrawableScreenColors(csmUint32 drawableIndex, csmBool value).");
+
+    SetOverrideFlagForDrawableScreenColors(drawableIndex, value);
+}
+
+void CubismModel::SetOverrideFlagForDrawableScreenColors(csmUint32 drawableIndex, csmBool value)
+{
+    _userScreenColors[drawableIndex].IsOverridden = value;
 }
 
 csmBool CubismModel::GetOverwriteColorForPartMultiplyColors(csmInt32 partIndex) const
 {
-    return _userPartMultiplyColors[partIndex].IsOverwritten;
+    CubismLogWarning("GetOverwriteColorForPartMultiplyColors(csmInt32 partIndex) is a deprecated function. Please use GetOverrideColorForPartMultiplyColors(csmInt32 partIndex).");
+
+    return GetOverrideColorForPartMultiplyColors(partIndex);
+}
+
+csmBool CubismModel::GetOverrideColorForPartMultiplyColors(csmInt32 partIndex) const
+{
+    return _userPartMultiplyColors[partIndex].IsOverridden;
 }
 
 csmBool CubismModel::GetOverwriteColorForPartScreenColors(csmInt32 partIndex) const
 {
-    return _userPartScreenColors[partIndex].IsOverwritten;
+    CubismLogWarning("GetOverwriteColorForPartScreenColors(csmInt32 partIndex) is a deprecated function. Please use GetOverrideColorForPartScreenColors(csmInt32 partIndex).");
+
+    return GetOverrideColorForPartScreenColors(partIndex);
 }
 
-void CubismModel::SetOverwriteColorForPartColors(
+csmBool CubismModel::GetOverrideColorForPartScreenColors(csmInt32 partIndex) const
+{
+    return _userPartScreenColors[partIndex].IsOverridden;
+}
+
+void CubismModel::SetOverrideColorForPartColors(
     csmUint32 partIndex,
     csmBool value,
     csmVector<PartColorData>& partColors,
     csmVector <DrawableColorData>& drawableColors)
 {
-    partColors[partIndex].IsOverwritten = value;
+    partColors[partIndex].IsOverridden = value;
 
     for (csmUint32 i = 0; i < _partChildDrawables[partIndex].GetSize(); i++)
     {
         csmUint32 drawableIndex = _partChildDrawables[partIndex][i];
-        drawableColors[drawableIndex].IsOverwritten = value;
+        drawableColors[drawableIndex].IsOverridden = value;
         if (value)
         {
             drawableColors[drawableIndex].Color.R = partColors[partIndex].Color.R;
@@ -851,19 +1054,33 @@ void CubismModel::SetOverwriteColorForPartColors(
 
 void CubismModel::SetOverwriteColorForPartMultiplyColors(csmUint32 partIndex, csmBool value)
 {
-    _userPartMultiplyColors[partIndex].IsOverwritten = value;
-    SetOverwriteColorForPartColors(partIndex, value, _userPartMultiplyColors, _userMultiplyColors);
+    CubismLogWarning("SetOverwriteColorForPartMultiplyColors(csmUint32 partIndex, csmBool value) is a deprecated function. Please use SetOverrideColorForPartMultiplyColors(csmUint32 partIndex, csmBool value).");
+
+    SetOverrideColorForPartMultiplyColors(partIndex, value);
+}
+
+void CubismModel::SetOverrideColorForPartMultiplyColors(csmUint32 partIndex, csmBool value)
+{
+    _userPartMultiplyColors[partIndex].IsOverridden = value;
+    SetOverrideColorForPartColors(partIndex, value, _userPartMultiplyColors, _userMultiplyColors);
 }
 
 void CubismModel::SetOverwriteColorForPartScreenColors(csmUint32 partIndex, csmBool value)
 {
-    _userPartScreenColors[partIndex].IsOverwritten = value;
-    SetOverwriteColorForPartColors(partIndex, value, _userPartScreenColors, _userScreenColors);
+    CubismLogWarning("SetOverwriteColorForPartScreenColors(csmUint32 partIndex, csmBool value) is a deprecated function. Please use SetOverrideColorForPartScreenColors(csmUint32 partIndex, csmBool value).");
+
+    SetOverrideColorForPartScreenColors(partIndex, value);
+}
+
+void CubismModel::SetOverrideColorForPartScreenColors(csmUint32 partIndex, csmBool value)
+{
+    _userPartScreenColors[partIndex].IsOverridden = value;
+    SetOverrideColorForPartColors(partIndex, value, _userPartScreenColors, _userScreenColors);
 }
 
 csmInt32 CubismModel::GetDrawableCulling(csmInt32 drawableIndex) const
 {
-    if (GetOverwriteFlagForModelCullings() || GetOverwriteFlagForDrawableCullings(drawableIndex))
+    if (GetOverrideFlagForModelCullings() || GetOverrideFlagForDrawableCullings(drawableIndex))
     {
         return _userCullings[drawableIndex].IsCulling;
     }
@@ -879,22 +1096,50 @@ void CubismModel::SetDrawableCulling(csmInt32 drawableIndex, csmInt32 isCulling)
 
 csmBool CubismModel::GetOverwriteFlagForModelCullings() const
 {
-    return _isOverwrittenCullings;
+    CubismLogWarning("GetOverwriteFlagForModelCullings() is a deprecated function. Please use GetOverrideFlagForModelCullings().");
+
+    return GetOverrideFlagForModelCullings();
+}
+
+csmBool CubismModel::GetOverrideFlagForModelCullings() const
+{
+    return _isOverriddenCullings;
 }
 
 void CubismModel::SetOverwriteFlagForModelCullings(csmBool value)
 {
-    _isOverwrittenCullings = value;
+    CubismLogWarning("SetOverwriteFlagForModelCullings(csmBool value) is a deprecated function. Please use SetOverrideFlagForModelCullings(csmBool value).");
+
+    SetOverrideFlagForModelCullings(value);
+}
+
+void CubismModel::SetOverrideFlagForModelCullings(csmBool value)
+{
+    _isOverriddenCullings = value;
 }
 
 csmBool CubismModel::GetOverwriteFlagForDrawableCullings(csmInt32 drawableIndex) const
 {
-    return _userCullings[drawableIndex].IsOverwritten;
+    CubismLogWarning("GetOverwriteFlagForDrawableCullings(csmInt32 drawableIndex) is a deprecated function. Please use GetOverrideFlagForDrawableCullings(csmInt32 drawableIndex).");
+
+    return GetOverrideFlagForDrawableCullings(drawableIndex);
+}
+
+csmBool CubismModel::GetOverrideFlagForDrawableCullings(csmInt32 drawableIndex) const
+{
+    return _userCullings[drawableIndex].IsOverridden;
 }
 
 void CubismModel::SetOverwriteFlagForDrawableCullings(csmUint32 drawableIndex, csmBool value)
 {
-    _userCullings[drawableIndex].IsOverwritten = value;
+    CubismLogWarning("SetOverwriteFlagForDrawableCullings(csmUint32 drawableIndex, csmBool value) is a deprecated function. Please use SetOverrideFlagForDrawableCullings(csmUint32 drawableIndex, csmBool value).");
+
+    SetOverrideFlagForDrawableCullings(drawableIndex, value);
+}
+
+void CubismModel::SetOverrideFlagForDrawableCullings(csmUint32 drawableIndex, csmBool value)
+{
+    _userCullings[drawableIndex].IsOverridden = value;
 }
 
 csmFloat32 CubismModel::GetModelOpacity()

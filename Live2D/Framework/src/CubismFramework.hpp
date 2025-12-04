@@ -30,6 +30,7 @@
 #include <cstdlib>
 #endif
 
+#include <string>
 
 //========================================================
 //  Configurations of Memory Allocator.
@@ -175,6 +176,10 @@ namespace Csm = Live2D::Cubism::Framework;
 //--------- LIVE2D NAMESPACE ------------
 namespace Live2D { namespace Cubism { namespace Framework {
 
+/** Typedef for file loader */
+typedef csmByte* (*csmLoadFileFunction)(const std::string filePath, csmSizeInt* outSize);
+typedef void (*csmReleaseBytesFunction)(Csm::csmByte* byteData);
+
 /**
  * Constants.
  */
@@ -235,6 +240,12 @@ public:
 
         /** Logging level */
         LogLevel LoggingLevel;
+
+        /** File reading function */
+       csmLoadFileFunction LoadFileFunction;
+
+       /** Release bytes function */
+       csmReleaseBytesFunction ReleaseBytesFunction;
     };
 
     /**
@@ -303,6 +314,22 @@ public:
      * @return Logging level setting
      */
     static Option::LogLevel GetLoggingLevel();
+
+    /**
+     * Returns the loading file function.
+     *
+     * @return Function to read the file as csmByte*.
+     */
+    static csmLoadFileFunction GetLoadFileFunction();
+
+    /**
+     * Returns the memory release function.
+     *
+     * @return Function to free memory allocated by csmByte*.
+     *
+     * @note Memory allocated by GetLoadFileFunction() must be released with this function.
+     */
+    static csmReleaseBytesFunction GetReleaseBytesFunction();
 
     /**
      * Returns the instance of CubismIdManager.

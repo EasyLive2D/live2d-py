@@ -18,6 +18,9 @@
 */
 class LAppPal
 {
+    static std::string SHADER_DIR;
+
+    static void interceptShaderLoading(std::string& filePath);
 public:
     /**
     * @brief ファイルをバイトデータとして読み込む
@@ -43,4 +46,6 @@ public:
     static void PrintLn(const Csm::csmChar* message);
 
     static double GetCurrentTimePoint();
+
+    static void InitShaderDir(const std::string& path);
 };

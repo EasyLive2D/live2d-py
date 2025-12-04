@@ -182,9 +182,7 @@ csmVector<CubismExpressionMotion::ExpressionParameter> CubismExpressionMotion::G
 
 csmFloat32 CubismExpressionMotion::GetFadeWeight()
 {
-#if _DEBUG
     CubismLogWarning("GetFadeWeight() is a deprecated function. Please use CubismExpressionMotionManager.GetFadeWeight(int index).");
-#endif // _DEBUG
 
     return _fadeWeight;
 }

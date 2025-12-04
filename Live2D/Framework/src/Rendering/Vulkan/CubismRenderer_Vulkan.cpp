@@ -235,6 +235,7 @@ VkShaderModule CubismPipeline_Vulkan::PipelineResource::CreateShaderModule(VkDev
     if (!file.is_open())
     {
         CubismLogError("failed to open file!");
+        return NULL;
     }
 
     csmInt32 fileSize = (csmInt32)file.tellg();
@@ -253,16 +254,26 @@ VkShaderModule CubismPipeline_Vulkan::PipelineResource::CreateShaderModule(VkDev
     if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
     {
         CubismLogError("failed to create shader module!");
+        return NULL;
     }
 
     return shaderModule;
 }
 
-void CubismPipeline_Vulkan::PipelineResource::CreateGraphicsPipeline(std::string vertFileName, std::string fragFileName,
+bool CubismPipeline_Vulkan::PipelineResource::CreateGraphicsPipeline(std::string vertFileName, std::string fragFileName,
                                                                    VkDescriptorSetLayout descriptorSetLayout)
 {
     VkShaderModule vertShaderModule = CreateShaderModule(s_device, vertFileName);
+    if(vertShaderModule == NULL)
+    {
+        return false;
+    }
+
     VkShaderModule fragShaderModule = CreateShaderModule(s_device, fragFileName);
+    if(fragShaderModule == NULL)
+    {
+        return false;
+    }
 
     _pipeline.Resize(4);
     _pipelineLayout.Resize(4);
@@ -438,14 +449,22 @@ void CubismPipeline_Vulkan::PipelineResource::CreateGraphicsPipeline(std::string
 
     vkDestroyShaderModule(s_device, vertShaderModule, nullptr);
     vkDestroyShaderModule(s_device, fragShaderModule, nullptr);
+
+    return true;
 }
 
 void CubismPipeline_Vulkan::PipelineResource::Release()
 {
     for (csmInt32 i = 0; i < 4; i++)
     {
-        vkDestroyPipeline(s_device, _pipeline[i], nullptr);
-        vkDestroyPipelineLayout(s_device, _pipelineLayout[i], nullptr);
+        if(_pipeline.GetPtr() != NULL)
+        {
+            vkDestroyPipeline(s_device, _pipeline[i], nullptr);
+        }
+        if(_pipelineLayout.GetPtr() != NULL)
+        {
+            vkDestroyPipelineLayout(s_device, _pipelineLayout[i], nullptr);
+        }
     }
     _pipeline.Clear();
     _pipelineLayout.Clear();
@@ -465,13 +484,23 @@ void CubismPipeline_Vulkan::CreatePipelines(VkDescriptorSetLayout descriptorSetL
         _pipelineResource[i] = CSM_NEW PipelineResource();
     }
 
-    _pipelineResource[0]->CreateGraphicsPipeline("FrameworkShaders/VertShaderSrcSetupMask.spv", "FrameworkShaders/FragShaderSrcSetupMask.spv", descriptorSetLayout);
-    _pipelineResource[1]->CreateGraphicsPipeline("FrameworkShaders/VertShaderSrc.spv", "FrameworkShaders/FragShaderSrc.spv", descriptorSetLayout);
-    _pipelineResource[2]->CreateGraphicsPipeline("FrameworkShaders/VertShaderSrcMasked.spv", "FrameworkShaders/FragShaderSrcMask.spv", descriptorSetLayout);
-    _pipelineResource[3]->CreateGraphicsPipeline("FrameworkShaders/VertShaderSrcMasked.spv", "FrameworkShaders/FragShaderSrcMaskInverted.spv", descriptorSetLayout);
-    _pipelineResource[4]->CreateGraphicsPipeline("FrameworkShaders/VertShaderSrc.spv", "FrameworkShaders/FragShaderSrcPremultipliedAlpha.spv", descriptorSetLayout);
-    _pipelineResource[5]->CreateGraphicsPipeline("FrameworkShaders/VertShaderSrcMasked.spv", "FrameworkShaders/FragShaderSrcMaskPremultipliedAlpha.spv", descriptorSetLayout);
-    _pipelineResource[6]->CreateGraphicsPipeline("FrameworkShaders/VertShaderSrcMasked.spv", "FrameworkShaders/FragShaderSrcMaskInvertedPremultipliedAlpha.spv", descriptorSetLayout);
+    std::string shaderFiles[7][2] = {
+        {"FrameworkShaders/VertShaderSrcSetupMask.spv", "FrameworkShaders/FragShaderSrcSetupMask.spv"},
+        {"FrameworkShaders/VertShaderSrc.spv", "FrameworkShaders/FragShaderSrc.spv"},
+        {"FrameworkShaders/VertShaderSrcMasked.spv", "FrameworkShaders/FragShaderSrcMask.spv"},
+        {"FrameworkShaders/VertShaderSrcMasked.spv", "FrameworkShaders/FragShaderSrcMaskInverted.spv"},
+        {"FrameworkShaders/VertShaderSrc.spv", "FrameworkShaders/FragShaderSrcPremultipliedAlpha.spv"},
+        {"FrameworkShaders/VertShaderSrcMasked.spv", "FrameworkShaders/FragShaderSrcMaskPremultipliedAlpha.spv"},
+        {"FrameworkShaders/VertShaderSrcMasked.spv", "FrameworkShaders/FragShaderSrcMaskInvertedPremultipliedAlpha.spv"},
+    };
+
+    for(int i = 0; i < 7; i++)
+    {
+        if(!_pipelineResource[i]->CreateGraphicsPipeline(shaderFiles[i][0],shaderFiles[i][1], descriptorSetLayout))
+        {
+            _pipelineResource[i] = NULL;
+        }
+    }
 
     _pipelineResource[7] = _pipelineResource[1];
     _pipelineResource[8] = _pipelineResource[2];
@@ -501,9 +530,12 @@ void CubismPipeline_Vulkan::ReleaseShaderProgram()
 {
     for (csmInt32 i = 0; i < 7; i++)
     {
-        _pipelineResource[i]->Release();
-        CSM_DELETE(_pipelineResource[i]);
-        _pipelineResource[i] = NULL;
+        if(_pipelineResource[i] != NULL)
+        {
+            _pipelineResource[i]->Release();
+            CSM_DELETE(_pipelineResource[i]);
+            _pipelineResource[i] = NULL;
+        }
     }
 }
 
@@ -1088,6 +1120,19 @@ void CubismRenderer_Vulkan::ExecuteDrawForDraw(const CubismModel& model, const c
         break;
     }
 
+    VkPipelineLayout pipelineLayout = CubismPipeline_Vulkan::GetInstance()->GetPipelineLayout(shaderIndex, blendIndex);
+    if(pipelineLayout == NULL)
+    {
+        return;
+    }
+
+    VkPipeline pipeline = CubismPipeline_Vulkan::GetInstance()->GetPipeline(shaderIndex, blendIndex);
+    if(pipeline == NULL)
+    {
+        return;
+    }
+
+
     Descriptor &descriptor = _descriptorSets[_commandBufferCurrent][index];
     ModelUBO ubo;
     if (masked)
@@ -1122,12 +1167,12 @@ void CubismRenderer_Vulkan::ExecuteDrawForDraw(const CubismModel& model, const c
     VkDescriptorSet* descriptorSet = (masked ? &_descriptorSets[_commandBufferCurrent][index].descriptorSetMasked
                                              : &_descriptorSets[_commandBufferCurrent][index].descriptorSet);
     vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                CubismPipeline_Vulkan::GetInstance()->GetPipelineLayout(shaderIndex, blendIndex), 0, 1,
+                                pipelineLayout, 0, 1,
                                 descriptorSet, 0, nullptr);
 
     // パイプラインのバインド
     vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                      CubismPipeline_Vulkan::GetInstance()->GetPipeline(shaderIndex, blendIndex));
+                      pipeline);
 
     // 描画
     vkCmdDrawIndexed(cmdBuffer, model.GetDrawableVertexIndexCount(index), 1, 0, 0, 0);
@@ -1137,6 +1182,18 @@ void CubismRenderer_Vulkan::ExecuteDrawForMask(const CubismModel& model, const c
 {
     csmUint32 shaderIndex = ShaderNames_SetupMask;
     csmUint32 blendIndex = Blend_Mask;
+
+    VkPipelineLayout pipelineLayout = CubismPipeline_Vulkan::GetInstance()->GetPipelineLayout(shaderIndex, blendIndex);
+    if(pipelineLayout == NULL)
+    {
+        return;
+    }
+
+    VkPipeline pipeline = CubismPipeline_Vulkan::GetInstance()->GetPipeline(shaderIndex, blendIndex);
+    if(pipeline == NULL)
+    {
+        return;
+    }
 
     Descriptor &descriptor = _descriptorSets[_commandBufferCurrent][index];
     ModelUBO ubo;
@@ -1166,12 +1223,12 @@ void CubismRenderer_Vulkan::ExecuteDrawForMask(const CubismModel& model, const c
     // ディスクリプタセットのバインド
     UpdateDescriptorSet(descriptor, textureIndex, false);
     vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            CubismPipeline_Vulkan::GetInstance()->GetPipelineLayout(shaderIndex, blendIndex), 0, 1,
+                            pipelineLayout, 0, 1,
                             &_descriptorSets[_commandBufferCurrent][index].descriptorSet, 0, nullptr);
 
     // パイプラインのバインド
     vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                      CubismPipeline_Vulkan::GetInstance()->GetPipeline(shaderIndex, blendIndex));
+                      pipeline);
 
     // 描画
     vkCmdDrawIndexed(cmdBuffer, model.GetDrawableVertexIndexCount(index), 1, 0, 0, 0);

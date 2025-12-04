@@ -682,6 +682,9 @@ void CubismRenderer_OpenGLES2::DrawMeshOpenGL(const CubismModel& model, const cs
     }
 
     // ポリゴンメッシュを描画する
+    GLint currentProgram = 0;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
+    if(currentProgram != 0)
     {
         csmInt32 indexCount = model.GetDrawableVertexIndexCount(index);
         csmUint16* indexArray = const_cast<csmUint16*>(model.GetDrawableVertexIndices(index));

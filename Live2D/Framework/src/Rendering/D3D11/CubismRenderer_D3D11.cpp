@@ -678,13 +678,24 @@ void CubismRenderer_D3D11::ExecuteDrawForMask(const CubismModel& model, const cs
         return;
     }
 
+    ID3D11VertexShader* vs = shaderManager->GetVertexShader(ShaderNames_SetupMask);
+    if(vs == NULL)
+    {
+        return;
+    }
+    ID3D11PixelShader* ps = shaderManager->GetPixelShader(ShaderNames_SetupMask);
+    if(ps == NULL)
+    {
+        return;
+    }
+
     // テクスチャ+サンプラーセット
     SetTextureView(model, index);
     SetSamplerAccordingToAnisotropy();
 
     // シェーダーセット
-    s_context->VSSetShader(shaderManager->GetVertexShader(ShaderNames_SetupMask), NULL, 0);
-    s_context->PSSetShader(shaderManager->GetPixelShader(ShaderNames_SetupMask), NULL, 0);
+    s_context->VSSetShader(vs, NULL, 0);
+    s_context->PSSetShader(ps, NULL, 0);
 
     // マスク用ブレンドステート
     GetRenderStateManager()->SetBlend(s_context,
@@ -736,7 +747,10 @@ void CubismRenderer_D3D11::ExecuteDrawForDraw(const CubismModel& model, const cs
     SetSamplerAccordingToAnisotropy();
 
     // シェーダーセット
-    SetShader(model, index);
+    if(!SetShader(model, index))
+    {
+        return;
+    }
 
     // ブレンドステート
     {
@@ -1038,7 +1052,7 @@ void CubismRenderer_D3D11::SetBlendState(const CubismBlendMode blendMode)
     }
 }
 
-void CubismRenderer_D3D11::SetShader(const CubismModel& model, const csmInt32 index)
+Csm::csmBool CubismRenderer_D3D11::SetShader(const CubismModel& model, const csmInt32 index)
 {
     const csmBool masked = GetClippingContextBufferForDraw() != NULL;
     const csmBool premult = IsPremultipliedAlpha();
@@ -1086,8 +1100,20 @@ void CubismRenderer_D3D11::SetShader(const CubismModel& model, const csmInt32 in
     }
 
     CubismShader_D3D11* shaderManager = Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::GetShaderManager();
-    s_context->VSSetShader(shaderManager->GetVertexShader(vertexShaderNames), NULL, 0);
-    s_context->PSSetShader(shaderManager->GetPixelShader(pixelShaderNames), NULL, 0);
+    ID3D11VertexShader*  vs = shaderManager->GetVertexShader(vertexShaderNames);
+    if(vs == NULL)
+    {
+        return false;
+    }
+    ID3D11PixelShader* ps = shaderManager->GetPixelShader(pixelShaderNames);
+    if(ps == NULL)
+    {
+        return false;
+    }
+
+    s_context->VSSetShader(vs, NULL, 0);
+    s_context->PSSetShader(ps, NULL, 0);
+    return true;
 }
 
 void CubismRenderer_D3D11::SetTextureView(const CubismModel& model, const csmInt32 index)

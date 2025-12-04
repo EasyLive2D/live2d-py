@@ -39,33 +39,25 @@ CubismExpressionMotionManager::~CubismExpressionMotionManager()
 
 csmInt32 CubismExpressionMotionManager::GetCurrentPriority() const
 {
-#if _DEBUG
     CubismLogWarning("CubismExpressionMotionManager::GetCurrentPriority() is deprecated because a priority value is not actually used during expression motion playback.");
-#endif
     return _currentPriority;
 }
 
 csmInt32 CubismExpressionMotionManager::GetReservePriority() const
 {
-#if _DEBUG
     CubismLogWarning("CubismExpressionMotionManager::GetReservePriority() is deprecated because a priority value is not actually used during expression motion playback.");
-#endif
     return _reservePriority;
 }
 
 void CubismExpressionMotionManager::SetReservePriority(csmInt32 priority)
 {
-#if _DEBUG
     CubismLogWarning("CubismExpressionMotionManager::SetReservePriority() is deprecated because a priority value is not actually used during expression motion playback.");
-#endif
     _reservePriority = priority;
 }
 
 CubismMotionQueueEntryHandle CubismExpressionMotionManager::StartMotionPriority(ACubismMotion* motion, csmBool autoDelete, csmInt32 priority)
 {
-#if _DEBUG
     CubismLogWarning("CubismExpressionMotionManager::StartMotionPriority() is deprecated because a priority value is not actually used during expression motion playback.");
-#endif
 
     if (priority == _reservePriority)
     {

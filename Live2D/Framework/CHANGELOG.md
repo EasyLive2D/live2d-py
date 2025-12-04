@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 
+## [5-r.4.1] - 2025-07-17
+
+### Fixed
+
+* Fix app crashing when shader files could not be loaded.
+
+
+## [5-r.4] - 2025-05-29
+
+### Added
+
+* Add parameter repeat processing that connects the right and left ends of the parameter to create a loop, allowing the motion to repeat.
+  * Add the variable `_isOverriddenParameterRepeat` to the `CubismModel` class for managing parameter repeat flags at the model level.
+  * Add the variable `_userParameterRepeatDataList` to the `CubismModel` class for managing parameter repeat flags for each parameter.
+* Add a flag to the arguments of the following methods to enable the function that verifies the consistency of `motion3.json`:
+  * `CubismUserModel.LoadMotion()`
+  * `CubismMotion.Create()`
+  * `CubismMotion.Parse()`
+* Add a `GetPartParentPartIndices()` function.
+
+### Changed
+
+* Change shader code to be used separately.
+
+### Removed
+
+* Remove the usage of `_DEBUG`.
+
+
 ## [5-r.3] - 2025-02-18
 
 ### Added
@@ -41,6 +70,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+* Change an expression "overwrite" to "override" for multiply color, screen color, and culling to adapt the actual behavior.
 * Change to permit to overwrite motion fade by the value specified in .model3.json on `CubismUserModel::LoadMotion()`.
 * Change the threshold for enabling anisotropic filtering in all renderers.
 * Change `CubismJson` to not use character masking.
@@ -447,6 +477,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 * Fix invalid expressions of `CubismCdiJson`.
 
 
+[5-r.4.1]: https://github.com/Live2D/CubismNativeFramework/compare/5-r.4...5-r.4.1
+[5-r.4]: https://github.com/Live2D/CubismNativeFramework/compare/5-r.3...5-r.4
 [5-r.3]: https://github.com/Live2D/CubismNativeFramework/compare/5-r.2...5-r.3
 [5-r.2]: https://github.com/Live2D/CubismNativeFramework/compare/5-r.1...5-r.2
 [5-r.1]: https://github.com/Live2D/CubismNativeFramework/compare/5-r.1-beta.4...5-r.1

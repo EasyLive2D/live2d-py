@@ -130,6 +130,7 @@ private:
      */
     Csm::csmBool LoadShaderProgram(ID3D11Device* device, bool isPs, csmInt32 assign, const csmChar* entryPoint);
 
+    csmVector<csmChar> _shaderSrc; ///< シェーダーソースコード
     csmVector<CubismShaderSet*> _shaderSets;   ///< ロードしたシェーダプログラムを保持する変数
 
     csmVector<ID3D11VertexShader*> _shaderSetsVS;     ///< ロードしたシェーダプログラムを保持する変数(VS)

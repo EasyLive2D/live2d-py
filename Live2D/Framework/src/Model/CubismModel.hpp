@@ -33,17 +33,17 @@ public:
          * Constructor
          */
         DrawableColorData()
-            : IsOverwritten(false)
+            : IsOverridden(false)
             , Color() {};
 
         /**
          * Constructor
          *
-         * @param isOverwritten whether to be overwritten
+         * @param isOverridden whether to be overridden
          * @param color Texture color
          */
-        DrawableColorData(csmBool isOverwritten, Rendering::CubismRenderer::CubismTextureColor color)
-            : IsOverwritten(isOverwritten)
+        DrawableColorData(csmBool isOverridden, Rendering::CubismRenderer::CubismTextureColor color)
+            : IsOverridden(isOverridden)
             , Color(color) {};
 
         /**
@@ -51,7 +51,8 @@ public:
          */
         virtual ~DrawableColorData() {};
 
-        csmBool IsOverwritten;                                      ///< Whether to be overwritten
+        csmBool IsOverwritten;                                     ///< (deprecated) Whether to be overwritten
+        csmBool IsOverridden;                                      ///< Whether to be overridden
         Rendering::CubismRenderer::CubismTextureColor Color;        ///< Color
 
     };
@@ -65,17 +66,17 @@ public:
          * Constructor
          */
         DrawableCullingData()
-            : IsOverwritten(false)
+            : IsOverridden(false)
             , IsCulling(0) {};
 
         /**
          * Constructor
          *
-         * @param isOverwritten whether to be overwritten
+         * @param isOverridden whether to be overridden
          * @param isCulling Culling information
          */
-        DrawableCullingData(csmBool isOverwritten, csmInt32 isCulling)
-            : IsOverwritten(isOverwritten)
+        DrawableCullingData(csmBool isOverridden, csmInt32 isCulling)
+            : IsOverridden(isOverridden)
             , IsCulling(isCulling) {};
 
         /**
@@ -83,7 +84,8 @@ public:
          */
         virtual ~DrawableCullingData() {};
 
-        csmBool IsOverwritten;      ///< Whether to be overwritten
+        csmBool IsOverwritten;      ///< (deprecated) Whether to be overwritten
+        csmBool IsOverridden;      ///< Whether to be overridden
         csmInt32 IsCulling;         ///< Culling information
 
     };
@@ -97,17 +99,17 @@ public:
          * Constructor
          */
         PartColorData()
-            : IsOverwritten(false)
+            : IsOverridden(false)
             , Color() {};
 
         /**
          * Constructor
          *
-         * @param isOverwritten whether to be overwritten
+         * @param isOverridden whether to be overridden
          * @param color Texture color
          */
-        PartColorData(csmBool isOverwritten, Rendering::CubismRenderer::CubismTextureColor color)
-            : IsOverwritten(isOverwritten)
+        PartColorData(csmBool isOverridden, Rendering::CubismRenderer::CubismTextureColor color)
+            : IsOverridden(isOverridden)
             , Color(color) {};
 
         /**
@@ -115,8 +117,40 @@ public:
          */
         virtual ~PartColorData() {};
 
-        csmBool IsOverwritten;                                      ///< Whether to be overwritten
+        csmBool IsOverwritten;                                     ///< (deprecated) Whether to be overwritten
+        csmBool IsOverridden;                                      ///< Whether to be overridden
         Rendering::CubismRenderer::CubismTextureColor Color;        ///< Color
+    };
+
+    /**
+     * Structure for managing the override of parameter repetition settings
+     */
+    struct ParameterRepeatData
+    {
+        /**
+         * Constructor
+         */
+        ParameterRepeatData()
+            : IsOverridden(false)
+            , IsParameterRepeated(false) {}
+
+        /**
+         * Constructor
+         *
+         * @param isOverridden whether to be overriden
+         * @param isParameterRepeated override flag for settings
+         */
+        ParameterRepeatData(csmBool isOverridden, csmBool isParameterRepeated)
+            : IsOverridden(isOverridden)
+            , IsParameterRepeated(isParameterRepeated) {}
+
+        /**
+         * Destructor
+         */
+        virtual ~ParameterRepeatData() {}
+
+        csmBool IsOverridden;            ///< Whether to be overridden
+        csmBool IsParameterRepeated;     ///< Override flag for settings
     };
 
     /**
@@ -182,6 +216,13 @@ public:
      * @return Number of parts
      */
     csmInt32    GetPartCount() const;
+
+    /**
+     * Returns the index of the parent parts for the parts.
+     *
+     * @return Index of parent parts for the parts.
+     */
+    const csmInt32* GetPartParentPartIndices() const;
 
     /**
      * Sets the opacity of the part.
@@ -314,6 +355,44 @@ public:
      * @param weight Weight
      */
     void        SetParameterValue(csmInt32 parameterIndex, csmFloat32 value, csmFloat32 weight = 1.0f);
+
+    /**
+     * Gets whether the parameter has the repeat setting.
+     *
+     * @param parameterIndex Parameter index
+     *
+     * @return true if it is set, otherwise returns false.
+     */
+    csmBool IsRepeat(csmInt32 parameterIndex) const;
+
+    /**
+     * Returns the calculated result ensuring the value falls within the parameter's range.
+     *
+     * @param parameterIndex Parameter index
+     * @param value Parameter value
+     *
+     * @return a value that falls within the parameter’s range. If the parameter does not exist, returns it as is.
+     */
+    csmFloat32 GetParameterRepeatValue(csmInt32 parameterIndex, csmFloat32 value) const;
+
+    /**
+     * Returns the result of clamping the value to ensure it falls within the parameter's range.
+     *
+     * @param parameterIndex Parameter index
+     * @param value Parameter value
+     *
+     * @return the clamped value. If the parameter does not exist, returns it as is.
+     */
+    csmFloat32 GetParameterClampValue(csmInt32 parameterIndex, csmFloat32 value) const;
+
+    /**
+     * Returns the repeat of the parameter.
+     *
+     * @param parameterIndex Parameter index
+     *
+     * @return the raw data parameter repeat from the Cubism Core.
+     */
+    csmBool GetParameterRepeats(csmUint32 parameterIndex) const;
 
     /**
      * Adds to the value of the parameter.
@@ -696,35 +775,120 @@ public:
     void SetPartScreenColor(csmInt32 partIndex, csmFloat32 r, csmFloat32 g, csmFloat32 b, csmFloat32 a = 1.0f);
 
     /**
+     * Checks whether parameter repetition is performed for the entire model.
+     *
+     * @return true if parameter repetition is performed for the entire model; otherwise returns false.
+     */
+    csmBool GetOverrideFlagForModelParameterRepeat() const;
+
+    /**
+     * Sets whether parameter repetition is performed for the entire model.
+     * Use true to perform parameter repetition for the entire model, or false to not perform it.
+     */
+    void SetOverrideFlagForModelParameterRepeat(csmBool isRepeat);
+
+    /**
+     * Returns the flag indicating whether to override the parameter repeat.
+     *
+     * @param parameterIndex Parameter index
+     *
+     * @return true if the parameter repeat is overridden, false otherwise.
+     */
+    csmBool GetOverrideFlagForParameterRepeat(csmInt32 parameterIndex) const;
+
+    /**
+     * Sets the flag indicating whether to override the parameter repeat.
+     *
+     * @param parameterIndex Parameter index
+     * @param value true if it is to be overridden; otherwise, false.
+     */
+    void SetOverrideFlagForParameterRepeat(csmInt32 parameterIndex, csmBool value);
+
+    /**
+     * Returns the repeat flag.
+     *
+     * @param parameterIndex Parameter index
+     *
+     * @return true if repeating, false otherwise.
+     */
+    csmBool GetRepeatFlagForParameterRepeat(csmInt32 parameterIndex) const;
+
+    /**
+     * Sets the repeat flag.
+     *
+     * @param parameterIndex Parameter index
+     * @param value true to enable repeating, false otherwise.
+     */
+    void SetRepeatFlagForParameterRepeat(csmInt32 parameterIndex, csmBool value);
+
+    /**
      * Returns the flag indicating whether the color set at runtime is used as the multiply color for the entire model during rendering.
+     *
+     * @deprecated This function is deprecated due to a naming change, use GetOverrideFlagForModelMultiplyColors instead.
      *
      * @return true if the color set at runtime is used; otherwise false.
      */
     csmBool GetOverwriteFlagForModelMultiplyColors() const;
 
     /**
+     * Returns the flag indicating whether the color set at runtime is used as the multiply color for the entire model during rendering.
+     *
+     * @return true if the color set at runtime is used; otherwise false.
+     */
+    csmBool GetOverrideFlagForModelMultiplyColors() const;
+
+    /**
      * Returns the flag indicating whether the color set at runtime is used as the screen color for the entire model during rendering.
+     *
+     * @deprecated This function is deprecated due to a naming change, use GetOverrideFlagForModelScreenColors instead.
      *
      * @return true if the color set at runtime is used; otherwise false.
      */
     csmBool GetOverwriteFlagForModelScreenColors() const;
 
     /**
+     * Returns the flag indicating whether the color set at runtime is used as the screen color for the entire model during rendering.
+     *
+     * @return true if the color set at runtime is used; otherwise false.
+     */
+    csmBool GetOverrideFlagForModelScreenColors() const;
+
+    /**
      * Sets the flag indicating whether the color set at runtime is used as the multiply color for the entire model during rendering.
+     *
+     * @deprecated This function is deprecated due to a naming change, use SetOverrideFlagForModelMultiplyColors instead.
      *
      * @param value true if the color set at runtime is to be used; otherwise false.
      */
     void SetOverwriteFlagForModelMultiplyColors(csmBool value);
 
     /**
+     * Sets the flag indicating whether the color set at runtime is used as the multiply color for the entire model during rendering.
+     *
+     * @param value true if the color set at runtime is to be used; otherwise false.
+     */
+    void SetOverrideFlagForModelMultiplyColors(csmBool value);
+
+    /**
      * Sets the flag indicating whether the color set at runtime is used as the screen color for the entire model during rendering.
+     *
+     * @deprecated This function is deprecated due to a naming change, use SetOverrideFlagForModelScreenColors instead.
      *
      * @param value true if the color set at runtime is to be used; otherwise false.
      */
     void SetOverwriteFlagForModelScreenColors(csmBool value);
 
     /**
+     * Sets the flag indicating whether the color set at runtime is used as the screen color for the entire model during rendering.
+     *
+     * @param value true if the color set at runtime is to be used; otherwise false.
+     */
+    void SetOverrideFlagForModelScreenColors(csmBool value);
+
+    /**
      * Returns the flag indicating whether the color set at runtime is used as the multiply color for the drawable during rendering.
+     *
+     * @deprecated This function is deprecated due to a naming change, use GetOverrideFlagForDrawableMultiplyColors instead.
      *
      * @param drawableIndex Drawable index
      *
@@ -733,7 +897,18 @@ public:
     csmBool GetOverwriteFlagForDrawableMultiplyColors(csmInt32 drawableIndex) const;
 
     /**
+     * Returns the flag indicating whether the color set at runtime is used as the multiply color for the drawable during rendering.
+     *
+     * @param drawableIndex Drawable index
+     *
+     * @return true if the color set at runtime is used; otherwise false.
+     */
+    csmBool GetOverrideFlagForDrawableMultiplyColors(csmInt32 drawableIndex) const;
+
+    /**
      * Returns the flag indicating whether the color set at runtime is used as the screen color for the drawable during rendering.
+     *
+     * @deprecated This function is deprecated due to a naming change, use GetOverrideFlagForDrawableScreenColors instead.
      *
      * @param drawableIndex Drawable index
      *
@@ -742,7 +917,18 @@ public:
     csmBool GetOverwriteFlagForDrawableScreenColors(csmInt32 drawableIndex) const;
 
     /**
+     * Returns the flag indicating whether the color set at runtime is used as the screen color for the drawable during rendering.
+     *
+     * @param drawableIndex Drawable index
+     *
+     * @return true if the color set at runtime is used; otherwise false.
+     */
+    csmBool GetOverrideFlagForDrawableScreenColors(csmInt32 drawableIndex) const;
+
+    /**
      * Sets the flag indicating whether the color set at runtime is used as the multiply color for the drawable during rendering.
+     *
+     * @deprecated This function is deprecated due to a naming change, use SetOverrideFlagForDrawableMultiplyColors instead.
      *
      * @param drawableIndex Drawable index
      * @param value true if the color set at runtime is to be used; otherwise false.
@@ -750,7 +936,17 @@ public:
     void SetOverwriteFlagForDrawableMultiplyColors(csmUint32 drawableIndex, csmBool value);
 
     /**
+     * Sets the flag indicating whether the color set at runtime is used as the multiply color for the drawable during rendering.
+     *
+     * @param drawableIndex Drawable index
+     * @param value true if the color set at runtime is to be used; otherwise false.
+     */
+    void SetOverrideFlagForDrawableMultiplyColors(csmUint32 drawableIndex, csmBool value);
+
+    /**
      * Sets the flag indicating whether the color set at runtime is used as the screen color for the drawable during rendering.
+     *
+     * @deprecated This function is deprecated due to a naming change, use SetOverrideFlagForDrawableScreenColors instead.
      *
      * @param drawableIndex Drawable index
      * @param value true if the color set at runtime is to be used; otherwise false.
@@ -758,30 +954,72 @@ public:
     void SetOverwriteFlagForDrawableScreenColors(csmUint32 drawableIndex, csmBool value);
 
     /**
+     * Sets the flag indicating whether the color set at runtime is used as the screen color for the drawable during rendering.
+     *
+     * @param drawableIndex Drawable index
+     * @param value true if the color set at runtime is to be used; otherwise false.
+     */
+    void SetOverrideFlagForDrawableScreenColors(csmUint32 drawableIndex, csmBool value);
+
+    /**
      * Checks whether the part multiply color is overridden by the SDK.
+     *
+     * @deprecated This function is deprecated due to a naming change, use GetOverrideColorForPartMultiplyColors instead.
      *
      * @return true if the color information from the SDK is used; otherwise false.
      */
     csmBool GetOverwriteColorForPartMultiplyColors(csmInt32 partIndex) const;
 
     /**
+     * Checks whether the part multiply color is overridden by the SDK.
+     *
+     * @return true if the color information from the SDK is used; otherwise false.
+     */
+    csmBool GetOverrideColorForPartMultiplyColors(csmInt32 partIndex) const;
+
+    /**
      * Checks whether the part screen color is overridden by the SDK.
+     *
+     * @deprecated This function is deprecated due to a naming change, use GetOverrideColorForPartScreenColors instead.
      *
      * @return true if the color information from the SDK is used; otherwise false.
      */
     csmBool GetOverwriteColorForPartScreenColors(csmInt32 partIndex) const;
 
     /**
+     * Checks whether the part screen color is overridden by the SDK.
+     *
+     * @return true if the color information from the SDK is used; otherwise false.
+     */
+    csmBool GetOverrideColorForPartScreenColors(csmInt32 partIndex) const;
+
+    /**
+     * Sets whether the part multiply color is overridden by the SDK.
+     * Use true to use the color information from the SDK, or false to use the color information from the model.
+     *
+     * @deprecated This function is deprecated due to a naming change, use SetOverrideColorForPartMultiplyColors instead.
+     */
+    void SetOverwriteColorForPartMultiplyColors(csmUint32 partIndex, csmBool value);
+
+    /**
      * Sets whether the part multiply color is overridden by the SDK.
      * Use true to use the color information from the SDK, or false to use the color information from the model.
      */
-    void SetOverwriteColorForPartMultiplyColors(csmUint32 partIndex, csmBool value);
+    void SetOverrideColorForPartMultiplyColors(csmUint32 partIndex, csmBool value);
+
+    /**
+     * Sets whether the part screen color is overridden by the SDK.
+     * Use true to use the color information from the SDK, or false to use the color information from the model.
+     *
+     * @deprecated This function is deprecated due to a naming change, use SetOverrideColorForPartScreenColors instead.
+     */
+    void SetOverwriteColorForPartScreenColors(csmUint32 partIndex, csmBool value);
 
     /**
      * Sets whether the part screen color is overridden by the SDK.
      * Use true to use the color information from the SDK, or false to use the color information from the model.
      */
-    void SetOverwriteColorForPartScreenColors(csmUint32 partIndex, csmBool value);
+    void SetOverrideColorForPartScreenColors(csmUint32 partIndex, csmBool value);
 
     /**
      * Returns the culling information of the drawable.
@@ -800,28 +1038,62 @@ public:
     /**
      * Checks whether the culling settings for the entire model are overridden by the SDK.
      *
+     * @deprecated This function is deprecated due to a naming change, use GetOverwriteFlagForModelCullings instead.
+     *
      * @return true if the culling settings from the SDK are used; otherwise false.
      */
     csmBool GetOverwriteFlagForModelCullings() const;
 
     /**
+     * Checks whether the culling settings for the entire model are overridden by the SDK.
+     *
+     * @return true if the culling settings from the SDK are used; otherwise false.
+     */
+    csmBool GetOverrideFlagForModelCullings() const;
+
+    /**
      * Sets whether the culling settings for the entire model are overridden by the SDK.
      * Use true to use the culling settings from the SDK, or false to use the culling settings from the model.
+     *
+     * @deprecated This function is deprecated due to a naming change, use SetOverrideFlagForModelCullings instead.
      */
     void SetOverwriteFlagForModelCullings(csmBool value);
 
     /**
+     * Sets whether the culling settings for the entire model are overridden by the SDK.
+     * Use true to use the culling settings from the SDK, or false to use the culling settings from the model.
+     */
+    void SetOverrideFlagForModelCullings(csmBool value);
+
+    /**
      * Checks whether the culling settings for the drawable are overridden by the SDK.
+     *
+     * @deprecated This function is deprecated due to a naming change, use GetOverrideFlagForDrawableCullings instead.
      *
      * @return true if the culling settings from the SDK are used; otherwise false.
      */
     csmBool GetOverwriteFlagForDrawableCullings(csmInt32 drawableIndex) const;
 
     /**
+     * Checks whether the culling settings for the drawable are overridden by the SDK.
+     *
+     * @return true if the culling settings from the SDK are used; otherwise false.
+     */
+    csmBool GetOverrideFlagForDrawableCullings(csmInt32 drawableIndex) const;
+
+    /**
+     * Sets whether the culling settings for the drawable are overridden by the SDK.
+     * Use true to use the culling settings from the SDK, or false to use the culling settings from the model.
+     *
+     * @deprecated This function is deprecated due to a naming change, use SetOverrideFlagForDrawableCullings instead.
+     */
+    void SetOverwriteFlagForDrawableCullings(csmUint32 drawableIndex, csmBool value);
+
+    /**
      * Sets whether the culling settings for the drawable are overridden by the SDK.
      * Use true to use the culling settings from the SDK, or false to use the culling settings from the model.
      */
-    void SetOverwriteFlagForDrawableCullings(csmUint32 drawableIndex, csmBool value);
+    void SetOverrideFlagForDrawableCullings(csmUint32 drawableIndex, csmBool value);
 
     /**
      * Returns the opacity of the model.
@@ -855,7 +1127,7 @@ private:
         csmVector<PartColorData>& partColors,
         csmVector <DrawableColorData>& drawableColors);
 
-    void SetOverwriteColorForPartColors(
+    void SetOverrideColorForPartColors(
         csmUint32 partIndex,
         csmBool value,
         csmVector<CubismModel::PartColorData>& partColors,
@@ -882,15 +1154,17 @@ private:
     csmVector<CubismIdHandle> _parameterIds;
     csmVector<CubismIdHandle> _partIds;
     csmVector<CubismIdHandle> _drawableIds;
+    csmVector<ParameterRepeatData> _userParameterRepeatDataList;
     csmVector<DrawableColorData> _userScreenColors;
     csmVector<DrawableColorData> _userMultiplyColors;
     csmVector<DrawableCullingData> _userCullings;
     csmVector<PartColorData> _userPartScreenColors;
     csmVector<PartColorData> _userPartMultiplyColors;
     csmVector<csmVector<csmUint32> > _partChildDrawables;
-    csmBool _isOverwrittenModelMultiplyColors;
-    csmBool _isOverwrittenModelScreenColors;
-    csmBool _isOverwrittenCullings;
+    csmBool _isOverriddenParameterRepeat;
+    csmBool _isOverriddenModelMultiplyColors;
+    csmBool _isOverriddenModelScreenColors;
+    csmBool _isOverriddenCullings;
 };
 
 }}}

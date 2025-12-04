@@ -40,6 +40,7 @@ if(APPLE)
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${Wrapper}> ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/${OUTPUT_NAME}
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/Live2D/Framework/src/Rendering/OpenGL/Shaders/Standard ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/FrameworkShaders
   )
 else()
   add_custom_command(
@@ -47,6 +48,9 @@ else()
     POST_BUILD
     COMMAND
       ${CMAKE_COMMAND} -E
-        copy $<TARGET_FILE_DIR:${Wrapper}>/${MODULE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/${OUTPUT_NAME}
+        copy $<TARGET_FILE:${Wrapper}> ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/${OUTPUT_NAME}
+    COMMAND
+      ${CMAKE_COMMAND} -E
+        copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/Live2D/Framework/src/Rendering/OpenGL/Shaders/Standard ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/FrameworkShaders
   )
 endif()

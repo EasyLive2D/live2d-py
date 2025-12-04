@@ -63,9 +63,7 @@ CubismMotionQueueEntryHandle CubismMotionQueueManager::StartMotion(ACubismMotion
 
 CubismMotionQueueEntryHandle CubismMotionQueueManager::StartMotion(ACubismMotion* motion, csmBool autoDelete, csmFloat32 userTimeSeconds)
 {
-#if _DEBUG
     CubismLogWarning("StartMotion(ACubismMotion* motion, csmBool autoDelete, csmFloat32 userTimeSeconds) is a deprecated function. Please use StartMotion(ACubismMotion* motion, csmBool autoDelete).");
-#endif
 
     if (motion == NULL)
     {

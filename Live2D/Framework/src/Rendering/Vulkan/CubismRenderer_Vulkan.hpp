@@ -204,10 +204,13 @@ public:
          * @param[in]   fragFileName        ->  Fragmentシェーダーのファイル
          * @param[in]   descriptorSetLayout ->  ディスクリプタセットレイアウト
          */
-        void CreateGraphicsPipeline(std::string vertFileName, std::string fragFileName,
+        bool CreateGraphicsPipeline(std::string vertFileName, std::string fragFileName,
                                     VkDescriptorSetLayout descriptorSetLayout);
         void Release();
-        VkPipeline GetPipeline(csmInt32 index) { return _pipeline[index]; }
+        VkPipeline GetPipeline(csmInt32 index)
+        {
+             return _pipeline[index];
+        }
         VkPipelineLayout GetPipelineLayout(csmInt32 index) { return _pipelineLayout[index]; }
 
     private:
@@ -232,6 +235,10 @@ public:
      */
     VkPipeline GetPipeline(csmInt32 shaderIndex, csmInt32 blendIndex)
     {
+        if(_pipelineResource[shaderIndex] == NULL)
+        {
+            return NULL;
+        }
         return _pipelineResource[shaderIndex]->GetPipeline(blendIndex);
     }
 
@@ -245,6 +252,10 @@ public:
      */
     VkPipelineLayout GetPipelineLayout(csmInt32 shaderIndex, csmInt32 blendIndex)
     {
+        if(_pipelineResource[shaderIndex] == NULL)
+        {
+            return NULL;
+        }
         return _pipelineResource[shaderIndex]->GetPipelineLayout(blendIndex);
     }
 

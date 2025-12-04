@@ -19,3 +19,9 @@ class HitArea:
 
 
 LIVE2D_VERSION = 3
+
+
+def init():
+    import os
+    __cd = os.path.split(__file__)[0]
+    init_internal(str(__cd))

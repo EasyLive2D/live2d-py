@@ -361,7 +361,7 @@ private:
      * @param[in]   model       ->  描画対象のモデル
      * @param[in]   index       ->  描画対象のインデックス
      */
-    void SetShader(const CubismModel& model, const csmInt32 index);
+    Csm::csmBool SetShader(const CubismModel& model, const csmInt32 index);
 
     /**
      * @brief  描画に使用するテクスチャを設定する。

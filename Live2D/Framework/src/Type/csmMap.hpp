@@ -205,7 +205,7 @@ public:
      * @retval  true    ->  引数で渡したKeyを持つ要素が存在する
      * @retval  false   ->  引数で渡したKeyを持つ要素が存在しない
      */
-    csmBool IsExist(_KeyT key)
+    csmBool IsExist(_KeyT key) const
     {
         for (csmInt32 i = 0; i < _size; i++)
         {

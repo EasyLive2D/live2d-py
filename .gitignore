@@ -62,3 +62,5 @@ package/test*.py
 .DS_Store
 
 Live2D/Core
+
+csmsdk_temp

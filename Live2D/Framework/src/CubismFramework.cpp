@@ -213,6 +213,16 @@ CubismFramework::Option::LogLevel CubismFramework::GetLoggingLevel()
     return Option::LogLevel_Off;
 }
 
+csmLoadFileFunction CubismFramework::GetLoadFileFunction()
+{
+    return s_option->LoadFileFunction;
+}
+
+csmReleaseBytesFunction CubismFramework::GetReleaseBytesFunction()
+{
+    return s_option->ReleaseBytesFunction;
+}
+
 CubismIdManager* CubismFramework::GetIdManager()
 {
     return s_cubismIdManager;

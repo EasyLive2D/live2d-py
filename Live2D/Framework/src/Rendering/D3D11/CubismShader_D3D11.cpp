@@ -13,136 +13,11 @@
 //------------ LIVE2D NAMESPACE ------------
 namespace Live2D { namespace Cubism { namespace Framework { namespace Rendering {
 
-static const csmChar* CubismShaderEffectSrc =
-    "cbuffer ConstantBuffer {"\
-        "float4x4 projectMatrix;"\
-        "float4x4 clipMatrix;"\
-        "float4 baseColor;"\
-        "float4 multiplyColor;"\
-        "float4 screenColor;"\
-        "float4 channelFlag;"\
-    "}"\
-    "Texture2D mainTexture : register(t0);"\
-    "SamplerState mainSampler : register(s0);"\
-    "Texture2D maskTexture : register(t1);"\
-    \
-    "struct VS_IN {"\
-        "float2 pos : POSITION;"\
-        "float2 uv : TEXCOORD0;"\
-    "};"\
-    "struct VS_OUT {"\
-        "float4 Position : SV_POSITION;"\
-        "float2 uv : TEXCOORD0;"\
-        "float4 clipPosition : TEXCOORD1;"\
-    "};"\
-    \
-"/* Setup mask shader */"\
-    "VS_OUT VertSetupMask(VS_IN In) {"\
-        "VS_OUT Out = (VS_OUT)0;"\
-        "Out.Position = mul(float4(In.pos, 0.0f, 1.0f), projectMatrix);"\
-        "Out.clipPosition = mul(float4(In.pos, 0.0f, 1.0f), projectMatrix);"\
-        "Out.uv.x = In.uv.x;"\
-        "Out.uv.y = 1.0f - +In.uv.y;"\
-        "return Out;"\
-    "}"\
-    "float4 PixelSetupMask(VS_OUT In) : SV_Target{"\
-        "float isInside ="\
-        "step(baseColor.x, In.clipPosition.x / In.clipPosition.w)"\
-        "* step(baseColor.y, In.clipPosition.y / In.clipPosition.w)"\
-        "* step(In.clipPosition.x / In.clipPosition.w, baseColor.z)"\
-        "* step(In.clipPosition.y / In.clipPosition.w, baseColor.w);"\
-        "return channelFlag * mainTexture.Sample(mainSampler, In.uv).a * isInside;"\
-    "}"\
-    \
-"/* Vertex Shader */"\
-    "/* normal */"\
-    "VS_OUT VertNormal(VS_IN In) {"\
-        "VS_OUT Out = (VS_OUT)0;"\
-        "Out.Position = mul(float4(In.pos, 0.0f, 1.0f), projectMatrix);"\
-        "Out.uv.x = In.uv.x;"\
-        "Out.uv.y = 1.0f - +In.uv.y;"\
-        "return Out;"\
-    "}"\
-    "/* masked */"\
-    "VS_OUT VertMasked(VS_IN In) {"\
-        "VS_OUT Out = (VS_OUT)0;"\
-        "Out.Position = mul(float4(In.pos, 0.0f, 1.0f), projectMatrix);"\
-        "Out.clipPosition = mul(float4(In.pos, 0.0f, 1.0f), clipMatrix);"\
-        "Out.uv.x = In.uv.x;"\
-        "Out.uv.y = 1.0f - In.uv.y;"\
-        "return Out;"\
-    "}"\
-    \
-"/* Pixel Shader */"\
-    "/* normal */"\
-    "float4 PixelNormal(VS_OUT In) : SV_Target{"\
-        "float4 texColor = mainTexture.Sample(mainSampler, In.uv);"\
-        "texColor.rgb = texColor.rgb * multiplyColor.rgb;"\
-        "texColor.rgb = (texColor.rgb + screenColor.rgb) - (texColor.rgb * screenColor.rgb);"\
-        "float4 color = texColor * baseColor;"\
-        "color.xyz *= color.w;"\
-        "return color;"\
-    "}"\
-    \
-    "/* normal premult alpha */"\
-    "float4 PixelNormalPremult(VS_OUT In) : SV_Target{"\
-        "float4 texColor = mainTexture.Sample(mainSampler, In.uv);"\
-        "texColor.rgb = texColor.rgb * multiplyColor.rgb;"\
-        "texColor.rgb = (texColor.rgb + screenColor.rgb * texColor.a) - (texColor.rgb * screenColor.rgb);"\
-        "float4 color = texColor * baseColor;"\
-        "return color;"\
-    "}"\
-    \
-    "/* masked */\n"\
-    "float4 PixelMasked(VS_OUT In) : SV_Target{\n"\
-        "float4 texColor = mainTexture.Sample(mainSampler, In.uv);"\
-        "texColor.rgb = texColor.rgb * multiplyColor.rgb;"\
-        "texColor.rgb = (texColor.rgb + screenColor.rgb) - (texColor.rgb * screenColor.rgb);"\
-        "float4 color = texColor * baseColor;"\
-        "color.xyz *= color.w;\n"\
-        "float4 clipMask = (1.0f - maskTexture.Sample(mainSampler, In.clipPosition.xy / In.clipPosition.w)) * channelFlag;\n"\
-        "float maskVal = clipMask.r + clipMask.g + clipMask.b + clipMask.a;\n"\
-        "color = color * maskVal;\n"\
-        "return color;\n"\
-    "}"\
-    "/* masked inverted*/\n"\
-    "float4 PixelMaskedInverted(VS_OUT In) : SV_Target{\n"\
-        "float4 texColor = mainTexture.Sample(mainSampler, In.uv);"\
-        "texColor.rgb = texColor.rgb * multiplyColor.rgb;"\
-        "texColor.rgb = (texColor.rgb + screenColor.rgb) - (texColor.rgb * screenColor.rgb);"\
-        "float4 color = texColor * baseColor;"\
-        "color.xyz *= color.w;\n"\
-        "float4 clipMask = (1.0f - maskTexture.Sample(mainSampler, In.clipPosition.xy / In.clipPosition.w)) * channelFlag;\n"\
-        "float maskVal = clipMask.r + clipMask.g + clipMask.b + clipMask.a;\n"\
-        "color = color * (1.0f - maskVal);\n"\
-        "return color;\n"\
-    "}"\
-    "/* masked premult alpha */\n"\
-    "float4 PixelMaskedPremult(VS_OUT In) : SV_Target{\n"\
-        "float4 texColor = mainTexture.Sample(mainSampler, In.uv);"\
-        "texColor.rgb = texColor.rgb * multiplyColor.rgb;"\
-        "texColor.rgb = (texColor.rgb + screenColor.rgb * texColor.a) - (texColor.rgb * screenColor.rgb);"\
-        "float4 color = texColor * baseColor;\n"\
-        "float4 clipMask = (1.0f - maskTexture.Sample(mainSampler, In.clipPosition.xy / In.clipPosition.w)) * channelFlag;\n"\
-        "float maskVal = clipMask.r + clipMask.g + clipMask.b + clipMask.a;\n"\
-        "color = color * maskVal;\n"\
-        "return color;\n"\
-    "}"\
-    "/* masked inverted premult alpha */\n"\
-    "float4 PixelMaskedInvertedPremult(VS_OUT In) : SV_Target{\n"\
-        "float4 texColor = mainTexture.Sample(mainSampler, In.uv);"\
-        "texColor.rgb = texColor.rgb * multiplyColor.rgb;"\
-        "texColor.rgb = (texColor.rgb + screenColor.rgb * texColor.a) - (texColor.rgb * screenColor.rgb);"\
-        "float4 color = texColor * baseColor;\n"\
-        "float4 clipMask = (1.0f - maskTexture.Sample(mainSampler, In.clipPosition.xy / In.clipPosition.w)) * channelFlag;\n"\
-        "float maskVal = clipMask.r + clipMask.g + clipMask.b + clipMask.a;\n"\
-        "color = color * (1.0f - maskVal);\n"\
-        "return color;\n"\
-    "}\n";
-
-
 void CubismShader_D3D11::ReleaseShaderProgram()
 {
+    // シェーダーソースコード開放
+    _shaderSrc.Clear();
+
     // 頂点レイアウト開放
     if (_vertexFormat)
     {
@@ -201,6 +76,41 @@ void CubismShader_D3D11::GenerateShaders(ID3D11Device* device)
     csmBool isSuccess = false;
     do
     {
+        // シェーダーソースコードが記述されているファイルを読み込み
+        const csmChar* frameworkShaderPath = "FrameworkShaders/CubismEffect.fx";
+        csmLoadFileFunction fileLoader = Csm::CubismFramework::GetLoadFileFunction();
+        csmReleaseBytesFunction bytesReleaser = Csm::CubismFramework::GetReleaseBytesFunction();
+
+        if (!fileLoader)
+        {
+            CubismLogError("File loader is not set.");
+            break;
+        }
+
+        if (!bytesReleaser)
+        {
+            CubismLogError("Byte releaser is not set.");
+            break;
+        }
+
+        csmSizeInt shaderSize;
+        csmByte* shaderSrc = fileLoader(frameworkShaderPath, &shaderSize);
+        if (shaderSrc == NULL)
+        {
+            CubismLogError("Failed to load shader");
+            break;
+        }
+        csmString shaderString = csmString(reinterpret_cast<const csmChar*>(shaderSrc), shaderSize);
+
+        _shaderSrc.Clear();
+        for (csmInt32 i = 0; i < shaderString.GetLength(); i++)
+        {
+            _shaderSrc.PushBack(shaderString.GetRawString()[i]);
+        }
+
+        // ファイル読み込みで確保したバイト列を開放
+        bytesReleaser(shaderSrc);
+
         // マスク
         if(!LoadShaderProgram(device, false, ShaderNames_SetupMask, static_cast<const csmChar*>("VertSetupMask")))
         {
@@ -270,8 +180,8 @@ void CubismShader_D3D11::GenerateShaders(ID3D11Device* device)
     ID3DBlob* layoutError = NULL;
     ID3DBlob* layoutBlobr = NULL;
     HRESULT hr = D3DCompile(
-        CubismShaderEffectSrc,              // メモリー内のシェーダーへのポインターです。
-        strlen(CubismShaderEffectSrc),      // メモリー内のシェーダーのサイズです。
+        _shaderSrc.GetPtr(),                // メモリー内のシェーダーへのポインターです。
+        _shaderSrc.GetSize(),               // メモリー内のシェーダーのサイズです。
         NULL,                               // シェーダー コードが格納されているファイルの名前です。
         NULL,                               // マクロ定義の配列へのポインターです
         NULL,                               // インクルード ファイルを扱うインターフェイスへのポインターです
@@ -333,8 +243,8 @@ Csm::csmBool CubismShader_D3D11::LoadShaderProgram(ID3D11Device* device, bool is
 #endif
 
         hr = D3DCompile(
-            CubismShaderEffectSrc,              // メモリー内のシェーダーへのポインターです。
-            strlen(CubismShaderEffectSrc),      // メモリー内のシェーダーのサイズです。
+            _shaderSrc.GetPtr(),                // メモリー内のシェーダーへのポインターです。
+            _shaderSrc.GetSize(),               // メモリー内のシェーダーのサイズです。
             NULL,                               // シェーダー コードが格納されているファイルの名前です。
             NULL,                               // マクロ定義の配列へのポインターです
             NULL,                               // インクルード ファイルを扱うインターフェイスへのポインターです
@@ -405,8 +315,10 @@ void CubismShader_D3D11::SetupShader(ID3D11Device* device, ID3D11DeviceContext* 
 {
     // まだシェーダ・頂点宣言未作成ならば作成する
     GenerateShaders(device);
-
-    if (!renderContext || !_vertexFormat) return;
+    if (!renderContext || !_vertexFormat)
+    {
+        return;
+    }
 
     renderContext->IASetInputLayout(_vertexFormat);
 }

@@ -130,6 +130,16 @@ private:
     void GenerateShaders();
 
     /**
+     * @brief   ファイルからシェーダプログラムをロードし、シェーダーオブジェクトの番号を返す。
+     *
+     * @param[in]   vertShaderSrc   ->  頂点シェーダのファイルパス
+     * @param[in]   fragShaderSrc   ->  フラグメントシェーダのファイルパス
+     *
+     * @return  シェーダーオブジェクトの番号
+     */
+    GLuint LoadShaderProgramFromFile(const csmChar* vertShaderPath, const csmChar* fragShaderPath);
+
+    /**
      * @brief   シェーダプログラムをロードしてアドレス返す。
      *
      * @param[in]   vertShaderSrc   ->  頂点シェーダのソース
