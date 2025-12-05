@@ -89,7 +89,8 @@ class FakeExtension(Extension):
 class CMakeBuild(build_ext):
 
     def run(self):
-        download_csmsdk.execute_download()
+        if not download_csmsdk.execute_download():
+            raise RuntimeError("Download failed.")
         run_cmake()
 
 

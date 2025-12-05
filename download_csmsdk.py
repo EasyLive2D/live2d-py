@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Live2D Cubism Core Auto-Download Script
 Purpose: Compliantly acquire the Live2D Cubism Core library (distribution prohibited by Live2D's official terms)
@@ -136,13 +134,13 @@ def clean_temp_files(temp_path):
     os.remove(temp_path)
 
 
-def execute_download():
+def execute_download() -> bool:
     import build_config
 
     print("[download_csmsdk] Download start.")
     print_disclaimer()
+    success = False
     if not os.path.exists(TEMP_ZIP_PATH):
-        success = False
         try:
             download_sdk(build_config.CUBISM_SDK_DISTRIBUTION, TEMP_ZIP_PATH)
             print("[download_csmsdk] Download success.")
@@ -156,5 +154,7 @@ def execute_download():
             setup_directory()
     else:
         print("[download_csmsdk] Already downloaded.")
+        extract_all(TEMP_ZIP_PATH, EXTRACT_DIR)
+        setup_directory()
     print("[download_csmsdk] Download end.")
-    
+    return success
