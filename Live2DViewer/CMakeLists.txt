@@ -92,6 +92,8 @@ if(WIN32)
             if not exist ${MARKER} (${WINDEPLOYQT_EXECUTABLE} $<TARGET_FILE:Live2DViewer> && echo done. > ${MARKER}) else (echo deployed)
         COMMAND
         ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/moeroid.ico $<TARGET_FILE_DIR:Live2DViewer>/moeroid.ico
+        COMMAND 
+        ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/../Live2D/Framework/src/Rendering/OpenGL/Shaders/Standard $<TARGET_FILE_DIR:Live2DViewer>/FrameworkShaders
     )
 else()
     # Linux deployment - just copy the icon
@@ -100,6 +102,8 @@ else()
         POST_BUILD
         COMMAND
         ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/moeroid.ico $<TARGET_FILE_DIR:Live2DViewer>/moeroid.ico
+        COMMAND 
+        ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/../Live2D/Framework/src/Rendering/OpenGL/Shaders/Standard $<TARGET_FILE_DIR:Live2DViewer>/FrameworkShaders
     )
 endif()
 

@@ -34,23 +34,12 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
   set(OUTPUT_NAME live2d.so)
 endif()
 
-if(APPLE)
-  add_custom_command(
-    TARGET ${Wrapper}
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${Wrapper}> ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/${OUTPUT_NAME}
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/Live2D/Framework/src/Rendering/OpenGL/Shaders/Standard ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/FrameworkShaders
-  )
-else()
-  add_custom_command(
-    TARGET ${Wrapper}
-    POST_BUILD
-    COMMAND
-      ${CMAKE_COMMAND} -E
-        copy $<TARGET_FILE:${Wrapper}> ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/${OUTPUT_NAME}
-    COMMAND
-      ${CMAKE_COMMAND} -E
-        copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/Live2D/Framework/src/Rendering/OpenGL/Shaders/Standard ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/FrameworkShaders
-  )
-endif()
+
+add_custom_command(
+  TARGET ${Wrapper}
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3
+  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${Wrapper}> ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/${OUTPUT_NAME}
+  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/Live2D/Framework/src/Rendering/OpenGL/Shaders/Standard ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/FrameworkShaders
+)
+

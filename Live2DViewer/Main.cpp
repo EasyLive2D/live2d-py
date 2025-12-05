@@ -2,6 +2,7 @@
 #include <QTranslator>
 #include <QLocale>
 #include <QLibraryInfo>
+#include <QDir>
 
 #include "MainWindow.hpp"
 
@@ -25,11 +26,15 @@ int main(int argc, char *argv[])
 
     option.LogFunction = LAppPal::PrintLn;
     option.LoggingLevel = Csm::CubismFramework::Option::LogLevel_Verbose;
+    option.LoadFileFunction = LAppPal::LoadFileAsBytes;
+    option.ReleaseBytesFunction = LAppPal::ReleaseBytes;
 
     Csm::CubismFramework::StartUp(&allocator, &option);
     Csm::CubismFramework::Initialize();
 
     QApplication app(argc, argv);
+
+    LAppPal::InitShaderDir(QDir::current().absolutePath().toStdString());
 
     // Set up translations
     QTranslator translator;
