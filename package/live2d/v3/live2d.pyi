@@ -2,6 +2,14 @@ from typing import Any
 from .params import Parameter
 from typing import Callable
 
+
+class Live2DLogLevels:
+    LV_DEBUG: int = 0
+    LV_INFO: int = 0
+    LV_WARN: int = 0
+    LV_ERROR: int = 0
+
+
 def init() -> None:
     """
     initialize inner memory allocator for live2d models
@@ -16,17 +24,12 @@ def dispose() -> None:
     ...
 
 
-def glewInit() -> None:
-    """
-    initialize inner opengl functions
-    """
-    ...
-
 def glInit() -> None:
     """
     initialize inner opengl functions
     """
     ...
+
 
 def glRelease() -> None:
     """
@@ -35,6 +38,7 @@ def glRelease() -> None:
     should be called when opengl context is active and is about to be destroyed
     """
     ...
+
 
 def clearBuffer(r=0.0, g=0.0, b=0.0, a=0.0) -> None:
     """
@@ -47,11 +51,19 @@ def clearBuffer(r=0.0, g=0.0, b=0.0, a=0.0) -> None:
     ...
 
 
-def setLogEnable(enable: bool):
+def enableLog(enable: bool):
     ...
 
 
-def logEnable() -> bool:
+def isLogEnabled() -> bool:
+    ...
+
+
+def setLogLevel(level: int):
+    ...
+
+
+def getLogLevel() -> int:
     ...
 
 
