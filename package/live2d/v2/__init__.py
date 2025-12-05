@@ -7,6 +7,13 @@ from .params import Parameter, StandardParams
 from .platform_manager import PlatformManager
 
 
+class Live2DLogLevels:
+    LV_DEBUG: int = 0
+    LV_INFO: int = 0
+    LV_WARN: int = 0
+    LV_ERROR: int = 0
+
+
 def init():
     Live2D.init()
     Live2DFramework.setPlatformManager(PlatformManager())
@@ -17,21 +24,28 @@ def clearBuffer(r=0.0, g=0.0, b=0.0, a=0.0):
     Live2DGLWrapper.clear(Live2DGLWrapper.COLOR_BUFFER_BIT)
 
 
-def setLogEnable(enable: bool):
-    __log.setLogEnable(enable)
+def enableLog(enable: bool):
+    __log.enableLog(enable)
 
 
-def logEnable() -> bool:
-    return __log.logEnable()
+def isLogEnabled() -> bool:
+    return __log.isLogEnabled()
 
 
-def glewInit():
-    pass
+def setLogLevel(level: int):
+    __log.setLogLevel(level)
+
+
+def getLogLevel() -> int:
+    return __log.getLogLevel()
 
 
 def glInit():
     pass
 
+
+def glRelease():
+    pass
 
 def dispose():
     pass
@@ -44,8 +58,13 @@ __all__ = ['LAppModel',
            'MotionGroup',
            "HitArea",
            "StandardParams",
+           "Live2DLogLevels",
            "init",
-           "glewInit",
            "glInit",
+           "isLogEnabled",
+           "enableLog",
+           "setLogLevel",
+           "getLogLevel",
+           "glRelease",
            "clearBuffer",
            "dispose"]

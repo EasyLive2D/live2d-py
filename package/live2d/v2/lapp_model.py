@@ -1,7 +1,7 @@
 import math
 import os.path
 from random import random, choice
-from typing import TYPE_CHECKING, List, Union
+from typing import TYPE_CHECKING, List, Union, Tuple
 
 from .core import UtSystem, log
 from .framework import L2DBaseModel, L2DTargetPoint, L2DEyeBlink
@@ -396,3 +396,17 @@ class LAppModel(L2DBaseModel):
     
     def ResetExpression(self):
         self.expressionManager.stopAllMotions()
+
+    def Rotate(self, deg: float):
+        self.matrixManager.rotate(deg)
+
+    def GetCanvasSize(self) -> Tuple[int, int]:
+        impl = self.live2DModel.getModelImpl()
+        return impl.getCanvasWidth(), impl.getCanvasHeight()
+
+    def GetCanvasSizePixel(self) -> Tuple[int, int]:
+        impl = self.live2DModel.getModelImpl()
+        return impl.getCanvasWidth(), impl.getCanvasHeight()
+
+    def GetPixelsPerUnit(self) -> int:
+        return 1

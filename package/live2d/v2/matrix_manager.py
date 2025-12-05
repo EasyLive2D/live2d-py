@@ -1,10 +1,10 @@
-﻿from typing import Tuple, TYPE_CHECKING
+﻿import math
+from typing import Tuple, TYPE_CHECKING
 
 from .framework import L2DMatrix44
 
 if TYPE_CHECKING:
     from .framework.matrix import L2DModelMatrix
-
 
 
 class MatrixManager:
@@ -14,6 +14,12 @@ class MatrixManager:
         self.__screenToScene = L2DMatrix44()
         self.__ww = 600
         self.__wh = 600
+        self.__rotation = [
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+        ]
         self.__offsetX = 0
         self.__offsetY = 0
         self.__scale = 1
@@ -70,4 +76,14 @@ class MatrixManager:
         self.__projection.translate(self.__offsetX, self.__offsetY)
 
         self.__projection.mul(self.__projection.getArray(), model_matrix.getArray(), self.__projection.getArray())
+        self.__projection.mul(self.__rotation, self.__projection.getArray(), self.__projection.getArray())
         return self.__projection.getArray()
+
+    def rotate(self, deg: float):
+        r = deg / 180.0 * math.pi
+        self.__rotation = [
+            math.cos(r), math.sin(r), 0, 0,
+            -math.sin(r), math.cos(r), 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1,
+        ]
