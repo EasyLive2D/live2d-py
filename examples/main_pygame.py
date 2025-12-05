@@ -20,8 +20,8 @@ from live2d.utils import log
 import resources
 from live2d.utils.lipsync import WavHandler
 
-live2d.setLogEnable(True)
-
+live2d.enableLog(True)
+live2d.setLogLevel(live2d.Live2DLogLevels.LV_DEBUG)
 
 def main():
     pygame.init()
@@ -33,7 +33,7 @@ def main():
     pygame.display.set_caption("pygame window")
 
     if live2d.LIVE2D_VERSION == 3:
-        live2d.glewInit()
+        live2d.glInit()
 
     model = live2d.LAppModel()
 

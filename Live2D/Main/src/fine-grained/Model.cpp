@@ -1120,21 +1120,21 @@ void Model::SetPartOpacity(int index, float opacity)
 void Model::SetPartScreenColor(int index, float r, float g, float b, float a)
 {
     _model->SetPartScreenColor(index, r, g, b, a);
-    if (_model->GetOverwriteColorForPartScreenColors(index))
+    if (_model->GetOverrideColorForPartScreenColors(index))
     {
         return;
     }
-    _model->SetOverwriteColorForPartScreenColors(index, true);
+    _model->SetOverrideColorForPartScreenColors(index, true);
 }
 
 void Model::SetPartMultiplyColor(int index, float r, float g, float b, float a)
 {
     _model->SetPartMultiplyColor(index, r, g, b, a);
-    if (_model->GetOverwriteColorForPartMultiplyColors(index))
+    if (_model->GetOverrideColorForPartMultiplyColors(index))
     {
         return;
     }
-    _model->SetOverwriteColorForPartMultiplyColors(index, true);
+    _model->SetOverrideColorForPartMultiplyColors(index, true);
 }
 
 int Model::GetDrawableCount()
@@ -1178,7 +1178,7 @@ void Model::SetDrawableMultiColor(int index, float r, float g, float b, float a)
     {
         return;
     }
-    _model->SetOverwriteFlagForDrawableMultiplyColors(index, true);
+    _model->SetOverrideFlagForDrawableMultiplyColors(index, true);
     _model->SetMultiplyColor(index, r, g, b, a);
 }
 
@@ -1189,7 +1189,7 @@ void Model::SetDrawableScreenColor(int index, float r, float g, float b, float a
     {
         return;
     }
-    _model->SetOverwriteFlagForDrawableScreenColors(index, true);
+    _model->SetOverrideFlagForDrawableScreenColors(index, true);
     _model->SetScreenColor(index, r, g, b, a);
 }
 

@@ -88,7 +88,7 @@ void LAppPal::interceptShaderLoading(std::string &filePath)
 {
     if (filePath.substr(0, 17) == "FrameworkShaders/") 
     {
-        Info("[Pal] intercept for shader: %s", filePath.c_str());
+        Debug("[Pal] intercept for shader: %s", filePath.c_str());
         filePath = SHADER_DIR + (char)std::filesystem::path::preferred_separator + filePath;
     }
 }

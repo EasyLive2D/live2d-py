@@ -989,11 +989,11 @@ void LAppModel::HitPart(float x, float y, bool topOnly, void *collector, void (*
 void LAppModel::SetPartMultiplyColor(int partNo, float r, float g, float b, float a) const
 {
     _model->SetPartMultiplyColor(partNo, r, g, b, a);
-    if (_model->GetOverwriteColorForPartMultiplyColors(partNo))
+    if (_model->GetOverrideColorForPartMultiplyColors(partNo))
     {
         return;
     }
-    _model->SetOverwriteColorForPartMultiplyColors(partNo, true);
+    _model->SetOverrideColorForPartMultiplyColors(partNo, true);
 }
 
 void LAppModel::GetPartMultiplyColor(int partNo, float &r, float &g, float &b, float &a) const
@@ -1008,11 +1008,11 @@ void LAppModel::GetPartMultiplyColor(int partNo, float &r, float &g, float &b, f
 void LAppModel::SetPartScreenColor(int partNo, float r, float g, float b, float a) const
 {
     _model->SetPartScreenColor(partNo, r, g, b, a);
-    if (_model->GetOverwriteColorForPartScreenColors(partNo))
+    if (_model->GetOverrideColorForPartScreenColors(partNo))
     {
         return;
     }
-    _model->SetOverwriteColorForPartScreenColors(partNo, true);
+    _model->SetOverrideColorForPartScreenColors(partNo, true);
 }
 
 void LAppModel::GetPartScreenColor(int partNo, float &r, float &g, float &b, float &a) const
@@ -1123,7 +1123,7 @@ void LAppModel::SetDrawableMultiplyColor(int index, float r, float g, float b, f
     {
         return;
     }
-    _model->SetOverwriteFlagForDrawableMultiplyColors(index, true);
+    _model->SetOverrideFlagForDrawableMultiplyColors(index, true);
     _model->SetMultiplyColor(index, r, g, b, a);
 }
 
@@ -1134,7 +1134,7 @@ void LAppModel::SetDrawableScreenColor(int index, float r, float g, float b, flo
     {
         return;
     }
-    _model->SetOverwriteFlagForDrawableScreenColors(index, true);
+    _model->SetOverrideFlagForDrawableScreenColors(index, true);
     _model->SetScreenColor(index, r, g, b, a);
 }
 
