@@ -9,6 +9,7 @@ from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.command.bdist_wheel import bdist_wheel
 import build_config
+import download_csmsdk
 
 NAME = "live2d-py"
 VERSION = build_config.VERSION
@@ -88,6 +89,7 @@ class FakeExtension(Extension):
 class CMakeBuild(build_ext):
 
     def run(self):
+        download_csmsdk.execute_download()
         run_cmake()
 
 

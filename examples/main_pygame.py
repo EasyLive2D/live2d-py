@@ -41,10 +41,10 @@ def main():
     model.LoadModelJson(
         # os.path.join(resources.RESOURCES_DIRECTORY, "v3/liveroid/liveroiD_A-Y01/liveroiD_A-Y01.model3.json")
         # os.path.join(resources.RESOURCES_DIRECTORY, "v3/Mao/Mao.model3.json")
-        os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json")
+        # os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json")
         # os.path.join(resources.RESOURCES_DIRECTORY, "v3/nn/nn.model3.json")
         # os.path.join(resources.RESOURCES_DIRECTORY, "v3/magic/magic.model3.json")
-        # os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json")
+        os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json")
         # os.path.join(resources.RESOURCES_DIRECTORY, "v3/Hiyori/Hiyori.model3.json")
         # os.path.join(resources.RESOURCES_DIRECTORY, "v3/小九/小九皮套（红）/小九.model3.json")
         # os.path.join(resources.RESOURCES_DIRECTORY, "v3/金发大小姐/金发大小姐.model3.json")
