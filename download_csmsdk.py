@@ -74,7 +74,7 @@ def print_progress(block_num, block_size, total_size):
     downloaded = block_num * block_size
     percent = min(100.0, downloaded * 100.0 / total_size)
     sys.stdout.write(
-        f"\r   Progress: {percent:.1f}% ({downloaded/1024/1024:.2f}MB/{total_size/1024/1024:.2f}MB)"
+        f"\r   Progress: {percent:.1f}% ({downloaded / 1024 / 1024:.2f}MB/{total_size / 1024 / 1024:.2f}MB)"
     )
     sys.stdout.flush()
 
@@ -110,7 +110,7 @@ def setup_directory():
             framework_path = dir_path
         if core_found and framework_found:
             break
-    
+
     if not core_path or not framework_path:
         print("[download_csmsdk] Setup directory start.")
     else:
@@ -127,7 +127,6 @@ def setup_directory():
         except Exception as e:
             print("[download_csmsdk] Setup build directory failed with error:", e)
 
-    
 
 def clean_temp_files(temp_path):
     """Clean up temporary files"""
@@ -149,12 +148,14 @@ def execute_download() -> bool:
             print("[download_csmsdk] Error downloading", e)
             clean_temp_files(TEMP_ZIP_PATH)
             success = False
-        if success:
-            extract_all(TEMP_ZIP_PATH, EXTRACT_DIR)
-            setup_directory()
     else:
         print("[download_csmsdk] Already downloaded.")
+    try:
         extract_all(TEMP_ZIP_PATH, EXTRACT_DIR)
         setup_directory()
+        success = True
+    except Exception as e:
+        print("[download_csmsdk] Error extracting library.", e)
+        success = False
     print("[download_csmsdk] Download end.")
     return success

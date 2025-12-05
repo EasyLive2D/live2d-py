@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Copyright(c) Live2D Inc. All rights reserved.
  *
  * Use of this source code is governed by the Live2D Open Software license
@@ -10,7 +10,6 @@
 #include "CubismFramework.hpp"
 #include "Id/CubismId.hpp"
 #include "Type/csmVector.hpp"
-#include <HackProperties.h>
 
 namespace Live2D { namespace Cubism { namespace Framework {
 
@@ -25,7 +24,6 @@ class CubismModel;
 class ACubismMotion
 {
 public:
-    __ADDITIONAL_PROPERTIES__
     typedef void (*BeganMotionCallback)(ACubismMotion* self);
     typedef void (*FinishedMotionCallback)(ACubismMotion* self);
     /**

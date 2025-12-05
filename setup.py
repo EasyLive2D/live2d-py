@@ -35,6 +35,9 @@ def run_cmake():
     global cmake_built
     if cmake_built: return
 
+    if not download_csmsdk.execute_download():
+        raise RuntimeError("Download failed.")
+
     cmake_args = []
     build_args = ["--config", "Release", "--target", "Live2DWrapper"]
 
@@ -89,8 +92,6 @@ class FakeExtension(Extension):
 class CMakeBuild(build_ext):
 
     def run(self):
-        if not download_csmsdk.execute_download():
-            raise RuntimeError("Download failed.")
         run_cmake()
 
 
