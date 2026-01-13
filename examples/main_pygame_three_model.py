@@ -16,8 +16,8 @@ def main():
     pygame.display.set_mode(display, pygame.DOUBLEBUF | pygame.OPENGL)
     pygame.display.set_caption("pygame window")
 
-    l2d_v3.glewInit()
-    l2d_v2.glewInit()
+    l2d_v3.glInit()
+    l2d_v2.glInit()
 
     model_v2 = l2d_v2.LAppModel()
     model_v3 = l2d_v3.LAppModel()

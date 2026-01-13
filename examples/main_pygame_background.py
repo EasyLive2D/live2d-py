@@ -1,7 +1,7 @@
 import os
 import pygame
-# import live2d.v3 as live2d
-import live2d.v2 as live2d
+import live2d.v3 as live2d
+# import live2d.v2 as live2d
 import resources
 
 from live2d.utils.image import Image
@@ -14,7 +14,7 @@ def main():
     pygame.display.set_mode(display, pygame.DOUBLEBUF | pygame.OPENGL)
     pygame.display.set_caption("pygame window")
 
-    live2d.glewInit()
+    live2d.glInit()
 
     model = live2d.LAppModel()
     background = Image(

@@ -22,7 +22,7 @@ class ClonePet(QOpenGLWidget):
         self.update()
 
     def initializeGL(self):
-        live2d.glewInit()
+        live2d.glInit()
         self.pet_model = live2d.LAppModel()
         self.pet_model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
         self.startTimer(1)

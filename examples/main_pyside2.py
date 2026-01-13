@@ -26,7 +26,7 @@ class Win(QOpenGLWidget):
         self.makeCurrent()
 
         if live2d.LIVE2D_VERSION == 3:
-            live2d.glewInit()
+            live2d.glInit()
 
         # 创建模型
         self.model = live2d.LAppModel()

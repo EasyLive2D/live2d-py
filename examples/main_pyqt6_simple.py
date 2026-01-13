@@ -28,7 +28,7 @@ class Win(QOpenGLWidget):
     def initializeGL(self) -> None:
         # 将当前窗口作为 OpenGL 的上下文
         # 图形会被绘制到当前窗口
-        live2d.glewInit()
+        live2d.glInit()
         # 创建模型
         self.model = live2d.LAppModel()
 

@@ -1,3 +1,4 @@
+# max support python version 3.12
 import os
 import mediapipe as mp
 import cv2

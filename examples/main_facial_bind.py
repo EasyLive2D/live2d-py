@@ -15,7 +15,7 @@ elif live2d.LIVE2D_VERSION == 2:
 from mediapipe_capture.new_capture_task import capture_task
 
 
-live2d.setLogEnable(False)
+live2d.enableLog(False)
 
 
 def s_call(group, no):
@@ -33,17 +33,17 @@ def main():
     display = (450, 700)
     pygame.display.set_mode(display, pygame.DOUBLEBUF | pygame.OPENGL)
 
-    live2d.glewInit()
+    live2d.glInit()
 
     model = live2d.LAppModel()
 
     if live2d.LIVE2D_VERSION == 3:
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, 
-                                        #  "v3/llny/llny.model3.json"
+                                         "v3/llny/llny.model3.json"
                                         # "v3/whitecat/sdwhite cat free.model3.json"
                                         # "v3/小九/小九皮套（紫）/小九.model3.json"
                                         # "v3/魅魔喵/meimo1.model3.json"
-                                        "v3/monv/monv.model3.json"
+                                        # "v3/monv/monv.model3.json"
                                          ))
     elif live2d.LIVE2D_VERSION == 2:
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json"))

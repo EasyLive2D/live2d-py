@@ -11,11 +11,13 @@ import time
 import pygame
 from pygame.locals import *
 
-import live2d.v3 as live2d
-from live2d.v3 import StandardParams
+# import live2d.v3 as live2d
+import live2d.v2 as live2d
 
-# import live2d.v2 as live2d
-# from live2d.v2 import StandardParams
+if live2d.LIVE2D_VERSION == 3:
+    from live2d.v3 import StandardParams
+else:
+    from live2d.v2 import StandardParams
 from live2d.utils import log
 
 

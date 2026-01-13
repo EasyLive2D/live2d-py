@@ -1,5 +1,7 @@
+import os
 import sys
 
+import resources
 from live2d.utils.canvas import Canvas
 
 """
@@ -30,12 +32,12 @@ class Live2DCanvas(QOpenGLWidget):
         self.total_radius = 0
 
     def initializeGL(self):
-        live2d.glewInit()
+        live2d.glInit()
         self.model = live2d.LAppModel()
         if live2d.LIVE2D_VERSION == 3:
-            self.model.LoadModelJson("resources/v3/llny/llny.model3.json")
+            self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3", "llny/llny.model3.json"))
         else:
-            self.model.LoadModelJson("resources/v2/kasumi2/kasumi2.model.json")
+            self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2", "kasumi2/kasumi2.model.json"))
         
         # must be created after opengl context is configured
         self.canvas = Canvas()

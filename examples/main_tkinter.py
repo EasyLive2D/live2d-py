@@ -23,7 +23,7 @@ class AppOgl(OpenGLFrame):
         live2d.dispose()
 
         live2d.init()
-        live2d.glewInit()
+        live2d.glInit()
 
         self.model = live2d.LAppModel()
         if live2d.LIVE2D_VERSION == 2:

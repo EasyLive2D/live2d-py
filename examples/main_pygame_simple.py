@@ -1,8 +1,11 @@
 import os
 import pygame
-import live2d.v3 as live2d
-# import live2d.v2 as live2d
-from live2d.v2 import StandardParams
+# import live2d.v3 as live2d
+import live2d.v2 as live2d
+if live2d.LIVE2D_VERSION == 3:
+    from live2d.v3 import StandardParams
+else:
+    from live2d.v2 import StandardParams
 import resources
 
 
@@ -14,7 +17,7 @@ def main():
     pygame.display.set_mode(display, pygame.DOUBLEBUF | pygame.OPENGL)
     pygame.display.set_caption("pygame window")
 
-    live2d.glewInit()
+    live2d.glInit()
 
     model = live2d.LAppModel()
 
@@ -25,9 +28,9 @@ def main():
     else:
         model.LoadModelJson(
             os.path.join(resources.RESOURCES_DIRECTORY, 
-                         # "v2/kasumi2/kasumi2.model.json"
+                         "v2/kasumi2/kasumi2.model.json"
                         # "v2/haru/haru.model.json"
-                        "v2/托尔/model0.json"
+                        # "v2/托尔/model0.json"
                         # "v2/kana/Kobayaxi.model.json"
                          # "v2/shizuku/shizuku.model.json"
                          )
