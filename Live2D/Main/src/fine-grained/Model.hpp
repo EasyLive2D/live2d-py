@@ -107,19 +107,19 @@ public:
 
     // motion
     void StartMotion(const char* group, int no, int priority = 3, void* startCallee = nullptr,
-                     ACubismMotion::BeganMotionCallback    startCalleeHandler  = nullptr,
-                     void*                                 finishCallee        = nullptr,
+                     ACubismMotion::BeganMotionCallback startCalleeHandler = nullptr,
+                     void* finishCallee = nullptr,
                      ACubismMotion::FinishedMotionCallback finishCalleeHandler = nullptr);
 
     void StartRandomMotion(const char* group = nullptr, int priority = 3,
-                           void*                                 startCallee         = nullptr,
-                           ACubismMotion::BeganMotionCallback    startCalleeHandler  = nullptr,
-                           void*                                 finishCallee        = nullptr,
+                           void* startCallee = nullptr,
+                           ACubismMotion::BeganMotionCallback startCalleeHandler = nullptr,
+                           void* finishCallee = nullptr,
                            ACubismMotion::FinishedMotionCallback finishCalleeHandler = nullptr);
 
     bool IsMotionFinished();
 
-    void LoadExtraMotion(const char* group, int no, const char* motionJsonPath);
+    int LoadExtraMotion(const char* group, const char* motionJsonPath);
 
     int GetMotionGroupCount();
 
@@ -127,6 +127,13 @@ public:
 
     void GetMotions(void* collector, void (*collect)(void* collector, const char* group, int no,
                                                      const char* file, const char* sound));
+
+    // reset motions
+    void StopAllMotions();
+
+    void ResetAllParameters();
+
+    void ResetPose();
 
     // mouse interaction
     void HitPart(float x, float y, void* collector,
@@ -151,19 +158,19 @@ public:
     void Draw();
 
     // part
-    int  GetPartCount();
+    int GetPartCount();
     void GetPartIds(void* collector, void (*collect)(void* collector, const char* id));
     void SetPartOpacity(int index, float opacity);
     void SetPartScreenColor(int index, float r, float g, float b, float a);
     void SetPartMultiplyColor(int index, float r, float g, float b, float a);
 
     // drawable
-    int  GetDrawableCount();
+    int GetDrawableCount();
     void GetDrawableIds(void* collector, void (*collect)(void* collector, const char* id));
 
-    const float*          GetDrawableVertices(int index);
-    const int             GetDrawableVertexCount(int index);
-    const int             GetDrawableVertexIndexCount(int index);
+    const float* GetDrawableVertices(int index);
+    const int GetDrawableVertexCount(int index);
+    const int GetDrawableVertexIndexCount(int index);
     const unsigned short* GetDrawableIndices(int index);
 
     void SetDrawableMultiColor(int index, float r, float g, float b, float a);
@@ -187,12 +194,7 @@ public:
     void GetExpressions(void* collector,
                         void (*collect)(void* collector, const char* id, const char* file));
 
-    // reset motions
-    void StopAllMotions();
-
-    void ResetAllParameters();
-
-    void ResetPose();
+    void LoadExtraExpression(const char* expressionId, const char* expressionJsonPath);
 
     // sizes
     void GetCanvasSize(float& w, float& h);
@@ -221,13 +223,13 @@ private:
     bool IsHit(CubismIdHandle drawableId, csmFloat32 pointX, csmFloat32 pointY) override;
 
 private:
-    ICubismModelSetting*      _modelSetting;
+    ICubismModelSetting* _modelSetting;
     csmVector<CubismIdHandle> _eyeBlinkIds;
     csmVector<CubismIdHandle> _lipSyncIds;
 
-    csmString                                                       _modelHomeDir;
-    csmMap<Csm::csmString, ACubismMotion*>                          _motions;
-    csmMap<Csm::csmString, ACubismMotion*>                          _expressions;
+    csmString _modelHomeDir;
+    csmMap<Csm::csmString, ACubismMotion*> _motions;
+    csmMap<Csm::csmString, ACubismMotion*> _expressions;
     std::unordered_map<std::string, CubismExpressionMotionManager*> _expManagers;
 
 
@@ -252,13 +254,13 @@ private:
     csmFloat32 _dragX;
     csmFloat32 _dragY;
 
-    int*         _tmpOrderedDrawIndice;
+    int* _tmpOrderedDrawIndice;
     const float* _parameterDefaultValues;
-    float*       _parameterValues;
-    int          _parameterCount;
+    float* _parameterValues;
+    int _parameterCount;
 
     std::vector<csmString> _motionGroupNames;
-    std::vector<int>       _motionCounts;
+    std::vector<int> _motionCounts;
 
     std::vector<float> _savedParameterValues;
 

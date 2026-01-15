@@ -13,10 +13,10 @@ AccessModifierOffset: -4
 AlignAfterOpenBracket: Align
  
 # 连续赋值时，对齐所有等号
-AlignConsecutiveAssignments: true
+AlignConsecutiveAssignments: false
  
 # 连续声明时，对齐所有声明的变量名
-AlignConsecutiveDeclarations: true
+AlignConsecutiveDeclarations: false
  
 # 对齐连续位域字段的风格
 # AlignConsecutiveBitFields: AcrossEmptyLinesAndComments
@@ -48,13 +48,13 @@ AllowAllParametersOfDeclarationOnNextLine: true
 AllowShortBlocksOnASingleLine: Empty
  
 # 允许短的case标签放在同一行
-AllowShortCaseLabelsOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: false
  
 # 允许短的函数放在同一行: None, InlineOnly(定义在类中), Empty(空函数), Inline(定义在类中，空函数), All
 AllowShortFunctionsOnASingleLine: Inline
  
 # 允许短的if语句保持在同一行
-AllowShortIfStatementsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: false
  
 # 允许短的循环保持在同一行
 AllowShortLoopsOnASingleLine: true
@@ -105,7 +105,7 @@ BraceWrapping:
   # catch之前
   BeforeCatch: true
   # else之前
-  BeforeElse: true
+  BeforeElse: false
   # 缩进大括号(整个大括号框起来的部分都缩进)
   IndentBraces: false
   # 空函数的大括号是否可以在一行

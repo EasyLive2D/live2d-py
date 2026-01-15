@@ -871,11 +871,12 @@ class Model:
 
     def LoadExtraMotion(self, group: str, no: int, motionJsonPath: str) -> None:
         """
-        Load additional motion JSON file
+        Load an additional motion from a JSON file and add it to the specified motion group.
+        This allows dynamically adding new motions to the model beyond those initially loaded.
         
-        :param group: Motion group name
-        :param no: Motion number
-        :param motionJsonPath: Path to motion JSON file
+        :param group: Motion group name to add the motion to
+        :param no: Index number for the motion within the group
+        :param motionJsonPath: Path to the motion JSON file to load
         """
         ...
 

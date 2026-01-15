@@ -1,6 +1,7 @@
 #include "PyModel.hpp"
 
 #include <Log.hpp>
+#include <modsupport.h>
 
 static void MotionStartCallback(ACubismMotion *motion)
 {
@@ -469,15 +470,14 @@ static PyObject *PyModel_IsMotionFinished(PyModelObject *self, PyObject *args, P
 static PyObject *PyModel_LoadExtraMotion(PyModelObject *self, PyObject *args, PyObject *kwargs)
 {
 	const char *group, *motionJsonPath;
-	int no;
-	if (!PyArg_ParseTuple(args, "sis", &group, &no, &motionJsonPath))
+	if (!PyArg_ParseTuple(args, "ss", &group, &motionJsonPath))
 	{
-		PyErr_SetString(PyExc_TypeError, "arguments must be (str, int, str)");
+		PyErr_SetString(PyExc_TypeError, "arguments must be (str, str)");
 		return NULL;
 	}
 
-	self->model->LoadExtraMotion(group, no, motionJsonPath);
-	Py_RETURN_NONE;
+	const int no = self->model->LoadExtraMotion(group, motionJsonPath);
+	return Py_BuildValue("i", no);
 }
 static PyObject *PyModel_GetMotions(PyModelObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -605,7 +605,7 @@ static PyObject *PyModel_CreateRenderer(PyModelObject *self, PyObject *args, PyO
 	int maskBufferCount = 2;
 	if (!PyArg_ParseTuple(args, "|i", &maskBufferCount))
 	{
-		PyErr_SetString(PyExc_TypeError, "arguments must be ([int])");
+		PyErr_SetString(PyExc_TypeError, "arguments must be (int)");
 		return NULL;
 	}
 	self->model->CreateRenderer(maskBufferCount);
