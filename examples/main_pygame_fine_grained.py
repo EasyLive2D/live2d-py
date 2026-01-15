@@ -24,21 +24,21 @@ model.LoadModelJson(
 )
 
 # load extra motion file which is not defined in model3.json
-model.LoadExtraMotion(
+no1 = model.LoadExtraMotion(
     "extra",
-    0,
     os.path.join(
         resources.RESOURCES_DIRECTORY, "v3/public_motions/drag_down.motion3.json"
     ),
 )
+print("Loaded motion index is", no1)
 
-model.LoadExtraMotion(
+no2 = model.LoadExtraMotion(
     "extra",
-    1,
     os.path.join(
         resources.RESOURCES_DIRECTORY, "v3/public_motions/touch_head.motion3.json"
     ),
 )
+print("Loaded motion index is", no2)
 
 # Get Basic Model Info
 modelDir = model.GetModelHomeDir()
@@ -57,6 +57,14 @@ print(drawableIds)
 
 expressions = model.GetExpressions()
 print(expressions)
+
+model.LoadExtraExpression(
+    "extra_0", 
+    os.path.join(
+        resources.RESOURCES_DIRECTORY, "v3", "public_expressions/F03.exp3.json"
+    )
+)
+expressions.append("extra_0")
 
 # only motions that are defined in model3.json
 # extra motions are not included
@@ -105,6 +113,7 @@ def addRandomExpression(drop_last: bool = False) -> str:
     lastExpressionId = expId
     activeExpressions.append(expId)
     return expId
+
 
 offsetX = 0.0
 offsetY = 0.0
@@ -170,7 +179,9 @@ while True:
                 model.Rotate(degrees)
             elif event.key == pygame.K_e:
                 model.StartMotion(
-                    "extra", 0, 3,
+                    "extra",
+                    0,
+                    3,
                     onStart=lambda group, no: print(f"{group} {no} started"),
                     onFinish=lambda group, no: print(f"{group} {no} finished"),
                 )
@@ -196,7 +207,7 @@ while True:
     # === Section Start Update() ===
     # load cached parameters from last frame
     motionUpdated = False
-    model.LoadParameters() # initialize params using cached values
+    model.LoadParameters()  # initialize params using cached values
 
     if not model.IsMotionFinished():
         motionUpdated = model.UpdateMotion(deltaSecs)
@@ -204,12 +215,12 @@ while True:
     # if SetParameterValue is called here, the parameter will be saved to the cache
     # model.SetParameterValue(StandardParams.ParamAngleX, params.AngleX, 1)
 
-    model.SaveParameters() # save params to cache for next frame
+    model.SaveParameters()  # save params to cache for next frame
 
     if not motionUpdated:
         # auto blink
         # update eye blink params if they are defined in the model3.json
-        model.UpdateBlink(deltaSecs)  
+        model.UpdateBlink(deltaSecs)
 
     model.UpdateExpression(deltaSecs)
 
@@ -217,7 +228,7 @@ while True:
 
     # auto breath
     # update breath params such as ParamBodyAngleX, ParamAngleX...
-    model.UpdateBreath(deltaSecs)  
+    model.UpdateBreath(deltaSecs)
 
     # create physics effects according to current and previous param values
     # some params can be overridden by physics effects

@@ -1,4 +1,5 @@
 ﻿#include "Model.hpp"
+#include "Motion/ACubismMotion.hpp"
 
 #include <CubismDefaultParameterId.hpp>
 #include <CubismModelSettingJson.hpp>
@@ -131,9 +132,7 @@ void Model::Update(float deltaSecs)
         }
     }
 
-    if (_expressionManager != NULL) {
-        _expressionManager->UpdateMotion(_model, deltaSecs);
-    }
+    UpdateExpression(deltaSecs);
 
     _model->AddParameterValue(_ParamAngleXi, _dragX * 30);
     _model->AddParameterValue(_ParamAngleYi, _dragY * 30);
@@ -685,7 +684,7 @@ int Model::LoadExtraMotion(const char* group, const char* motionJsonPath)
             }
             i++;
         }
-        no = _motionCounts[i];
+        no = found ? _motionCounts[i] : 0;
 
         const csmString name = Utils::CubismString::GetFormatedString("%s_%d", group, no);
 
@@ -698,7 +697,7 @@ int Model::LoadExtraMotion(const char* group, const char* motionJsonPath)
             _motions[name] = tmpMotion;
 
             Info("Load extra motion: %s => [%s]", motionJsonPath, name.GetRawString());
-            
+
             if (!found) {
                 _motionGroupNames.push_back(group);
                 _motionCounts.push_back(1);
@@ -706,7 +705,7 @@ int Model::LoadExtraMotion(const char* group, const char* motionJsonPath)
                 _motionCounts[i]++;
             }
         } else {
-            Info("Load extra motion failed: %s", motionJsonPath);
+            Warn("Load extra motion failed: %s", motionJsonPath);
         }
     });
 
@@ -1106,12 +1105,11 @@ void Model::AddExpression(const char* expressionId)
 {
     ACubismMotion* motion = _expressions[expressionId];
 
-    Info("expression: [%s]", expressionId);
-
     if (motion != nullptr) {
+        Info("Add expression: [%s]", expressionId);
         _expManagers[expressionId]->StartMotion(motion, false);
     } else {
-        Info("expression[%s] is null ", expressionId);
+        Warn("expression[%s] is null ", expressionId);
     }
 }
 
@@ -1122,19 +1120,19 @@ void Model::RemoveExpression(const char* expressionId)
     }
     _expManagers[expressionId]->StopAllMotions();
 
-    Info("reset expression: [%s]", expressionId);
+    Info("remove expression: [%s]", expressionId);
 }
 
 void Model::SetExpression(const char* expressionId)
 {
     ACubismMotion* motion = _expressions[expressionId];
 
-    Info("expression: [%s]", expressionId);
+    Info("Set expression: [%s]", expressionId);
 
     if (motion != nullptr) {
         _expressionManager->StartMotion(motion, false);
     } else {
-        Info("expression[%s] is null ", expressionId);
+        Warn("expression[%s] is null ", expressionId);
     }
 }
 
@@ -1163,7 +1161,7 @@ void Model::ResetExpressions()
     for (auto& [id, expMgr] : _expManagers) { expMgr->StopAllMotions(); }
     _expressionManager->StopAllMotions();
 
-    Info("reset expressions");
+    Info("Clear all expressions");
 }
 
 void Model::ResetExpression()
@@ -1185,6 +1183,30 @@ void Model::GetExpressions(void* collector,
         const char* id = _modelSetting->GetExpressionName(i);
         collect(collector, id, file);
     }
+}
+
+void Model::LoadExtraExpression(const char* expressionId, const char* expressionFilePath)
+{
+    LoadAssets(expressionFilePath, [&](csmByte* buffer, csmSizeInt size) {
+        ACubismMotion* expression = LoadExpression(buffer, size, expressionId);
+        if (expression) {
+            const std::string key = expressionId;
+            if (_expressions[expressionId] != nullptr) {
+                Warn("Expression has been overwritten: %s", expressionId);
+                ACubismMotion::Delete(_expressions[expressionId]);
+                _expressions[expressionId] = nullptr;
+            }
+            if (_expManagers[key] != nullptr) {
+                CSM_DELETE(_expManagers[key]);
+                _expManagers.erase(key);
+            }
+            _expressions[expressionId] = expression;
+            _expManagers[key] = CSM_NEW CubismExpressionMotionManager();
+            Info("Load extra expression: %s => [%s]", expressionFilePath, expressionId);
+        } else {
+            Warn("Failed to load motion: %s", expressionFilePath);
+        }
+    });
 }
 
 void Model::StopAllMotions()

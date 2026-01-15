@@ -1,7 +1,7 @@
 #include "PyModel.hpp"
 
 #include <Log.hpp>
-#include <modsupport.h>
+#include <pytypedefs.h>
 
 static void MotionStartCallback(ACubismMotion *motion)
 {
@@ -770,6 +770,18 @@ static PyObject *PyModel_ResetExpressions(PyModelObject *self, PyObject *args, P
 	self->model->ResetExpressions();
 	Py_RETURN_NONE;
 }
+static PyObject *PyModel_LoadExtraExpression(PyModelObject *self, PyObject *args, PyObject *kwargs) 
+{
+	const char *expressionId;
+	const char *filePath;
+	if (!PyArg_ParseTuple(args, "ss", &expressionId, &filePath))
+	{
+		PyErr_SetString(PyExc_TypeError, "arguments must be (str, str)");
+		return NULL;
+	}
+	self->model->LoadExtraExpression(expressionId, filePath);
+	Py_RETURN_NONE;
+}
 static PyObject *PyModel_GetExpressions(PyModelObject *self, PyObject *args, PyObject *kwargs)
 {
 	const int count = self->model->GetExpressionCount();
@@ -890,6 +902,10 @@ static PyMethodDef PyModel_Methods[] = {
 	{"IsMotionFinished", (PyCFunction)PyModel_IsMotionFinished, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"LoadExtraMotion", (PyCFunction)PyModel_LoadExtraMotion, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"GetMotions", (PyCFunction)PyModel_GetMotions, METH_VARARGS | METH_KEYWORDS, nullptr},
+	{"StopAllMotions", (PyCFunction)PyModel_StopAllMotions, METH_VARARGS | METH_KEYWORDS, nullptr},
+	{"ResetAllParameters", (PyCFunction)PyModel_ResetAllParameters, METH_VARARGS | METH_KEYWORDS, nullptr},
+	{"ResetPose", (PyCFunction)PyModel_ResetPose, METH_VARARGS | METH_KEYWORDS, nullptr},
+
 	{"HitPart", (PyCFunction)PyModel_HitPart, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"HitDrawable", (PyCFunction)PyModel_HitDrawable, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"Drag", (PyCFunction)PyModel_Drag, METH_VARARGS | METH_KEYWORDS, nullptr},
@@ -916,9 +932,7 @@ static PyMethodDef PyModel_Methods[] = {
 	{"SetRandomExpression", (PyCFunction)PyModel_SetRandomExpression, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"ResetExpression", (PyCFunction)PyModel_ResetExpression, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"ResetExpressions", (PyCFunction)PyModel_ResetExpressions, METH_VARARGS | METH_KEYWORDS, nullptr},
-	{"StopAllMotions", (PyCFunction)PyModel_StopAllMotions, METH_VARARGS | METH_KEYWORDS, nullptr},
-	{"ResetAllParameters", (PyCFunction)PyModel_ResetAllParameters, METH_VARARGS | METH_KEYWORDS, nullptr},
-	{"ResetPose", (PyCFunction)PyModel_ResetPose, METH_VARARGS | METH_KEYWORDS, nullptr},
+	{"LoadExtraExpression", (PyCFunction)PyModel_LoadExtraExpression, METH_VARARGS | METH_KEYWORDS, nullptr},
 
 	{"GetCanvasSize", (PyCFunction)PyModel_GetCanvasSize, METH_VARARGS, ""},
     {"GetCanvasSizePixel", (PyCFunction)PyModel_GetCanvasSizePixel, METH_VARARGS, ""},

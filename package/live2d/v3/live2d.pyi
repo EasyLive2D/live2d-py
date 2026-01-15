@@ -869,20 +869,21 @@ class Model:
         """
         ...
 
-    def LoadExtraMotion(self, group: str, no: int, motionJsonPath: str) -> None:
+    def LoadExtraMotion(self, group: str, motionJsonPath: str) -> int:
         """
         Load an additional motion from a JSON file and add it to the specified motion group.
         This allows dynamically adding new motions to the model beyond those initially loaded.
         
         :param group: Motion group name to add the motion to
-        :param no: Index number for the motion within the group
         :param motionJsonPath: Path to the motion JSON file to load
+
+        :return: Returns the number of motions loaded, or -1 if an error occurs
         """
         ...
 
     def GetMotions(self) -> dict[str, list[dict[str, str]]]:
         """
-        Get all motion information
+        Get all motion information defined in model3.json
         
         :return: Dictionary containing all motion information
         """
@@ -1077,7 +1078,7 @@ class Model:
 
     def GetExpressions(self) -> list[str, str]:
         """
-        Get all expression information
+        Get all expression information defined in model3.json
         
         :return: List of expression information
         """
@@ -1098,6 +1099,14 @@ class Model:
         :return: Set expression ID
         """
         ...
+    
+    def LoadExtraExpression(self, expressionId: str, path: str) -> None:
+        """
+        Load extra expressions
+        
+        :param expressionId: Expression ID
+        :param path: Path to expression file
+        """
 
     def StopAllMotions(self) -> None:
         """
