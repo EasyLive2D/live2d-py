@@ -1,0 +1,18 @@
+add_library(V3
+  STATIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/LAppAllocator.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/LAppAllocator.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/LAppDefine.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/LAppDefine.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/LAppPal.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/LAppPal.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/LAppTextureManager.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/LAppTextureManager.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/LAppModel.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/LAppModel.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/MatrixManager.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/MatrixManager.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/HackProperties.h
+  ${LIVE2D_COMMON}/Log.cpp
+  ${LIVE2D_COMMON}/Log.hpp
+)

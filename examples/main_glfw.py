@@ -3,8 +3,9 @@ import os.path
 import resources
 
 import glfw
-import live2d.v3 as live2d
+# import live2d.v3 as live2d
 # import live2d.v2 as live2d
+import live2d.v2cpp as live2d
 
 
 # 窗口初始化

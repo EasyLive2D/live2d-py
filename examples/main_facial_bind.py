@@ -4,8 +4,9 @@ import os
 import threading as td
 
 import pygame
-import live2d.v3 as live2d
+# import live2d.v3 as live2d
 # import live2d.v2 as live2d
+import live2d.v2cpp as live2d
 import resources
 from mediapipe_capture.facial_params import Params
 if live2d.LIVE2D_VERSION == 3:

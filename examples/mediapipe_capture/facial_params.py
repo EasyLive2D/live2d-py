@@ -3,8 +3,8 @@ class Params:
     面部参数
     """
     def __init__(self):
-        self.EyeLOpen: float = 1.0
-        self.EyeROpen: float = 1.0
+        self.EyeLOpen: float = 0.0
+        self.EyeROpen: float = 0.0
         self.MouthOpenY: float = 0.0
         self.MouthForm: float = 0.0
         self.AngleX: float = 0.0

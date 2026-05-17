@@ -1,14 +1,5 @@
 ﻿import time
 
-RESET = "\033[0m"
-RED = "\033[31m"
-GREEN = "\033[32m"
-YELLOW = "\033[33m"
-BLUE = "\033[34m"
-MAGENTA = "\033[35m"
-CYAN = "\033[36m"
-WHITE = "\033[37m"
-
 __enable = True
 
 __logLevel = 0
@@ -44,9 +35,8 @@ def getLogLevel() -> int:
 def Debug(*args, **kwargs):
     if __enable and 0 >= __logLevel:
         print(
-            time.strftime(f"{BLUE}[DEBUG]"),
+            time.strftime(f"[DEBUG]"),
             *args,
-            RESET,
             **kwargs
         )
 
@@ -63,9 +53,8 @@ def Info(*args, **kwargs):
 def Warn(*args, **kwargs):
     if __enable and 2 >= __logLevel:
         print(
-            time.strftime(f"{YELLOW}[WARN] "),
+            time.strftime(f"[WARN] "),
             *args,
-            RESET,
             **kwargs
         )
 
@@ -73,8 +62,7 @@ def Warn(*args, **kwargs):
 def Error(*args, **kwargs):
     if __enable and 3 >= __logLevel:
         print(
-            time.strftime(f"{RED}[ERROR]"),
+            time.strftime(f"[ERROR]"),
             *args,
-            RESET,
             **kwargs
         )
