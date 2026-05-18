@@ -57,9 +57,9 @@ def main():
         , maskBufferCount = 2)
     else:
         model.LoadModelJson(
-            os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json")
+            # os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json")
             # os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json")
-            # os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json")
+            os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json")
         )
 
 
@@ -129,7 +129,7 @@ def main():
 
     fc = None
     sc = None
-    model.StartRandomMotion("TapBody", 300, sc, fc)
+    # model.StartRandomMotion("TapBody", 300, sc, fc)
 
     radius_per_frame = math.pi * 10 / 1000 * 0.5
     deg_max = 5
@@ -139,6 +139,14 @@ def main():
     print("canvas size:", model.GetCanvasSize())
     print("canvas size in pixels:", model.GetCanvasSizePixel())
     print("pixels per unit:", model.GetPixelsPerUnit())
+
+    clock = pygame.time.Clock()
+    fps_frames = 0
+    fps_timer = time.time()
+
+    model.SetExpression("f14")
+
+    model.StartMotion("null", 6, live2d.MotionPriority.FORCE, on_start_motion_callback, on_finish_motion_callback)
 
     while True:
         for event in pygame.event.get():
@@ -230,7 +238,12 @@ def main():
         live2d.clearBuffer(1.0, 0.0, 0.0, 0.0)
         model.Draw()
         pygame.display.flip()
-        pygame.time.wait(10)
+        clock.tick(60)
+        fps_frames += 1
+        if time.time() - fps_timer >= 1.0:
+            pygame.display.set_caption(f"FPS: {fps_frames}")
+            fps_frames = 0
+            fps_timer = time.time()
 
     live2d.dispose()
 

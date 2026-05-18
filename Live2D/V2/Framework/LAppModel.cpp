@@ -5,6 +5,7 @@
 #include "L2DPose.hpp"
 #include "L2DPartsParam.hpp"
 #include "L2DMotionManager.hpp"
+#include "L2DExpressionMotion.hpp"
 #include "../Motion/Live2DMotion.hpp"
 #include "../Model/Live2DModelOpenGL.hpp"
 #include "../Core/ModelImpl.hpp"
@@ -216,7 +217,8 @@ bool LAppModel::loadModelJson(const std::string& path) {
             if (ge == std::string::npos) break;
             std::string groupName = json.substr(gs + 1, ge - gs - 1);
             // Skip non-group-name strings (e.g. "motions", "file", file names)
-            if (groupName == "motions" || groupName.find('/') != std::string::npos || groupName.find('.') != std::string::npos) {
+            if (groupName == "motions" || groupName == "expressions" ||
+                groupName.find('/') != std::string::npos || groupName.find('.') != std::string::npos) {
                 searchPos = ge + 1; continue;
             }
             // Find the array start for this group
@@ -250,6 +252,48 @@ bool LAppModel::loadModelJson(const std::string& path) {
             }
             if (motVec.empty()) mMotions.erase(groupName);
             searchPos = arrEnd + 1;
+        }
+    }
+
+    // Load expression files
+    auto expPos = json.find("\"expressions\"");
+    if (expPos != std::string::npos) {
+        auto arrStart = json.find('[', expPos);
+        if (arrStart != std::string::npos) {
+            int depth = 0;
+            size_t arrEnd = arrStart;
+            for (size_t k = arrStart; k < json.size(); k++) {
+                if (json[k] == '[') depth++;
+                else if (json[k] == ']') { depth--; if (depth == 0) { arrEnd = k; break; } }
+            }
+            std::string arr = json.substr(arrStart + 1, arrEnd - arrStart - 1);
+            size_t pos = 0;
+            while (pos < arr.size()) {
+                auto namePos = arr.find("\"name\"", pos);
+                auto filePos = arr.find("\"file\"", pos);
+                if (namePos == std::string::npos || filePos == std::string::npos) break;
+
+                // Extract name
+                auto nq1 = arr.find('"', namePos + 7);
+                auto nq2 = arr.find('"', nq1 + 1);
+                // Extract file
+                auto fq1 = arr.find('"', filePos + 7);
+                auto fq2 = arr.find('"', fq1 + 1);
+
+                if (nq1 == std::string::npos || nq2 == std::string::npos ||
+                    fq1 == std::string::npos || fq2 == std::string::npos) break;
+
+                std::string expName = arr.substr(nq1 + 1, nq2 - nq1 - 1);
+                std::string expFile = arr.substr(fq1 + 1, fq2 - fq1 - 1);
+                std::string expPath = baseDir + expFile;
+                auto expData = readFile(expPath);
+                if (!expData.empty()) {
+                    auto* expr = L2DExpressionMotion::load(expData);
+                    Info("Load expression: %s", expName.c_str());
+                    mExpressions[expName] = expr;
+                }
+                pos = std::max(nq2, fq2) + 1;
+            }
         }
     }
 
@@ -303,14 +347,27 @@ void LAppModel::update() {
     setDrag(mDragMgr.getX(), mDragMgr.getY());
 
     // Match v2 Python update() flow
-    mLive2DModel->getModelContext()->loadParam();
-    mMainMotionMgr->updateParam(mLive2DModel);
+    bool updated = false;
+    if (mClearFlag) {
+        mMainMotionMgr->stopAllMotions();
+        if (mPose) {
+            for (auto& g : mPose->mMGroups)
+                for (auto& p : g.parts) p.initIndex(mLive2DModel);
+        }
+        mClearFlag = false;
+    } else {
+        mLive2DModel->getModelContext()->loadParam();
+        updated = mMainMotionMgr->updateParam(mLive2DModel);
+    }
     mLive2DModel->getModelContext()->saveParam();
 
-    if (mAutoBlink && mEyeBlink)
+    // Python suppresses eye-blink while a main motion is active
+    if (!updated && mAutoBlink && mEyeBlink)
         mEyeBlink->updateParam(mLive2DModel);
 
-    mExpressionMgr->updateParam(mLive2DModel);
+    // Python skips expression update when no expressions exist
+    if (!mExpressions.empty())
+        mExpressionMgr->updateParam(mLive2DModel);
 
     // Drag-based parameter updates (match v2 Python)
     auto* mc = mLive2DModel->getModelContext();
@@ -374,6 +431,7 @@ void LAppModel::setRandomExpression() {
     if (!mExpressions.empty()) {
         auto it = mExpressions.begin();
         std::advance(it, rand() % mExpressions.size());
+        Info("Start random expression: %s", it->first.c_str());
         mExpressionMgr->startMotion(it->second, false);
     }
 }
@@ -403,7 +461,7 @@ void LAppModel::startRandomMotion(const std::string& group, int priority) {
         startMotion(group, no, priority);
     }
 }
-void LAppModel::clearMotions() { mMainMotionMgr->stopAllMotions(); }
+void LAppModel::clearMotions() { mClearFlag = true; }
 void LAppModel::resetExpression() { mExpressionMgr->stopAllMotions(); }
 void LAppModel::resetPose() { if (mPose) { for (auto& g : mPose->mMGroups) for (auto& p : g.parts) p.initIndex(mLive2DModel); } }
 void LAppModel::rotate(float deg) { mMatrixManager.rotate(deg); }

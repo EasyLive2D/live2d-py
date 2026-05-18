@@ -8,12 +8,13 @@ struct MotionQueueEntry {
     bool mStarted = false; float mStartTimeMs = 0;
     float mFadeInStartMs = 0;  // for easing calculation
     float mEndTimeMs = -1;     // for fade-out
+    bool mFinished = false;    // true when endTimeMs has passed
 };
 class L2DMotionManager {
 public:
     L2DMotionManager();
     int startMotion(AMotion* motion, bool autoPriority);
-    void updateParam(ALive2DModel* model);
+    bool updateParam(ALive2DModel* model);
     bool isFinished() const;
     void stopAllMotions();
     int mCurrentPriority = 0, mReservePriority = 0;

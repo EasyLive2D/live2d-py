@@ -53,6 +53,7 @@ public:
     L2DTargetPoint mDragMgr;
     MatrixManager mMatrixManager;
     bool mAutoBreath = true, mAutoBlink = true;
+    bool mClearFlag = false;
     std::string mModelHomeDir;
 };
 } // namespace live2d
