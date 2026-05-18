@@ -392,9 +392,15 @@ void LAppModel::startRandomMotion(const std::string& group, int priority) {
         int idx = rand() % (int)mMotions.size();
         auto it = mMotions.begin();
         std::advance(it, idx);
-        startMotion(it->first, 0, priority);
+        // Also pick a random motion within that group (match v2 Python)
+        int count = (int)it->second.size();
+        int no = (count > 1) ? (rand() % count) : 0;
+        startMotion(it->first, no, priority);
     } else {
-        startMotion(group, 0, priority);
+        auto it = mMotions.find(group);
+        int count = (it != mMotions.end()) ? (int)it->second.size() : 1;
+        int no = (count > 1) ? (rand() % count) : 0;
+        startMotion(group, no, priority);
     }
 }
 void LAppModel::clearMotions() { mMainMotionMgr->stopAllMotions(); }
