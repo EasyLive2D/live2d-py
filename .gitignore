@@ -66,8 +66,8 @@ csmsdk_temp
 .cache
 
 Live2D/V3/Core/*
-!Live2D/V3/Core/.gitkeep
 Live2D/V3/Framework/*
-!Live2D/V3/Framework/.gitkeep
 
 .claude
+
+*.png

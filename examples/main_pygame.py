@@ -12,8 +12,8 @@ import pygame
 from pygame.locals import *
 
 # import live2d.v3 as live2d
-import live2d.v2 as live2d
-# import live2d.v2cpp as live2d
+# import live2d.v2 as live2d
+import live2d.v2cpp as live2d
 
 if live2d.LIVE2D_VERSION == 3:
     from live2d.v3 import StandardParams
@@ -58,8 +58,8 @@ def main():
     else:
         model.LoadModelJson(
             # os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json")
-            # os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json")
-            os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json")
+            os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json")
+            # os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json")
         )
 
 
@@ -140,13 +140,8 @@ def main():
     print("canvas size in pixels:", model.GetCanvasSizePixel())
     print("pixels per unit:", model.GetPixelsPerUnit())
 
-    clock = pygame.time.Clock()
     fps_frames = 0
     fps_timer = time.time()
-
-    model.SetExpression("f14")
-
-    model.StartMotion("null", 6, live2d.MotionPriority.FORCE, on_start_motion_callback, on_finish_motion_callback)
 
     while True:
         for event in pygame.event.get():
@@ -238,7 +233,6 @@ def main():
         live2d.clearBuffer(1.0, 0.0, 0.0, 0.0)
         model.Draw()
         pygame.display.flip()
-        clock.tick(60)
         fps_frames += 1
         if time.time() - fps_timer >= 1.0:
             pygame.display.set_caption(f"FPS: {fps_frames}")

@@ -31,7 +31,7 @@ import re
 import subprocess
 import sys
 
-from setuptools import setup, Extension, Command
+from setuptools import setup, find_packages, Extension, Command
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.command.bdist_wheel import bdist_wheel
@@ -74,7 +74,7 @@ import shutil
 # Temporary download path
 TEMP_ZIP_PATH = os.path.join(os.path.dirname(__file__), "cubism_sdk_temp.zip")
 EXTRACT_DIR = os.path.join(os.path.dirname(__file__), "csmsdk_temp")
-DST_DIR = os.path.join(os.path.dirname(__file__), "Live2D")
+DST_DIR = os.path.join(os.path.dirname(__file__), "Live2D", "V3")
 
 
 def print_disclaimer():
@@ -87,13 +87,29 @@ def download_sdk(url, save_path):
     print(f"\nStarting Core library download from official server: {url}")
     print("   (Download speed depends on your network—do not interrupt the process)")
     try:
-        urllib.request.urlretrieve(
-            url,
-            save_path,
-            reporthook=lambda block_num, block_size, total_size: print_progress(
-                block_num, block_size, total_size
-            ),
-        )
+        import ssl
+        ctx = ssl.create_default_context()
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        })
+        with urllib.request.urlopen(req, context=ctx, timeout=60) as resp:
+            total = int(resp.headers.get("Content-Length", 0))
+            downloaded = 0
+            with open(save_path, "wb") as f:
+                while True:
+                    chunk = resp.read(65536)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+                    downloaded += len(chunk)
+                    if total > 0:
+                        percent = min(100.0, downloaded * 100.0 / total)
+                        sys.stdout.write(
+                            f"\r   Progress: {percent:.1f}% "
+                            f"({downloaded / 1024 / 1024:.2f}MB/{total / 1024 / 1024:.2f}MB)"
+                        )
+                        sys.stdout.flush()
+            print()
     except Exception as e:
         raise RuntimeError(
             f"Download failed: {str(e)}\n"
@@ -212,16 +228,33 @@ def get_base_python_path(venv_path):
 cmake_built = False
 
 
+CORE_LIB_PATHS = [
+    os.path.join(os.path.dirname(__file__), "Live2D", "Core"),
+    os.path.join(os.path.dirname(__file__), "Live2D", "V3", "Core"),
+]
+
+def is_sdk_present():
+    """Check if Cubism SDK is already present (downloaded or vendored)."""
+    for p in CORE_LIB_PATHS:
+        if os.path.isdir(p) and os.listdir(p):
+            return True
+    return False
+
 def run_cmake():
     global cmake_built
     if cmake_built:
         return
 
-    if not execute_download(CUBISM_SDK_DISTRIBUTION):
-        raise RuntimeError("Download failed.")
+    if not is_sdk_present():
+        if not execute_download(CUBISM_SDK_DISTRIBUTION):
+            raise RuntimeError("Download failed. Please download the Cubism SDK "
+                               "manually from https://www.live2d.com/sdk/download/native/ "
+                               "and extract to Live2D/")
+    else:
+        print("[cmake] Cubism SDK already present, skipping download.")
 
-    cmake_args = []
-    build_args = ["--config", "Release", "--target", "Live2DWrapper"]
+    cmake_args = ["-DBUILD_V2CPP=ON"]
+    build_args = ["--config", "Release", "--target", "Live2DV2Wrapper", "--target", "Live2DWrapper"]
 
     if platform.system() == "Windows":
         if platform.python_compiler().find("64 bit") > 0:
@@ -318,9 +351,9 @@ setup(
     install_requires=INSTALL_REQUIRES,
     ext_modules=[FakeExtension("LAppModelWrapper", ".")],
     cmdclass={"build_ext": CMakeBuild, "bdist_wheel": BuildWheel, "install": Install, "download": Download},
-    packages=["live2d"],
-    package_data={"live2d": ["**/*.pyd", "**/*.so", "**/*.pyi", "**/*.py"]},
-    package_dir={"live2d": "package/live2d"},
+    packages=find_packages(where="package"),
+    package_data={"": ["**/*.pyd", "**/*.so", "**/*.pyi", "**/*.py"]},
+    package_dir={"": "package"},
     keywords=["Live2D", "Cubism Live2D", "Cubism SDK", "Cubism SDK for Python"],
     python_requires=REQUIRES_PYTHON,
 )
