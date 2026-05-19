@@ -36,7 +36,13 @@ from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.command.bdist_wheel import bdist_wheel
 
-VERSION = "0.6.1.1"  # TODO: edit before releasing a new version
+
+# Read version from package (single source of truth)
+with open(os.path.join(os.path.dirname(__file__), "package", "live2d", "__init__.py"), encoding="utf-8") as _f:
+    for _line in _f:
+        if _line.startswith("__version__"):
+            VERSION = _line.split('"')[1]
+            break
 CUBISM_SDK_DISTRIBUTION = (
     "https://cubism.live2d.com/sdk-native/bin/CubismSdkForNative-5-r.4.1.zip"
 )
