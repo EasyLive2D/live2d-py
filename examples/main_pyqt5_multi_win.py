@@ -1,6 +1,8 @@
 # example of rendering live2d in multiple opengl windows at one time
 
-import live2d.v3 as live2d
+# import live2d.v3 as live2d
+# import live2d.v2 as live2d
+import live2d.v2cpp as live2d
 
 from PyQt5.Qt import QCursor
 from PyQt5.QtWidgets import QOpenGLWidget
@@ -24,7 +26,10 @@ class ClonePet(QOpenGLWidget):
     def initializeGL(self):
         live2d.glInit()
         self.pet_model = live2d.LAppModel()
-        self.pet_model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
+        if live2d.LIVE2D_VERSION == 3:
+            self.pet_model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
+        else:
+            self.pet_model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
         self.startTimer(1)
 
     def resizeGL(self, w, h):

@@ -9,5 +9,5 @@ PyOpenGL
 Pillow
 pyautogui
 pyopengltk
-mediapipe==0.10.21
+mediapipe>=0.10.22
 opencv-python

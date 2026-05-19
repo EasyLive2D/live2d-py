@@ -7,7 +7,7 @@ if(DEFINED PYTHON_INSTALLATION_PATH)
     set(CMAKE_PREFIX_PATH ${PYTHON_INSTALLATION_PATH})
 else()
     message("Not found PYTHON_INSTALLATION_PATH in environment variables. \nUse default path.")
-    set(CMAKE_PREFIX_PATH D:/Dev/Python/x64/3.13.7)
+    set(CMAKE_PREFIX_PATH D:/Dev/Python/x64/3.14.5)
 endif()
 
 find_package(Python3 REQUIRED COMPONENTS Development.SABIModule)
