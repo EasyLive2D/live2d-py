@@ -75,11 +75,14 @@ class Canvas:
     def __draw_on_canvas(self, on_draw):
         GL.glBindVertexArray(0)
         old_fbo = GL.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING)
+        old_viewport = GL.glGetIntegerv(GL.GL_VIEWPORT)
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self._canvas_framebuffer)
+        GL.glViewport(0, 0, self._width, self._height)
 
         on_draw()
 
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, old_fbo)
+        GL.glViewport(*old_viewport)
 
     def __init(self):
         self.__create_program()
@@ -97,6 +100,8 @@ class Canvas:
         GL.glProgramUniform1f(self._program, self._opacity_loc, self.__canvas_opacity)
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._canvas_texture)
+        GL.glClearColor(0, 0, 0, 0)
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, 6)
         GL.glBindVertexArray(0)
     

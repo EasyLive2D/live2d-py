@@ -9,6 +9,7 @@ Example of controlling model opacity using live2d.utils.canvas.Canvas
 
 import live2d.v3 as live2d
 # import live2d.v2 as live2d
+# import live2d.v2cpp as live2d
 import math
 import os
 import resources

@@ -1,0 +1,1 @@
+print("[live2d] third-party wrapper, not affiliated with Live2D Inc.✨")

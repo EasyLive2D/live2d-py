@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [ '3.8', '3.9', '3.10', '3.11', '3.12', '3.13' ]
+        python-version: [ '3.11', '3.12', '3.13', '3.14' ]
         architecture: [ 'x64' ]
       fail-fast: false
 
@@ -43,7 +43,7 @@ jobs:
           python -m pip install wheel
 
       - name: Build a source tarball
-        if: ${{ matrix.python-version == '3.13'}}
+        if: ${{ matrix.python-version == '3.14'}}
         run: python setup.py sdist
 
       - name: Build a binary wheel
@@ -51,7 +51,7 @@ jobs:
           python setup.py bdist_wheel
 
       - name: Test Run (v2, v2cpp, v3)
-        if: ${{ matrix.python-version == '3.12' }}
+        if: ${{ matrix.python-version == '3.14' }}
         run: |
           sudo apt-get install -y --no-install-recommends xvfb libegl1-mesa-dev libxkbcommon-x11-0
           pip install pyside6 pyopengl numpy pillow
@@ -61,7 +61,7 @@ jobs:
           xvfb-run -a python test_run_screenshot.py v3   --model haru --output screenshot_v3.png
 
       - name: Upload screenshots
-        if: ${{ matrix.python-version == '3.12' }}
+        if: ${{ matrix.python-version == '3.14' }}
         uses: actions/upload-artifact@v4
         with:
           name: screenshots-linux

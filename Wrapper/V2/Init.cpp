@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "Python.hpp"
 #include "PyLAppModel.hpp"
 #include "../../Live2D/V2/Graphics/DrawParamOpenGL.hpp"
@@ -55,5 +56,7 @@ PyMODINIT_FUNC PyInit__v2cpp(void) {
     PyObject* t = PyType_FromSpec(&spec);
     if (!t) { Py_DECREF(m); return nullptr; }
     PyModule_AddObject(m, "LAppModel", t);
+
+    printf("[live2d.v2cpp] C++ port, Python %s\n", PY_VERSION);
     return m;
 }

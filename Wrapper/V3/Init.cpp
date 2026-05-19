@@ -68,9 +68,8 @@ static PyObject *live2d_clear_buffer(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    // 设置清屏颜色
     glClearColor(r, g, b, a);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
     glClearDepth(1.0);
 
     Py_RETURN_NONE;
@@ -214,10 +213,7 @@ PyMODINIT_FUNC PyInit__v3cpp(void)
     SetConsoleOutputCP(65001);
 #endif
 
-    printf("─────────────────────────────────────────────────────────────\n");
-    printf(" 🐾 live2d-py (built with Python %s)\n", PY_VERSION);
-    printf(" 🧸 3rd-party lib integrated with official Live2D native SDK \n");
-    printf(" ✨ Official SDK: https://www.live2d.com/sdk/download/native/\n");
-    printf("─────────────────────────────────────────────────────────────\n");
+    printf("[live2d.v3] Cubism Native, Python %s\n", PY_VERSION);
+    printf("[live2d.v3] official: https://www.live2d.com/sdk/download/native/\n");
     return m;
 }

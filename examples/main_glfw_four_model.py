@@ -10,7 +10,7 @@ def main():
     if not glfw.init():
         raise RuntimeError("glfw.init failed")
     display = (800, 500)
-    window = glfw.create_window(*display, "glfw - three models", None, None)
+    window = glfw.create_window(*display, "glfw - multi models", None, None)
     if not window:
         glfw.terminate()
         return
