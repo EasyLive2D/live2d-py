@@ -189,6 +189,10 @@ static PyObject *PyModel_GetParameterIds(PyModelObject *self, PyObject *args, Py
 								 });
 	return list;
 }
+static PyObject *PyModel_GetParameterCount(PyModelObject *self, PyObject *args, PyObject *kwargs)
+{
+	return Py_BuildValue("i", self->model->GetParameterCount());
+}
 static PyObject *PyModel_GetParameterValue(PyModelObject *self, PyObject *args, PyObject *kwargs)
 {
 	int index;
@@ -444,9 +448,9 @@ static PyObject *PyModel_StartRandomMotion(PyModelObject *self, PyObject *args, 
 	PyObject *onFinishHandler = nullptr;
 	static char *kwlist[] = {(char *)"group", (char *)"priority", (char *)"onStart", (char *)"onFinish", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|siOO", kwlist, &group, &priority, &onStartHandler, &onFinishHandler))
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|ziOO", kwlist, &group, &priority, &onStartHandler, &onFinishHandler))
 	{
-		PyErr_SetString(PyExc_TypeError, "arguments must be (str, [int, [callable, callable]])");
+		PyErr_SetString(PyExc_TypeError, "arguments must be ([str, [int, [callable, callable]]])");
 		return NULL;
 	}
 
@@ -860,6 +864,44 @@ static PyObject* PyModel_SetAutoBlink(PyModelObject* self, PyObject* args, PyObj
 	Py_RETURN_NONE;
 }
 
+static PyObject* PyModel_GetPartMultiplyColor(PyModelObject* self, PyObject* args, PyObject* kwargs)
+{
+    int index;
+    if (!PyArg_ParseTuple(args, "i", &index))
+    {
+        PyErr_SetString(PyExc_TypeError, "arguments must be (int)");
+        return NULL;
+    }
+    float r, g, b, a;
+    self->model->GetPartMultiplyColor(index, r, g, b, a);
+    return Py_BuildValue("ffff", r, g, b, a);
+}
+static PyObject* PyModel_GetPartScreenColor(PyModelObject* self, PyObject* args, PyObject* kwargs)
+{
+    int index;
+    if (!PyArg_ParseTuple(args, "i", &index))
+    {
+        PyErr_SetString(PyExc_TypeError, "arguments must be (int)");
+        return NULL;
+    }
+    float r, g, b, a;
+    self->model->GetPartScreenColor(index, r, g, b, a);
+    return Py_BuildValue("ffff", r, g, b, a);
+}
+
+static PyObject* PyModel_HasMocConsistencyFromFile(PyModelObject* self, PyObject* args)
+{
+    const char *mocFileName;
+    if (!PyArg_ParseTuple(args, "s", &mocFileName))
+    {
+        PyErr_SetString(PyExc_TypeError, "argument must be (str)");
+        return NULL;
+    }
+    if (self->model->HasMocConsistencyFromFile(mocFileName))
+        Py_RETURN_TRUE;
+    Py_RETURN_FALSE;
+}
+
 static PyMethodDef PyModel_Methods[] = {
 	{"LoadModelJson", (PyCFunction)PyModel_LoadModelJson, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"GetModelHomeDir", (PyCFunction)PyModel_GetModelHomeDir, METH_VARARGS | METH_KEYWORDS, nullptr},
@@ -871,6 +913,8 @@ static PyMethodDef PyModel_Methods[] = {
 	{"UpdateExpression", (PyCFunction)PyModel_UpdateExpression, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"UpdatePhysics", (PyCFunction)PyModel_UpdatePhysics, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"UpdatePose", (PyCFunction)PyModel_UpdatePose, METH_VARARGS | METH_KEYWORDS, nullptr},
+	
+	{"GetParameterCount", (PyCFunction)PyModel_GetParameterCount, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"GetParameterIds", (PyCFunction)PyModel_GetParameterIds, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"GetParameterValue", (PyCFunction)PyModel_GetParameterValue, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"GetParameterMaximumValue", (PyCFunction)PyModel_GetParameterMaximumValue, METH_VARARGS | METH_KEYWORDS, nullptr},
@@ -920,6 +964,8 @@ static PyMethodDef PyModel_Methods[] = {
 	{"SetPartOpacity", (PyCFunction)PyModel_SetPartOpacity, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"SetPartScreenColor", (PyCFunction)PyModel_SetPartScreenColor, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"SetPartMultiplyColor", (PyCFunction)PyModel_SetPartMultiplyColor, METH_VARARGS | METH_KEYWORDS, nullptr},
+	{"GetPartScreenColor", (PyCFunction)PyModel_GetPartScreenColor, METH_VARARGS | METH_KEYWORDS, nullptr},
+	{"GetPartMultiplyColor", (PyCFunction)PyModel_GetPartMultiplyColor, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"GetDrawableIds", (PyCFunction)PyModel_GetDrawableIds, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"SetDrawableMultiplyColor", (PyCFunction)PyModel_SetDrawableMultiplyColor, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"SetDrawableScreenColor", (PyCFunction)PyModel_SetDrawableScreenColor, METH_VARARGS | METH_KEYWORDS, nullptr},
@@ -939,6 +985,8 @@ static PyMethodDef PyModel_Methods[] = {
 
     {"SetAutoBreath", (PyCFunction)PyModel_SetAutoBreath, METH_VARARGS, ""},
     {"SetAutoBlink", (PyCFunction)PyModel_SetAutoBlink, METH_VARARGS, ""},
+
+    {"HasMocConsistencyFromFile", (PyCFunction)PyModel_HasMocConsistencyFromFile, METH_VARARGS, ""},
 
 	{NULL}};
 static PyObject *PyModel_New(PyTypeObject *type, PyObject *args, PyObject *kwargs)

@@ -3,9 +3,9 @@ import os.path
 import time
 
 import glfw
-# import live2d.v3 as live2d
+import live2d.v3 as live2d
 # import live2d.v2 as live2d
-import live2d.v2cpp as live2d
+# import live2d.v2cpp as live2d
 import resources
 
 if live2d.LIVE2D_VERSION == 3:
@@ -35,7 +35,7 @@ def main():
 
     model = live2d.LAppModel()
     if live2d.LIVE2D_VERSION == 3:
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
     else:
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"))
 
@@ -52,7 +52,7 @@ def main():
     def on_start_motion_callback(group, no):
         log.Info("start motion: [%s_%d]" % (group, no))
 
-    def on_finish_motion_callback():
+    def on_finish_motion_callback(group, no):
         log.Info("motion finished")
 
     # Print all parameters
@@ -130,17 +130,21 @@ def main():
     glfw.swap_interval(0)
 
     # Rotate animation
-    radius_per_frame = math.pi * 10 / 1000 * 0.5
+    inc_per_sec = math.pi * 2 / 3
     deg_max = 5
     progress = 0
+    last_time = time.time()
 
     fps_frames = 0
-    fps_timer = time.time()
+    fps_timer = last_time
+
+    glfw.swap_interval(1)
 
     while not glfw.window_should_close(window):
         glfw.poll_events()
-
-        progress += radius_per_frame
+        now = time.time()
+        progress += inc_per_sec * (now - last_time)
+        last_time = now
         deg = math.sin(progress) * deg_max
         model.Rotate(deg)
 

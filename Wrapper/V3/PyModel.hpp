@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fine-grained/Model.hpp>
+#include <Model.hpp>
 
 #include "Python.hpp"
 

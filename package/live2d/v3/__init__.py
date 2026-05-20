@@ -1,5 +1,6 @@
 from .params import *  # pyinstaller may not find it (hidden import)
 from ._v3cpp import *
+from .lapp_model import LAppModel
 
 
 LIVE2D_VERSION = 3

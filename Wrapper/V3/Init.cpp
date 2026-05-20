@@ -10,7 +10,6 @@
 #include <Windows.h>
 #endif
 
-#include "PyLAppModel.hpp"
 #include "PyModel.hpp"
 
 static LAppAllocator _cubismAllocator;
@@ -157,59 +156,22 @@ static PyModuleDef liv2d_module = {
     -1,
     live2d_methods};
 
-PyObject *module_live2d_v3_params = nullptr;
-PyObject *typeobject_live2d_v3_parameter = nullptr;
-
 // 模块初始化函数的实现
 PyMODINIT_FUNC PyInit__v3cpp(void)
 {
-    PyObject *lappmodel_type;
-    PyObject *model_type;
-
     PyObject *m = PyModule_Create(&liv2d_module);
     if (!m)
     {
         return NULL;
     }
 
-    lappmodel_type = PyType_FromSpec(&PyLAppModel_spec);
-    if (!lappmodel_type)
-    {
-        return NULL;
-    }
-
-    if (PyModule_AddObject(m, "LAppModel", lappmodel_type) < 0)
-    {
-        Py_DECREF(&lappmodel_type);
-        Py_DECREF(m);
-        return NULL;
-    }
-
     if (PyModule_AddObject(m, "Model", PyType_FromSpec(&PyModel_Spec)) < 0)
     {
-        Py_DECREF(&lappmodel_type);
         Py_DECREF(m);
-        return NULL;
-    }
-
-    // assume that module `params` is already imported in `live2d/v3/__init__.py`
-    module_live2d_v3_params = PyImport_AddModule("live2d.v3.params");
-    if (module_live2d_v3_params == NULL)
-    {
-        PyErr_Print();
-        return NULL;
-    }
-
-    typeobject_live2d_v3_parameter = PyObject_GetAttrString(module_live2d_v3_params, "Parameter");
-    if (typeobject_live2d_v3_parameter == NULL)
-    {
-        Py_DECREF(module_live2d_v3_params);
-        PyErr_Print();
         return NULL;
     }
 
 #ifdef CSM_TARGET_WIN_GL
-    // windows 下强制utf-8
     SetConsoleOutputCP(65001);
 #endif
 

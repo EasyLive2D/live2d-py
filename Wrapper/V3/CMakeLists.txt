@@ -3,7 +3,6 @@ set(V3_TARGET Live2DWrapper)
 
 add_library(${V3_TARGET} SHARED
     Init.cpp
-    PyLAppModel.cpp
     PyModel.cpp
 )
 

@@ -10,8 +10,8 @@ import numpy as np
 from mediapipe.tasks.python.vision import FaceLandmarker, FaceLandmarkerOptions, RunningMode
 from mediapipe.tasks.python import BaseOptions
 
-import live2d.v2cpp as live2d
-# import live2d.v3 as live2d
+# import live2d.v2cpp as live2d
+import live2d.v3 as live2d
 # import live2d.v2 as live2d
 import resources
 if live2d.LIVE2D_VERSION == 3:
