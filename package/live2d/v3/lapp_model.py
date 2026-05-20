@@ -283,6 +283,3 @@ class LAppModel:
 
     def ResetPose(self):
         self._model.ResetPose()
-
-    def StopAllMotions(self):
-        self._model.StopAllMotions()

@@ -7,9 +7,11 @@
 
 #include "LAppPal.hpp"
 #include <cstdio>
+#include <cstring>
 #include <iostream>
 #include <fstream>
 #include <Model/CubismMoc.hpp>
+#include <Utils/CubismJson.hpp>
 
 #include <Log.hpp>
 
@@ -82,6 +84,80 @@ void LAppPal::InitShaderDir(const std::string& path)
     SHADER_DIR = path;
     SHADER_DIR += std::filesystem::path::preferred_separator;
     Info("[Pal] Init Shader Dir: %s", SHADER_DIR.c_str());
+}
+
+void LAppPal::FixMotionJson(Csm::csmByte* buffer, Csm::csmSizeInt& size)
+{
+    // Work on a copy so CubismJson doesn't scribble on the original buffer
+    std::string jsonStr(reinterpret_cast<char*>(buffer), size);
+
+    using namespace Live2D::Cubism::Framework::Utils;
+    CubismJson* json = CubismJson::Create(
+        reinterpret_cast<const csmByte*>(jsonStr.data()), static_cast<csmSizeInt>(jsonStr.size()));
+    if (!json) return;
+
+    Value& root = json->GetRoot();
+    auto* curvesVec = root["Curves"].GetVector();
+    if (!curvesVec) { CubismJson::Delete(json); return; }
+
+    const csmInt32 actualCurveCount = static_cast<csmInt32>(curvesVec->GetSize());
+    csmInt32 actualSegmentCount = 0;
+    csmInt32 actualPointCount = 0;
+
+    enum { Linear = 0, Bezier = 1, Stepped = 2, InverseStepped = 3 };
+
+    Value& curves = root["Curves"];
+    for (csmInt32 ci = 0; ci < actualCurveCount; ci++) {
+        auto* segVec = curves[ci]["Segments"].GetVector();
+        if (!segVec) continue;
+        const csmInt32 segLen = static_cast<csmInt32>(segVec->GetSize());
+        if (segLen < 2) continue;
+        actualPointCount++;
+        csmInt32 v = 2;
+        while (v < segLen) {
+            csmInt32 ident = static_cast<csmInt32>((*segVec)[v]->ToInt());
+            if (ident == Bezier) {
+                actualPointCount += 3; v += 7;
+            } else if (ident == Linear || ident == Stepped || ident == InverseStepped) {
+                actualPointCount += 1; v += 3;
+            } else break;
+            actualSegmentCount++;
+        }
+    }
+
+    int metaCurveCount = root["Meta"]["CurveCount"].ToInt(-1);
+    int metaSegCount   = root["Meta"]["TotalSegmentCount"].ToInt(-1);
+    int metaPointCount = root["Meta"]["TotalPointCount"].ToInt(-1);
+
+    bool needsFix = (metaCurveCount >= 0 && metaCurveCount != actualCurveCount) ||
+                    (metaSegCount   >= 0 && metaSegCount   != actualSegmentCount) ||
+                    (metaPointCount >= 0 && metaPointCount != actualPointCount);
+
+    CubismJson::Delete(json);
+
+    if (!needsFix) return;
+
+    // Fix on the jsonStr copy, then write back to original buffer
+    auto fixInt = [&](const char* key, int newVal) {
+        size_t kp = jsonStr.find(key);
+        if (kp == std::string::npos) return;
+        size_t colon = jsonStr.find(':', kp);
+        if (colon == std::string::npos) return;
+        size_t vs = colon + 1;
+        while (vs < jsonStr.size() && (jsonStr[vs] == ' ' || jsonStr[vs] == '\t')) vs++;
+        size_t ve = vs;
+        while (ve < jsonStr.size() && jsonStr[ve] >= '0' && jsonStr[ve] <= '9') ve++;
+        if (ve > vs) jsonStr.replace(vs, ve - vs, std::to_string(newVal));
+    };
+
+    fixInt("\"CurveCount\"", actualCurveCount);
+    fixInt("\"TotalSegmentCount\"", actualSegmentCount);
+    fixInt("\"TotalPointCount\"", actualPointCount);
+
+    if (jsonStr.size() <= (size_t)size) {
+        std::memcpy(buffer, jsonStr.data(), jsonStr.size());
+        size = static_cast<csmSizeInt>(jsonStr.size());
+    }
 }
 
 void LAppPal::interceptShaderLoading(std::string &filePath)

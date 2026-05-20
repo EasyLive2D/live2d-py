@@ -56,3 +56,6 @@ target_compile_features(${V2_TARGET} PUBLIC cxx_std_17)
 if(MSVC)
     target_compile_options(${V2_TARGET} PRIVATE "/utf-8" "/wd4018" "/wd4244" "/wd4996")
 endif()
+
+# Alias for external projects: target_link_libraries(foo Live2D::V2)
+add_library(Live2D::V2 ALIAS ${V2_TARGET})

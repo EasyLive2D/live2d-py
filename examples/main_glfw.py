@@ -35,7 +35,7 @@ def main():
 
     model = live2d.LAppModel()
     if live2d.LIVE2D_VERSION == 3:
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "ac_base_rem01/ac_base_rem01.model3.json"))
     else:
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"))
 
@@ -108,6 +108,7 @@ def main():
         elif key == glfw.KEY_R:
             model.StopAllMotions()
             model.ResetPose()
+            model.ResetParameters()
         elif key == glfw.KEY_E:
             model.ResetExpression()
     glfw.set_key_callback(window, on_key)

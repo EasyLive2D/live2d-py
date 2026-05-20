@@ -48,4 +48,16 @@ public:
     static double GetCurrentTimePoint();
 
     static void InitShaderDir(const std::string& path);
+
+    /**
+     * @brief 修复 motion3.json 中的 Meta 计数字段
+     *
+     * 某些编辑器导出的 motion3.json 中 CurveCount / TotalSegmentCount /
+     * TotalPointCount 与实际曲线数据不一致，导致动作加载失败。
+     * 此方法根据 Curves 数据重新计算并修正这些值。
+     *
+     * @param[in,out] buffer   JSON 数据（原地修改）
+     * @param[in]     size     数据大小
+     */
+    static void FixMotionJson(Csm::csmByte* buffer, Csm::csmSizeInt& size);
 };

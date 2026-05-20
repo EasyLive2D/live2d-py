@@ -11,6 +11,9 @@ target_link_libraries(${V2_TARGET} PRIVATE V2 Python3::SABIModule)
 
 set_wrapper_output(${V2_TARGET} "_v2cpp")
 
+# Alias for external projects: target_link_libraries(foo Live2D::V2Wrapper)
+add_library(Live2D::V2Wrapper ALIAS ${V2_TARGET})
+
 add_custom_command(
     TARGET ${V2_TARGET} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/package/live2d/v2cpp

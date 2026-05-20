@@ -51,6 +51,11 @@ void LoadAssets(const std::string& filePath,
 
     buffer = LAppPal::LoadFileAsBytes(filePath.c_str(), &bufferSize);
 
+    // Auto-fix motion3.json files whose Meta counts don't match actual Curves data
+    if (filePath.find(".motion3.json") != std::string::npos) {
+        LAppPal::FixMotionJson(buffer, bufferSize);
+    }
+
     afterLoadCallback(buffer, bufferSize);
 
     LAppPal::ReleaseBytes(buffer);
@@ -301,6 +306,7 @@ void Model::SetupModel()
 
     _savedParameterValues.resize(_parameterCount);
     SaveParameters();
+    Debug("Model setup complete");
 }
 
 bool Model::IsHit(CubismIdHandle drawableId, csmFloat32 pointX, csmFloat32 pointY)

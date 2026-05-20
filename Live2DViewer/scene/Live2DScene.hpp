@@ -1,5 +1,5 @@
 #pragma once
-#include <fine-grained/Model.hpp>
+#include <Model.hpp>
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
 #include <QOpenGLShaderProgram>
