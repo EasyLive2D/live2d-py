@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 
 #include "Deformer.hpp"
 #include <vector>
@@ -30,7 +31,7 @@ public:
 
     int mRow = 0;
     int mCol = 0;
-    PivotManager* mPivotMgr = nullptr;
+    std::unique_ptr<PivotManager> mPivotMgr;
     std::vector<std::vector<float>> mPivotPoints;
 };
 

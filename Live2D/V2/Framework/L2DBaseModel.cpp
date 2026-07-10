@@ -13,21 +13,16 @@
 #include "../Draw/MeshContext.hpp"
 #include "Log.hpp"
 namespace live2d {
-L2DBaseModel::L2DBaseModel() {
-    mLive2DModel = new Live2DModelOpenGL();
-    mEyeBlink = new L2DEyeBlink();
-    mPhysics = new L2DPhysics();
-    mPose = new L2DPose();
-    mMainMotionMgr = new L2DMotionManager();
-    mExpressionMgr = new L2DMotionManager();
-}
-L2DBaseModel::~L2DBaseModel() {
-    delete mLive2DModel;
-    delete mEyeBlink; delete mPhysics; delete mPose;
-    delete mMainMotionMgr; delete mExpressionMgr;
-    for (auto& p : mMotions) for (auto* m : p.second) delete m;
-    for (auto& p : mExpressions) delete p.second;
-}
+L2DBaseModel::L2DBaseModel()
+    : mLive2DModel(std::make_unique<Live2DModelOpenGL>())
+    , mEyeBlink(std::make_unique<L2DEyeBlink>())
+    , mPhysics(std::make_unique<L2DPhysics>())
+    , mPose(std::make_unique<L2DPose>())
+    , mMainMotionMgr(std::make_unique<L2DMotionManager>())
+    , mExpressionMgr(std::make_unique<L2DMotionManager>()) {}
+
+L2DBaseModel::~L2DBaseModel() = default;
+
 void L2DBaseModel::loadModelData(const std::vector<uint8_t>& data, int version) {
     BinaryReader br(data);
     br.readByte(); br.readByte(); br.readByte();
@@ -37,7 +32,6 @@ void L2DBaseModel::loadModelData(const std::vector<uint8_t>& data, int version) 
     mLive2DModel->setModelImpl(impl);
     mLive2DModel->getModelContext()->setDrawParam(mLive2DModel->getDrawParam());
     mLive2DModel->getModelContext()->init();
-    // Initialize model matrix (match Python L2DBaseModel.loadModelData)
     mModelMatrix = L2DModelMatrix(
         (float)mLive2DModel->getCanvasWidth(),
         (float)mLive2DModel->getCanvasHeight());
@@ -46,17 +40,17 @@ void L2DBaseModel::loadModelData(const std::vector<uint8_t>& data, int version) 
 }
 AMotion* L2DBaseModel::loadMotion(const std::string& name, const std::vector<uint8_t>& data) {
     auto* m = Live2DMotion::load(data);
-    mMotions[name].push_back(m); return m;
+    mMotions[name].emplace_back(m); return m;
 }
 AMotion* L2DBaseModel::loadExpression(const std::string& name, const std::vector<uint8_t>& data) {
     auto* m = L2DExpressionMotion::load(data);
-    mExpressions[name] = m; return m;
+    mExpressions[name].reset(m); return m;
 }
 L2DPose* L2DBaseModel::loadPose(const std::vector<uint8_t>& data) {
-    delete mPose; mPose = L2DPose::load(data); return mPose;
+    mPose.reset(L2DPose::load(data)); return mPose.get();
 }
 void L2DBaseModel::loadPhysics(const std::vector<uint8_t>& data) {
-    delete mPhysics; mPhysics = L2DPhysics::load(data);
+    mPhysics.reset(L2DPhysics::load(data));
 }
 bool L2DBaseModel::hitTestSimple(const std::string& drawID, float x, float y) {
     auto* mc = mLive2DModel->getModelContext();

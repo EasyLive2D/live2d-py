@@ -1,8 +1,10 @@
 #pragma once
+#include <memory>
 
 #include <vector>
 #include <array>
 #include <string>
+#include "ClipContext.hpp"
 
 namespace live2d {
 
@@ -10,7 +12,6 @@ class ModelContext;
 class DrawParamOpenGL;
 class IDrawData;
 class MeshContext;
-class ClipContext;
 
 class ALive2DModel;
 class ClippingManagerOpenGL {
@@ -26,7 +27,7 @@ public:
 
 private:
     DrawParamOpenGL* mDpGL = nullptr;
-    std::vector<ClipContext*> mClipContextList;
+    std::vector<std::unique_ptr<ClipContext>> mClipContextList;
     std::vector<std::array<float, 4>> mChannelColors;
 };
 

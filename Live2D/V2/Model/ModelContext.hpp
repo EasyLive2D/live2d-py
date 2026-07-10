@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 
 #include <vector>
 #include "../Core/Id.hpp"
@@ -53,10 +54,10 @@ public:
     bool requireSetup() const { return mNeedSetup; }
 
     Deformer* getDeformer(int index) const { return mDeformerList[index]; }
-    DeformerContext* getDeformerContext(int index) const { return mDeformerContextList[index]; }
+    DeformerContext* getDeformerContext(int index) const { return mDeformerContextList[index].get(); }
     IDrawData* getDrawData(int index) const;
-    MeshContext* getDrawContext(int index) const { return mDrawContextList[index]; }
-    PartsDataContext* getPartsContext(int index) const { return mPartsContextList[index]; }
+    MeshContext* getDrawContext(int index) const { return mDrawContextList[index].get(); }
+    PartsDataContext* getPartsContext(int index) const { return mPartsContextList[index].get(); }
     int getDrawDataIndex(const Id* drawDataId) const;
     int getPartsDataIndex(const Id* id) const;
 
@@ -85,9 +86,9 @@ public:
     std::vector<Deformer*> mDeformerList;
     std::vector<IDrawData*> mDrawDataList;
     std::vector<PartsData*> mPartsDataList;
-    std::vector<DeformerContext*> mDeformerContextList;
-    std::vector<MeshContext*> mDrawContextList;
-    std::vector<PartsDataContext*> mPartsContextList;
+    std::vector<std::unique_ptr<DeformerContext>> mDeformerContextList;
+    std::vector<std::unique_ptr<MeshContext>> mDrawContextList;
+    std::vector<std::unique_ptr<PartsDataContext>> mPartsContextList;
 
 private:
     void release();
@@ -99,7 +100,7 @@ public:
     int mNextParamPos = 0;
 
     DrawParamOpenGL* mDpGL = nullptr;
-    ClippingManagerOpenGL* mClipManager = nullptr;
+    std::unique_ptr<ClippingManagerOpenGL> mClipManager;
 
     std::vector<int16_t> mOrderListFirstDrawIndex;
     std::vector<int16_t> mOrderListLastDrawIndex;

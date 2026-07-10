@@ -1,27 +1,24 @@
 #include "Avatar.hpp"
 #include "PartsData.hpp"
 #include "BinaryReader.hpp"
-#include "../Draw/IDrawData.hpp"
-#include "../Deformer/Deformer.hpp"
 
 namespace live2d {
 
-Avatar::~Avatar() {
-    for (auto* d : mDeformerList) delete d;
-    for (auto* d : mDrawDataList) delete d;
-}
+Avatar::~Avatar() = default;
 
 void Avatar::read(BinaryReader& br) {
     mId = br.readObject<const Id*>();
-    mDrawDataList = br.readObject<std::vector<IDrawData*>>();
-    mDeformerList = br.readObject<std::vector<Deformer*>>();
+    auto rawDraw = br.readObject<std::vector<IDrawData*>>();
+    mDrawDataList.reserve(rawDraw.size());
+    for (auto* d : rawDraw) mDrawDataList.emplace_back(d);
+    auto rawDefs = br.readObject<std::vector<Deformer*>>();
+    mDeformerList.reserve(rawDefs.size());
+    for (auto* d : rawDefs) mDeformerList.emplace_back(d);
 }
 
 void Avatar::replacePartsData(PartsData* parts) {
-    parts->setDeformer(mDeformerList);
-    parts->setDrawData(mDrawDataList);
-    mDeformerList.clear();
-    mDrawDataList.clear();
+    parts->setDeformer(std::move(mDeformerList));
+    parts->setDrawData(std::move(mDrawDataList));
 }
 
 } // namespace live2d

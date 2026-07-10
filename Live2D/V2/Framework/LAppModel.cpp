@@ -181,8 +181,7 @@ bool LAppModel::loadModelJson(const std::string& path) {
             auto poseData = readFile(posePath);
             if (!poseData.empty()) {
                 Info("Load pose: %s", poseFile.c_str());
-                delete mPose;
-                mPose = L2DPose::load(poseData);
+                mPose.reset(L2DPose::load(poseData));
                 // Initialize part indices from model
                 for (auto& g : mPose->mMGroups) {
                     for (auto& p : g.parts) {
@@ -194,7 +193,7 @@ bool LAppModel::loadModelJson(const std::string& path) {
                         }
                     }
                 }
-                mPose->updateParam(mLive2DModel);
+                mPose->updateParam(mLive2DModel.get());
             }
         }
     }
@@ -240,7 +239,7 @@ bool LAppModel::loadModelJson(const std::string& path) {
                 if (!motData.empty()) {
                     auto* motion = Live2DMotion::load(motData);
                     Info("Load motion: %s", motFile.c_str());
-                    motVec.push_back(motion);
+                    motVec.emplace_back(motion);
                 }
                 fileSearch = fv2 + 1;
             }
@@ -284,7 +283,7 @@ bool LAppModel::loadModelJson(const std::string& path) {
                 if (!expData.empty()) {
                     auto* expr = L2DExpressionMotion::load(expData);
                     Info("Load expression: %s", expName.c_str());
-                    mExpressions[expName] = expr;
+                    mExpressions[expName].reset(expr);
                 }
                 pos = std::max(nq2, fq2) + 1;
             }
@@ -346,12 +345,12 @@ void LAppModel::update() {
         mMainMotionMgr->stopAllMotions();
         if (mPose) {
             for (auto& g : mPose->mMGroups)
-                for (auto& p : g.parts) p.initIndex(mLive2DModel);
+                for (auto& p : g.parts) p.initIndex(mLive2DModel.get());
         }
         mClearFlag = false;
     } else {
         mLive2DModel->getModelContext()->loadParam();
-        updated = mMainMotionMgr->updateParam(mLive2DModel);
+        updated = mMainMotionMgr->updateParam(mLive2DModel.get());
     }
     mLive2DModel->getModelContext()->saveParam();
 
@@ -365,11 +364,11 @@ void LAppModel::update() {
 
     // Python suppresses eye-blink while a main motion is active
     if (!updated && mAutoBlink && mEyeBlink)
-        mEyeBlink->updateParam(mLive2DModel);
+        mEyeBlink->updateParam(mLive2DModel.get());
 
     // Python skips expression update when no expressions exist
     if (!mExpressions.empty())
-        mExpressionMgr->updateParam(mLive2DModel);
+        mExpressionMgr->updateParam(mLive2DModel.get());
 
     // Drag-based parameter updates (match v2 Python)
     auto* mc = mLive2DModel->getModelContext();
@@ -399,8 +398,8 @@ void LAppModel::update() {
             mc->setParamFloat(breathIdx, 0.5f + 0.5f * sinf(t / 3.2345f));
     }
 
-    if (mPhysics) mPhysics->updateParam(mLive2DModel);
-    if (mPose) mPose->updateParam(mLive2DModel);
+    if (mPhysics) mPhysics->updateParam(mLive2DModel.get());
+    if (mPose) mPose->updateParam(mLive2DModel.get());
 
 }
 void LAppModel::draw() {
@@ -426,7 +425,7 @@ void LAppModel::setExpression(const std::string& name) {
     auto it = mExpressions.find(name);
     if (it != mExpressions.end()) {
         Info("Start expression: %s", name.c_str());
-        mExpressionMgr->startMotion(it->second, false);
+        mExpressionMgr->startMotion(it->second.get(), false);
     }
 }
 void LAppModel::setRandomExpression() {
@@ -434,7 +433,7 @@ void LAppModel::setRandomExpression() {
         auto it = mExpressions.begin();
         std::advance(it, rand() % mExpressions.size());
         Info("Start random expression: %s", it->first.c_str());
-        mExpressionMgr->startMotion(it->second, false);
+        mExpressionMgr->startMotion(it->second.get(), false);
     }
 }
 void LAppModel::startMotion(const std::string& group, int no, int priority,
@@ -449,7 +448,7 @@ void LAppModel::startMotion(const std::string& group, int no, int priority,
         mCurrentNo = no;
         if (mOnStartMotion) mOnStartMotion(group, no);
         Info("Start motion: group=%s no=%d priority=%d", group.c_str(), no, priority);
-        mMainMotionMgr->startMotionPrio(it->second[no], priority);
+        mMainMotionMgr->startMotionPrio(it->second[no].get(), priority);
     } else {
         if (mOnStartMotion) mOnStartMotion(group, no);
         if (mOnFinishMotion) mOnFinishMotion(group, no);
@@ -476,7 +475,7 @@ void LAppModel::startRandomMotion(const std::string& group, int priority,
 }
 void LAppModel::clearMotions() { mClearFlag = true; }
 void LAppModel::resetExpression() { mExpressionMgr->stopAllMotions(); }
-void LAppModel::resetPose() { if (mPose) { for (auto& g : mPose->mMGroups) for (auto& p : g.parts) p.initIndex(mLive2DModel); } }
+void LAppModel::resetPose() { if (mPose) { for (auto& g : mPose->mMGroups) for (auto& p : g.parts) p.initIndex(mLive2DModel.get()); } }
 void LAppModel::rotate(float deg) { mMatrixManager.rotate(deg); }
 float LAppModel::getParameterValue(int index) const {
     return mLive2DModel->getModelContext()->getParamFloat(index);
@@ -553,7 +552,7 @@ std::vector<std::string> LAppModel::hitPart(float x, float y, bool topOnly) {
         int idx = firstList[order];
         if (idx < 0 || idx >= (int)drawCtxs.size()) continue;
         while (true) {
-            auto* dctx = drawCtxs[idx];
+            auto* dctx = drawCtxs[idx].get();
             if (!dctx || !dctx->mAvailable) {
                 if (nextList.size() > (size_t)idx) idx = nextList[idx];
                 else break;

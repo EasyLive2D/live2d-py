@@ -3,20 +3,16 @@
 
 namespace live2d {
 
-ALive2DModel::ALive2DModel() {
-    mModelContext = new ModelContext(this);
-}
+ALive2DModel::ALive2DModel()
+    : mModelContext(std::make_unique<ModelContext>(this)) {}
 
-ALive2DModel::~ALive2DModel() {
-    delete mModelContext;
-    delete mModelImpl;
-}
+ALive2DModel::~ALive2DModel() = default;
 
 ModelImpl* ALive2DModel::getModelImpl() {
     if (!mModelImpl) {
-        mModelImpl = new ModelImpl();
+        mModelImpl = std::make_unique<ModelImpl>();
     }
-    return mModelImpl;
+    return mModelImpl.get();
 }
 
 int ALive2DModel::getCanvasWidth() const {

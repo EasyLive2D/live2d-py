@@ -6,17 +6,18 @@
 
 namespace live2d {
 
-PartsData::~PartsData() {
-    for (auto* d : mDeformerList) delete d;
-    for (auto* d : mDrawDataList) delete d;
-}
+PartsData::~PartsData() = default;
 
 void PartsData::read(BinaryReader& br) {
     mLocked = br.readBit();
     mVisible = br.readBit();
     mId = br.readObject<const Id*>();
-    mDeformerList = br.readObject<std::vector<Deformer*>>();
-    mDrawDataList = br.readObject<std::vector<IDrawData*>>();
+    auto rawDefs = br.readObject<std::vector<Deformer*>>();
+    mDeformerList.reserve(rawDefs.size());
+    for (auto* d : rawDefs) mDeformerList.emplace_back(d);
+    auto rawDraw = br.readObject<std::vector<IDrawData*>>();
+    mDrawDataList.reserve(rawDraw.size());
+    for (auto* d : rawDraw) mDrawDataList.emplace_back(d);
 }
 
 PartsDataContext* PartsData::init() {

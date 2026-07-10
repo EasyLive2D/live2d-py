@@ -8,12 +8,12 @@
 
 namespace live2d {
 
-PivotManager::~PivotManager() {
-    for (auto* p : mParamPivotTable) delete p;
-}
+PivotManager::~PivotManager() = default;
 
 void PivotManager::read(BinaryReader& br) {
-    mParamPivotTable = br.readObject<std::vector<ParamPivots*>>();
+    auto raw = br.readObject<std::vector<ParamPivots*>>();
+    mParamPivotTable.reserve(raw.size());
+    for (auto* p : raw) mParamPivotTable.emplace_back(p);
 }
 
 bool PivotManager::checkParamUpdated(ModelContext* modelContext) {
@@ -36,7 +36,7 @@ int PivotManager::calcPivotValues(ModelContext* modelContext, bool& outRet) {
     int interpolationCount = 0;
 
     for (int i = 0; i < paramCount; i++) {
-        auto* pp = mParamPivotTable[i];
+        auto& pp = mParamPivotTable[i];
         int paramIndex = pp->getParamIndex(initVersion);
         if (paramIndex == ParamPivots::PARAM_INDEX_NOT_INIT) {
             paramIndex = modelContext->getParamIndex(pp->getParamID());
@@ -114,7 +114,7 @@ void PivotManager::calcPivotIndices(std::vector<int16_t>& indexArray,
     for (int i = 0; i < tableSize; i++) indexArray[i] = 0;
 
     for (int i = 0; i < paramCount; i++) {
-        auto* pp = mParamPivotTable[i];
+        auto& pp = mParamPivotTable[i];
         if (pp->getTmpT() == 0.0f) {
             int offset = pp->getTmpPivotIndex() * stride;
             for (int j = 0; j < tableSize; j++) indexArray[j] += offset;

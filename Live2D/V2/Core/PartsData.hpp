@@ -1,14 +1,15 @@
 #pragma once
+#include <memory>
 
 #include "ISerializable.hpp"
 #include "Id.hpp"
 #include <vector>
+#include "../Draw/IDrawData.hpp"
+#include "../Deformer/Deformer.hpp"
 
 namespace live2d {
 
 class PartsDataContext;
-class Deformer;
-class IDrawData;
 
 class PartsData final : public ISerializable {
 public:
@@ -24,11 +25,11 @@ public:
     void setVisible(bool v) { mVisible = v; }
     void setLocked(bool v) { mLocked = v; }
 
-    void setDeformer(std::vector<Deformer*>& list) { mDeformerList = list; }
-    void setDrawData(std::vector<IDrawData*>& list) { mDrawDataList = list; }
+    void setDeformer(std::vector<std::unique_ptr<Deformer>>&& list) { mDeformerList = std::move(list); }
+    void setDrawData(std::vector<std::unique_ptr<IDrawData>>&& list) { mDrawDataList = std::move(list); }
 
-    std::vector<Deformer*>& getDeformer() { return mDeformerList; }
-    std::vector<IDrawData*>& getDrawData() { return mDrawDataList; }
+    std::vector<std::unique_ptr<Deformer>>& getDeformer() { return mDeformerList; }
+    std::vector<std::unique_ptr<IDrawData>>& getDrawData() { return mDrawDataList; }
     const Id* getId() const { return mId; }
     void setId(const Id* idVal) { mId = idVal; }
 
@@ -36,8 +37,8 @@ private:
     bool mVisible = true;
     bool mLocked = false;
     const Id* mId = nullptr;
-    std::vector<Deformer*> mDeformerList;
-    std::vector<IDrawData*> mDrawDataList;
+    std::vector<std::unique_ptr<Deformer>> mDeformerList;
+    std::vector<std::unique_ptr<IDrawData>> mDrawDataList;
 };
 
 } // namespace live2d

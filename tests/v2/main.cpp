@@ -16,6 +16,8 @@
 #include <cstdlib>
 #include <string>
 #include <filesystem>
+#include <thread>
+#include <chrono>
 
 // GLFW_INCLUDE_NONE — glad (GL/glew.h) provides all GL symbols
 #define GLFW_INCLUDE_NONE
@@ -103,6 +105,10 @@ int main(int argc, char* argv[]) {
     printf("OpenGL %s, GLSL %s\n",
            glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
 
+    using namespace std::chrono_literals;
+    // --- Baseline (idle, no model) -------------------------------------------
+    std::this_thread::sleep_for(5s);
+
     // --- Load model ----------------------------------------------------------
     EnableLive2DLog(true);
     SetLive2DLogLevel(LV_INFO);
@@ -143,6 +149,8 @@ int main(int argc, char* argv[]) {
         model.startRandomMotion("", 3);
         printf("\nStarted random idle motion.\n");
 
+        std::this_thread::sleep_for(5s);  // model loaded, before render
+
         printf("Running... (press ESC to exit)\n");
         int frameCount = 0;
         while (!glfwWindowShouldClose(window)) {
@@ -159,7 +167,10 @@ int main(int argc, char* argv[]) {
             }
         }
         printf("Frames rendered: %d\n", frameCount);
-    } // model destroyed here — GL context still alive for glDeleteTextures
+
+        std::this_thread::sleep_for(5s);  // render ended, before destruction
+    } // model destroyed — GL context still alive for glDeleteTextures
+    std::this_thread::sleep_for(5s);       // after destruction baseline
 
     // --- Cleanup -------------------------------------------------------------
     glfwDestroyWindow(window);

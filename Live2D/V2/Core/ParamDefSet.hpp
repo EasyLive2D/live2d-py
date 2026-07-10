@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 
 #include "ISerializable.hpp"
 #include <vector>
@@ -14,10 +15,10 @@ public:
 
     void read(class BinaryReader& br) override;
 
-    const std::vector<ParamDefFloat*>& getParamDefFloatList() const { return mParamDefList; }
+    const std::vector<std::unique_ptr<ParamDefFloat>>& getParamDefFloatList() const { return mParamDefList; }
 
 private:
-    std::vector<ParamDefFloat*> mParamDefList;
+    std::vector<std::unique_ptr<ParamDefFloat>> mParamDefList;
 };
 
 } // namespace live2d

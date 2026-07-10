@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 
 #include "../Core/ISerializable.hpp"
 #include "../Core/Id.hpp"
@@ -46,7 +47,7 @@ protected:
 
     const Id* mId = nullptr;
     const Id* mTargetId = nullptr;
-    PivotManager* mPivotMgr = nullptr;
+    std::unique_ptr<PivotManager> mPivotMgr;
     int mAverageDrawOrder = 0;
     std::vector<int> mPivotDrawOrders;
     std::vector<float> mPivotOpacities;

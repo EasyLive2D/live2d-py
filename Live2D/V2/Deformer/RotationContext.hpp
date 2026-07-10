@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 
 #include "DeformerContext.hpp"
 
@@ -13,8 +14,8 @@ public:
     ~RotationContext() override;
 
     RotationDeformer* mRotationDeformer;
-    AffineEnt* mInterpolatedAffine = nullptr;
-    AffineEnt* mTransformedAffine = nullptr;
+    std::unique_ptr<AffineEnt> mInterpolatedAffine;
+    std::unique_ptr<AffineEnt> mTransformedAffine;
 };
 
 } // namespace live2d

@@ -30,11 +30,8 @@ ModelContext::~ModelContext() { release(); }
 
 void ModelContext::release() {
     mDeformerList.clear(); mDrawDataList.clear(); mPartsDataList.clear();
-    for (auto* ctx : mDeformerContextList) delete ctx;
-    for (auto* ctx : mDrawContextList) delete ctx;
-    for (auto* ctx : mPartsContextList) delete ctx;
     mDeformerContextList.clear(); mDrawContextList.clear(); mPartsContextList.clear();
-    delete mClipManager; mClipManager = nullptr;
+    mClipManager.reset();
 }
 
 void ModelContext::init() {
@@ -45,27 +42,27 @@ void ModelContext::init() {
     auto& partsDataList = modelImpl->getPartsDataList();
 
     std::vector<Deformer*> allDefs;
-    std::vector<DeformerContext*> allDefCtxs;
+    std::vector<std::unique_ptr<DeformerContext>> allDefCtxs;
 
-    for (auto* part : partsDataList) {
-        mPartsDataList.push_back(part);
-        mPartsContextList.push_back(part->init());
+    for (auto& part : partsDataList) {
+        mPartsDataList.push_back(part.get());
+        mPartsContextList.emplace_back(part->init());
 
         auto& baseDefs = part->getDeformer();
-        for (auto* d : baseDefs) {
-            allDefs.push_back(d);
-            auto* ctx = d->init(this);
+        for (auto& d : baseDefs) {
+            allDefs.push_back(d.get());
+            auto ctx = std::unique_ptr<DeformerContext>(d->init(this));
             ctx->mPartsIndex = static_cast<int>(mPartsContextList.size()) - 1;
-            allDefCtxs.push_back(ctx);
+            allDefCtxs.push_back(std::move(ctx));
         }
 
         auto& drawData = part->getDrawData();
-        for (auto* dd : drawData) {
-            auto* mesh = static_cast<Mesh*>(dd); // drawData is always Mesh in v2
-            auto* meshCtx = mesh->init(this);
+        for (auto& dd : drawData) {
+            auto* mesh = static_cast<Mesh*>(dd.get());
+            auto meshCtx = std::unique_ptr<MeshContext>(mesh->init(this));
             meshCtx->mPartsIndex = static_cast<int>(mPartsContextList.size()) - 1;
             mDrawDataList.push_back(mesh);
-            mDrawContextList.push_back(meshCtx);
+            mDrawContextList.push_back(std::move(meshCtx));
         }
     }
 
@@ -80,7 +77,7 @@ void ModelContext::init() {
             auto* target = d->getTargetId();
             if (!target || *target == dstBase || getDeformerIndex(target) >= 0) {
                 mDeformerList.push_back(d);
-                mDeformerContextList.push_back(allDefCtxs[i]);
+                mDeformerContextList.push_back(std::move(allDefCtxs[i]));
                 allDefs[i] = nullptr;
                 progress = true;
             }
@@ -90,15 +87,18 @@ void ModelContext::init() {
 
     auto* paramSet = modelImpl->getParamDefSet();
     if (paramSet) {
-        for (auto* p : paramSet->getParamDefFloatList()) {
+        for (auto& p : paramSet->getParamDefFloatList()) {
             if (!p) continue;
             extendAndAddParam(p->getParamID(), p->getDefaultValue(),
                               p->getMaxValue(), p->getMinValue());
         }
     }
 
-    mClipManager = new ClippingManagerOpenGL(mDpGL);
-    mClipManager->init(this, mDrawDataList, mDrawContextList);
+    mClipManager = std::make_unique<ClippingManagerOpenGL>(mDpGL);
+    std::vector<MeshContext*> rawDrawCtxs;
+    rawDrawCtxs.reserve(mDrawContextList.size());
+    for (auto& ctx : mDrawContextList) rawDrawCtxs.push_back(ctx.get());
+    mClipManager->init(this, mDrawDataList, rawDrawCtxs);
     mNeedSetup = true;
 }
 
@@ -134,13 +134,13 @@ void ModelContext::update() {
     for (int i = 0; i < nDraw; i++) mNextListDrawIndex[i] = NO_NEXT;
 
     for (int i = 0; i < nDef; i++) {
-        mDeformerList[i]->setupInterpolate(this, mDeformerContextList[i]);
-        mDeformerList[i]->setupTransform(this, mDeformerContextList[i]);
+        mDeformerList[i]->setupInterpolate(this, mDeformerContextList[i].get());
+        mDeformerList[i]->setupTransform(this, mDeformerContextList[i].get());
     }
 
     for (int i = 0; i < nDraw; i++) {
         auto* dd = static_cast<Mesh*>(mDrawDataList[i]);
-        auto* ctx = mDrawContextList[i];
+        auto* ctx = mDrawContextList[i].get();
         dd->setupInterpolate(this, ctx);
         if (ctx->mParamOutside) continue;
 
@@ -165,7 +165,7 @@ void ModelContext::update() {
             fprintf(f, "\n=== DEFORMERS ===\n");
             for (size_t i = 0; i < mDeformerList.size(); i++) {
                 auto* def = mDeformerList[i];
-                auto* dctx = mDeformerContextList[i];
+                auto* dctx = mDeformerContextList[i].get();
                 const char* name = def->getId()->str().c_str();
                 fprintf(f, "[%zu] %s type=%d parent=%s avail=%d scale=%.6f opacity=%.6f\n",
                     i, name, def->getType(),
@@ -175,8 +175,8 @@ void ModelContext::update() {
                 // Dump affine values for RotationDeformers
                 if (def->getType() == 1) { // TYPE_ROTATION
                     auto* rctx = static_cast<RotationContext*>(dctx);
-                    auto* ia = rctx->mInterpolatedAffine;
-                    auto* ta = rctx->mTransformedAffine;
+                    auto* ia = rctx->mInterpolatedAffine.get();
+                    auto* ta = rctx->mTransformedAffine.get();
                     if (ia) fprintf(f, "  interpolated: ox=%.4f oy=%.4f sx=%.4f sy=%.4f rot=%.4f rx=%d ry=%d\n",
                         ia->mOriginX, ia->mOriginY, ia->mScaleX, ia->mScaleY, ia->mRotationDeg, (int)ia->mReflectX, (int)ia->mReflectY);
                     if (ta) fprintf(f, "  transformed:  ox=%.4f oy=%.4f sx=%.4f sy=%.4f rot=%.4f rx=%d ry=%d\n",
@@ -186,7 +186,7 @@ void ModelContext::update() {
             fprintf(f, "\n=== DRAWS ===\n");
             for (size_t i = 0; i < mDrawDataList.size(); i++) {
                 auto* dd = static_cast<Mesh*>(mDrawDataList[i]);
-                auto* ctx = mDrawContextList[i];
+                auto* ctx = mDrawContextList[i].get();
                 auto& verts = ctx->mTransformedPoints.empty() ? ctx->mInterpolatedPoints : ctx->mTransformedPoints;
                 const char* did = dd->getId() ? dd->getId()->str().c_str() : "?";
                 const char* pid = mPartsContextList[ctx->mPartsIndex]->mPartsData->getId()->str().c_str();
@@ -219,7 +219,7 @@ void ModelContext::draw(DrawParamOpenGL* dp) {
         if (idx == NOT_USED_ORDER) continue;
         while (true) {
             auto* dd = static_cast<Mesh*>(mDrawDataList[idx]);
-            auto* ctx = mDrawContextList[idx];
+            auto* ctx = mDrawContextList[idx].get();
             const char* pid = mPartsContextList[ctx->mPartsIndex]->mPartsData->getId()->str().c_str();
             if (ctx->mAvailable) {
                 ctx->mPartsOpacity = mPartsContextList[ctx->mPartsIndex]->getPartsOpacity();

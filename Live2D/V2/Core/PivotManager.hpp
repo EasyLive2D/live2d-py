@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 
 #include <cstdint>
 #include "ISerializable.hpp"
@@ -12,7 +13,6 @@ class ModelContext;
 class PivotManager final : public ISerializable {
 public:
     PivotManager() = default;
-
     ~PivotManager() override;
 
     void read(class BinaryReader& br) override;
@@ -24,7 +24,7 @@ public:
     int getParamCount() const { return static_cast<int>(mParamPivotTable.size()); }
 
 private:
-    std::vector<ParamPivots*> mParamPivotTable;
+    std::vector<std::unique_ptr<ParamPivots>> mParamPivotTable;
 };
 
 } // namespace live2d

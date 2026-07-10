@@ -1,12 +1,13 @@
 #pragma once
+#include <memory>
 
 #include "ISerializable.hpp"
 #include <vector>
 
-namespace live2d {
+#include "ParamDefSet.hpp"
+#include "PartsData.hpp"
 
-class ParamDefSet;
-class PartsData;
+namespace live2d {
 
 class ModelImpl final : public ISerializable {
 public:
@@ -18,12 +19,12 @@ public:
     int getCanvasWidth() const { return mCanvasWidth; }
     int getCanvasHeight() const { return mCanvasHeight; }
 
-    ParamDefSet* getParamDefSet() const { return mParamDefSet; }
-    std::vector<PartsData*>& getPartsDataList() { return mPartsDataList; }
+    ParamDefSet* getParamDefSet() const { return mParamDefSet.get(); }
+    std::vector<std::unique_ptr<PartsData>>& getPartsDataList() { return mPartsDataList; }
 
 private:
-    ParamDefSet* mParamDefSet = nullptr;
-    std::vector<PartsData*> mPartsDataList;
+    std::unique_ptr<ParamDefSet> mParamDefSet;
+    std::vector<std::unique_ptr<PartsData>> mPartsDataList;
     int mCanvasWidth = 400;
     int mCanvasHeight = 400;
 };

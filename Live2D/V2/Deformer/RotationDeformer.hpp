@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 
 #include "Deformer.hpp"
 #include <vector>
@@ -22,8 +23,8 @@ public:
                          const std::vector<float>& srcPoints, std::vector<float>& dstPoints,
                          int numPoint, int ptOffset, int ptStep) override;
 
-    PivotManager* mPivotManager = nullptr;
-    std::vector<AffineEnt*> mAffines;
+    std::unique_ptr<PivotManager> mPivotManager;
+    std::vector<std::unique_ptr<AffineEnt>> mAffines;
 };
 
 } // namespace live2d

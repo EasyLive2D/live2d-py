@@ -34,19 +34,17 @@ ClippingManagerOpenGL::ClippingManagerOpenGL(DrawParamOpenGL* dp) : mDpGL(dp) {
     }
 }
 
-ClippingManagerOpenGL::~ClippingManagerOpenGL() {
-    for (auto* ctx : mClipContextList) delete ctx;
-}
+ClippingManagerOpenGL::~ClippingManagerOpenGL() = default;
 
-static ClipContext* findSameClip(const std::vector<ClipContext*>& list,
+static ClipContext* findSameClip(const std::vector<std::unique_ptr<ClipContext>>& list,
                                   const std::vector<std::string>& ids) {
-    for (auto* ctx : list) {
+    for (auto& ctx : list) {
         if (ctx->mClipIDList.size() != ids.size()) continue;
         int match = 0;
         for (auto& a : ctx->mClipIDList)
             for (auto& b : ids)
                 if (a == b) { match++; break; }
-        if (match == (int)ids.size()) return ctx;
+        if (match == (int)ids.size()) return ctx.get();
     }
     return nullptr;
 }
@@ -62,8 +60,9 @@ void ClippingManagerOpenGL::init(ModelContext* mc,
 
         auto* clipCtx = findSameClip(mClipContextList, clipIDs);
         if (!clipCtx) {
-            clipCtx = new ClipContext(mc, clipIDs);
-            mClipContextList.push_back(clipCtx);
+            auto newCtx = std::make_unique<ClipContext>(mc, clipIDs);
+            clipCtx = newCtx.get();
+            mClipContextList.push_back(std::move(newCtx));
         }
 
         auto* drawId = drawDataList[i]->getId();
@@ -134,13 +133,13 @@ void ClippingManagerOpenGL::setupLayoutBounds(int count) {
     for (int ch = 0; ch < CHANNEL_COUNT; ch++) {
         int n = rows + (ch < remainder ? 1 : 0);
         if (n == 1) {
-            auto* clip = mClipContextList[idx++];
+            auto& clip = mClipContextList[idx++];
             clip->mLayoutChannelNo = ch;
             clip->mLayoutBounds[0] = 0; clip->mLayoutBounds[1] = 0;
             clip->mLayoutBounds[2] = 1; clip->mLayoutBounds[3] = 1;
         } else if (n == 2) {
             for (int i = 0; i < n; i++) {
-                auto* clip = mClipContextList[idx++];
+                auto& clip = mClipContextList[idx++];
                 clip->mLayoutChannelNo = ch;
                 clip->mLayoutBounds[0] = (float)(i % 2) * 0.5f;
                 clip->mLayoutBounds[1] = 0;
@@ -149,7 +148,7 @@ void ClippingManagerOpenGL::setupLayoutBounds(int count) {
             }
         } else if (n <= 4) {
             for (int i = 0; i < n; i++) {
-                auto* clip = mClipContextList[idx++];
+                auto& clip = mClipContextList[idx++];
                 clip->mLayoutChannelNo = ch;
                 clip->mLayoutBounds[0] = (float)(i % 2) * 0.5f;
                 clip->mLayoutBounds[1] = (float)(i / 2) * 0.5f;
@@ -158,7 +157,7 @@ void ClippingManagerOpenGL::setupLayoutBounds(int count) {
             }
         } else if (n <= 9) {
             for (int i = 0; i < n; i++) {
-                auto* clip = mClipContextList[idx++];
+                auto& clip = mClipContextList[idx++];
                 clip->mLayoutChannelNo = ch;
                 clip->mLayoutBounds[0] = (float)(i % 3) / 3.0f;
                 clip->mLayoutBounds[1] = (float)(i / 3) / 3.0f;
@@ -208,8 +207,8 @@ static void buildClipMatrix(std::array<float, 16>& out, ClipContext* clip, bool 
 
 void ClippingManagerOpenGL::setupClip(ModelContext* mc, DrawParamOpenGL* dp) {
     int activeCount = 0;
-    for (auto* clip : mClipContextList) {
-        calcClippedDrawTotalBounds(mc, clip);
+    for (auto& clip : mClipContextList) {
+        calcClippedDrawTotalBounds(mc, clip.get());
         if (clip->mIsUsing) activeCount++;
     }
     if (activeCount == 0) return;
@@ -225,11 +224,11 @@ void ClippingManagerOpenGL::setupClip(ModelContext* mc, DrawParamOpenGL* dp) {
 
     setupLayoutBounds(activeCount);
 
-    for (auto* clip : mClipContextList) {
+    for (auto& clip : mClipContextList) {
         if (!clip->mIsUsing) continue;
 
-        buildClipMatrix(clip->mMatrixForMask, clip, true);
-        buildClipMatrix(clip->mMatrixForDraw, clip, false);
+        buildClipMatrix(clip->mMatrixForMask, clip.get(), true);
+        buildClipMatrix(clip->mMatrixForDraw, clip.get(), false);
 
         // Store clip matrix for DRAW on all clipped contexts
         for (int idx : clip->mClippedDrawIndexList) {

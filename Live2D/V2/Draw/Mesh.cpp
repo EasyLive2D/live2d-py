@@ -100,7 +100,7 @@ void Mesh::setupInterpolate(ModelContext* modelContext, MeshContext* meshContext
     if (meshContext->mParamOutside) return;
 
     bool paramOutside = false;
-    UtInterpolate::interpolatePoints(modelContext, mPivotMgr, paramOutside,
+    UtInterpolate::interpolatePoints(modelContext, mPivotMgr.get(), paramOutside,
                                      mPointCount, mPivotPoints,
                                      meshContext->mInterpolatedPoints,
                                      VERTEX_OFFSET, VERTEX_STEP);

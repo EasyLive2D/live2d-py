@@ -4,12 +4,12 @@
 
 namespace live2d {
 
-ParamDefSet::~ParamDefSet() {
-    for (auto* p : mParamDefList) delete p;
-}
+ParamDefSet::~ParamDefSet() = default;
 
 void ParamDefSet::read(BinaryReader& br) {
-    mParamDefList = br.readObject<std::vector<ParamDefFloat*>>();
+    auto raw = br.readObject<std::vector<ParamDefFloat*>>();
+    mParamDefList.reserve(raw.size());
+    for (auto* p : raw) mParamDefList.emplace_back(p);
 }
 
 } // namespace live2d

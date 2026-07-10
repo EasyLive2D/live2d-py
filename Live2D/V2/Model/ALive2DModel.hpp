@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "../Core/ModelImpl.hpp"
 
 namespace live2d {
@@ -12,9 +13,9 @@ public:
     ALive2DModel();
     virtual ~ALive2DModel();
 
-    void setModelImpl(ModelImpl* impl) { mModelImpl = impl; }
+    void setModelImpl(ModelImpl* impl) { mModelImpl.reset(impl); }
     ModelImpl* getModelImpl();
-    ModelContext* getModelContext() const { return mModelContext; }
+    ModelContext* getModelContext() const { return mModelContext.get(); }
     virtual DrawParamOpenGL* getDrawParam() = 0;
     virtual void draw() = 0;
 
@@ -24,8 +25,8 @@ public:
     void setParamFloat(int index, float value, float weight = 1.0f);
 
 protected:
-    ModelImpl* mModelImpl = nullptr;
-    ModelContext* mModelContext = nullptr;
+    std::unique_ptr<ModelImpl> mModelImpl;
+    std::unique_ptr<ModelContext> mModelContext;
 };
 
 } // namespace live2d

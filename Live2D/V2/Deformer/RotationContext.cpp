@@ -7,15 +7,12 @@ namespace live2d {
 RotationContext::RotationContext(RotationDeformer* deformer)
     : DeformerContext(deformer)
     , mRotationDeformer(deformer)
-    , mInterpolatedAffine(new AffineEnt()) {
+    , mInterpolatedAffine(std::make_unique<AffineEnt>()) {
     if (deformer->needTransform()) {
-        mTransformedAffine = new AffineEnt();
+        mTransformedAffine = std::make_unique<AffineEnt>();
     }
 }
 
-RotationContext::~RotationContext() {
-    delete mInterpolatedAffine;
-    delete mTransformedAffine;
-}
+RotationContext::~RotationContext() = default;
 
 } // namespace live2d

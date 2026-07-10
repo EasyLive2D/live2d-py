@@ -5,14 +5,13 @@
 
 namespace live2d {
 
-ModelImpl::~ModelImpl() {
-    delete mParamDefSet;
-    for (auto* p : mPartsDataList) delete p;
-}
+ModelImpl::~ModelImpl() = default;
 
 void ModelImpl::read(BinaryReader& br) {
-    mParamDefSet = br.readObject<ParamDefSet*>();
-    mPartsDataList = br.readObject<std::vector<PartsData*>>();
+    mParamDefSet.reset(br.readObject<ParamDefSet*>());
+    auto rawParts = br.readObject<std::vector<PartsData*>>();
+    mPartsDataList.reserve(rawParts.size());
+    for (auto* p : rawParts) mPartsDataList.emplace_back(p);
     mCanvasWidth = br.readInt32();
     mCanvasHeight = br.readInt32();
 }
