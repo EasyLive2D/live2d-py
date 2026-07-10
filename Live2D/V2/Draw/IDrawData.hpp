@@ -19,6 +19,7 @@ public:
     static constexpr int TYPE_MESH = 2;
 
     IDrawData() = default;
+    ~IDrawData() override;
 
     void read(class BinaryReader& br) override;
 
@@ -37,13 +38,9 @@ public:
     static int getDrawOrder(MeshContext* ctx);
     virtual int getType() const = 0;
 
-    std::vector<std::string>* getClipIDList() const { return mClipIDList; }
+    const std::vector<std::string>& getClipIDList() const { return mClipIDList; }
+    int getAverageDrawOrder() const { return mAverageDrawOrder; }
 
-    static int getTotalMinOrder() { return sTotalMinOrder; }
-    static int getTotalMaxOrder() { return sTotalMaxOrder; }
-
-    static int sTotalMinOrder;
-    static int sTotalMaxOrder;
 
 protected:
 
@@ -53,7 +50,7 @@ protected:
     int mAverageDrawOrder = 0;
     std::vector<int> mPivotDrawOrders;
     std::vector<float> mPivotOpacities;
-    std::vector<std::string>* mClipIDList = nullptr;
+    std::vector<std::string> mClipIDList;
 };
 
 } // namespace live2d

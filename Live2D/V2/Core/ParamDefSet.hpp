@@ -10,6 +10,7 @@ class ParamDefFloat;
 class ParamDefSet final : public ISerializable {
 public:
     ParamDefSet() = default;
+    ~ParamDefSet() override;
 
     void read(class BinaryReader& br) override;
 

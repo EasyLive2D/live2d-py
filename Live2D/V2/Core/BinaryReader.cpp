@@ -52,6 +52,10 @@ inline double readBigDouble(const uint8_t* buf, size_t offset) {
 
 // -- BinaryReader implementation --
 
+BinaryReader::~BinaryReader() {
+    for (auto& del : mDeleters) del();
+}
+
 int BinaryReader::readNumber() {
     int b1 = readByte();
     if ((b1 & 128) == 0) return b1 & 255;
@@ -203,20 +207,20 @@ void* BinaryReader::readKnownTypeObject(int type) {
     // Factory-created ISerializable subclasses (type >= 48)
     if (type >= 48) {
         auto obj = Live2DObjectFactory::create(type);
-        ISerializable* rawPtr = obj.get();
-        obj.release(); // Transfer ownership — will be tracked in mObjects
-        rawPtr->read(*this);
-        return rawPtr;
+        obj->read(*this);                  // may throw — unique_ptr still owns
+        ISerializable* rawPtr = obj.release();
+        return rawPtr;                     // ownership transferred to caller
     }
     // Primitive types
     if (type == 1) {
-        // String — return heap-allocated string
-        return new std::string(readUTF8String());
+        auto* s = new std::string(readUTF8String());
+        mDeleters.push_back([s]() { delete s; });
+        return s;
     }
     if (type == 15) {
-        // Array of objects — read count then each element
         int count = readType();
         auto* arr = new std::vector<void*>();
+        mDeleters.push_back([arr]() { delete arr; });
         arr->reserve(count);
         for (int i = 0; i < count; i++) {
             arr->push_back(readObjectUntyped());
@@ -225,14 +229,17 @@ void* BinaryReader::readKnownTypeObject(int type) {
     }
     if (type == 16 || type == 25) {
         auto* arr = new std::vector<int32_t>(readInt32Array());
+        mDeleters.push_back([arr]() { delete arr; });
         return arr;
     }
     if (type == 26) {
         auto* arr = new std::vector<double>(readFloat64Array());
+        mDeleters.push_back([arr]() { delete arr; });
         return arr;
     }
     if (type == 27) {
         auto* arr = new std::vector<float>(readFloat32Array());
+        mDeleters.push_back([arr]() { delete arr; });
         return arr;
     }
     if (type == 23) {

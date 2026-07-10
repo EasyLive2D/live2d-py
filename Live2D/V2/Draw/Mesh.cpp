@@ -22,6 +22,8 @@ Mesh::Mesh() : IDrawData() {
     mInstanceNo = sInstanceCount++;
 }
 
+Mesh::~Mesh() {}
+
 void Mesh::read(BinaryReader& br) {
     IDrawData::read(br);
     mTextureNo = br.readInt32();

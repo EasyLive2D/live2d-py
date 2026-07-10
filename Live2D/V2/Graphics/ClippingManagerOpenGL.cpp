@@ -56,20 +56,20 @@ void ClippingManagerOpenGL::init(ModelContext* mc,
                                   const std::vector<MeshContext*>& drawContextList) {
     int clipCount = 0;
     for (size_t i = 0; i < drawDataList.size(); i++) {
-        auto* clipIDs = drawDataList[i]->getClipIDList();
-        if (!clipIDs || clipIDs->empty()) continue;
+        auto& clipIDs = drawDataList[i]->getClipIDList();
+        if (clipIDs.empty()) continue;
         clipCount++;
 
-        auto* clipCtx = findSameClip(mClipContextList, *clipIDs);
+        auto* clipCtx = findSameClip(mClipContextList, clipIDs);
         if (!clipCtx) {
-            clipCtx = new ClipContext(mc, *clipIDs);
+            clipCtx = new ClipContext(mc, clipIDs);
             mClipContextList.push_back(clipCtx);
         }
 
         auto* drawId = drawDataList[i]->getId();
         int drawIdx = mc->getDrawDataIndex(drawId);
         // Mask source: only the drawable matching the clip ID (dedup)
-        for (auto& cid : *clipIDs) {
+        for (auto& cid : clipIDs) {
             int maskIdx = mc->getDrawDataIndex(&Id::getID(cid));
             if (maskIdx >= 0) {
                 bool found = false;

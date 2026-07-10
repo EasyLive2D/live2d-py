@@ -13,6 +13,8 @@ class PivotManager final : public ISerializable {
 public:
     PivotManager() = default;
 
+    ~PivotManager() override;
+
     void read(class BinaryReader& br) override;
 
     bool checkParamUpdated(ModelContext* modelContext);

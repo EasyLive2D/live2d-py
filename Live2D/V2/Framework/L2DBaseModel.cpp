@@ -56,7 +56,7 @@ L2DPose* L2DBaseModel::loadPose(const std::vector<uint8_t>& data) {
     delete mPose; mPose = L2DPose::load(data); return mPose;
 }
 void L2DBaseModel::loadPhysics(const std::vector<uint8_t>& data) {
-    mPhysics = L2DPhysics::load(data);
+    delete mPhysics; mPhysics = L2DPhysics::load(data);
 }
 bool L2DBaseModel::hitTestSimple(const std::string& drawID, float x, float y) {
     auto* mc = mLive2DModel->getModelContext();

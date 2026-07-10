@@ -11,6 +11,7 @@ class PartsData;
 class ModelImpl final : public ISerializable {
 public:
     ModelImpl() = default;
+    ~ModelImpl() override;
 
     void read(class BinaryReader& br) override;
 

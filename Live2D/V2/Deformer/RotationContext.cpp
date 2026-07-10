@@ -13,4 +13,9 @@ RotationContext::RotationContext(RotationDeformer* deformer)
     }
 }
 
+RotationContext::~RotationContext() {
+    delete mInterpolatedAffine;
+    delete mTransformedAffine;
+}
+
 } // namespace live2d

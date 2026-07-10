@@ -13,6 +13,7 @@ class PartsData;
 class Avatar final : public ISerializable {
 public:
     Avatar() = default;
+    ~Avatar() override;
 
     void read(class BinaryReader& br) override;
 

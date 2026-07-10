@@ -13,6 +13,7 @@ class IDrawData;
 class PartsData final : public ISerializable {
 public:
     PartsData() = default;
+    ~PartsData() override;
 
     void read(class BinaryReader& br) override;
 

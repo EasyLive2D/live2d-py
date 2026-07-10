@@ -5,6 +5,11 @@
 
 namespace live2d {
 
+ModelImpl::~ModelImpl() {
+    delete mParamDefSet;
+    for (auto* p : mPartsDataList) delete p;
+}
+
 void ModelImpl::read(BinaryReader& br) {
     mParamDefSet = br.readObject<ParamDefSet*>();
     mPartsDataList = br.readObject<std::vector<PartsData*>>();

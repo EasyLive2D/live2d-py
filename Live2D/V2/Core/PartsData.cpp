@@ -1,8 +1,15 @@
 #include "PartsData.hpp"
 #include "PartsDataContext.hpp"
 #include "BinaryReader.hpp"
+#include "../Draw/IDrawData.hpp"
+#include "../Deformer/Deformer.hpp"
 
 namespace live2d {
+
+PartsData::~PartsData() {
+    for (auto* d : mDeformerList) delete d;
+    for (auto* d : mDrawDataList) delete d;
+}
 
 void PartsData::read(BinaryReader& br) {
     mLocked = br.readBit();

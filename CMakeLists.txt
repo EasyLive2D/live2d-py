@@ -18,12 +18,17 @@ endif()
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
   set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /Zi")
-  add_compile_options("/utf-8" "/wd4018" "/wd4244" "/wd4996")
+  add_compile_options("/utf-8" "/wd4018" "/wd4244" "/wd4996" "/we4150")
   add_link_options("/NODEFAULTLIB:LIBCMT")
   if(CMAKE_CL_64)
     add_link_options("/BASE:0x800000000")
   endif()
   execute_process(COMMAND chcp 65001)
+endif()
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+  # Error on delete of pointer to incomplete type
+  add_compile_options(-Werror=delete-incomplete)
 endif()
 
 # ---- Shared: Glad (OpenGL loader, used by both v2 and v3) ----
@@ -51,6 +56,7 @@ else()
   if(BUILD_V2CPP)
     add_subdirectory(Live2D/V2 ${CMAKE_CURRENT_BINARY_DIR}/Live2D/V2)
     add_subdirectory(Wrapper/V2 ${CMAKE_CURRENT_BINARY_DIR}/Wrapper/V2)
+    add_subdirectory(tests/v2 ${CMAKE_CURRENT_BINARY_DIR}/tests/v2)
   endif()
 endif()
 

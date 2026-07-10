@@ -7,6 +7,11 @@ ALive2DModel::ALive2DModel() {
     mModelContext = new ModelContext(this);
 }
 
+ALive2DModel::~ALive2DModel() {
+    delete mModelContext;
+    delete mModelImpl;
+}
+
 ModelImpl* ALive2DModel::getModelImpl() {
     if (!mModelImpl) {
         mModelImpl = new ModelImpl();

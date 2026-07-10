@@ -112,8 +112,13 @@ void ModelContext::update() {
 
     int nDef = static_cast<int>(mDeformerList.size());
     int nDraw = static_cast<int>(mDrawDataList.size());
-    int minOrder = IDrawData::getTotalMinOrder();
-    int maxOrder = IDrawData::getTotalMaxOrder();
+    int minOrder = IDrawData::DEFAULT_ORDER;
+    int maxOrder = IDrawData::DEFAULT_ORDER;
+    for (auto* d : mDrawDataList) {
+        int order = d->getAverageDrawOrder();
+        if (order < minOrder) minOrder = order;
+        else if (order > maxOrder) maxOrder = order;
+    }
     int range = maxOrder - minOrder + 1;
 
     if (static_cast<int>(mOrderListFirstDrawIndex.size()) < range) {

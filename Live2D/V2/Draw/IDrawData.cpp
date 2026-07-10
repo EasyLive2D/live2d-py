@@ -10,32 +10,8 @@
 
 namespace live2d {
 
-int IDrawData::sTotalMinOrder = DEFAULT_ORDER;
-int IDrawData::sTotalMaxOrder = DEFAULT_ORDER;
-
-static void setDrawOrders(const std::vector<int>& orders) {
-    for (int i = static_cast<int>(orders.size()) - 1; i >= 0; i--) {
-        int order = orders[i];
-        if (order < IDrawData::sTotalMinOrder) IDrawData::sTotalMinOrder = order;
-        else if (order > IDrawData::sTotalMaxOrder) IDrawData::sTotalMaxOrder = order;
-    }
-}
-
-static std::vector<std::string>* convertClipIDForV2_11(const Id* clipId) {
-    if (!clipId || clipId->str().empty()) return nullptr;
-    auto* result = new std::vector<std::string>();
-    const std::string& s = clipId->str();
-    if (s.find(',') == std::string::npos) {
-        result->push_back(s);
-        return result;
-    }
-    size_t start = 0, end;
-    while ((end = s.find(',', start)) != std::string::npos) {
-        result->push_back(s.substr(start, end - start));
-        start = end + 1;
-    }
-    result->push_back(s.substr(start));
-    return result;
+IDrawData::~IDrawData() {
+    delete mPivotMgr;
 }
 
 void IDrawData::read(BinaryReader& br) {
@@ -48,11 +24,16 @@ void IDrawData::read(BinaryReader& br) {
 
     if (br.getFormatVersion() >= LIVE2D_FORMAT_VERSION_AVAILABLE) {
         const Id* clipId = br.readObject<const Id*>();
-        mClipIDList = convertClipIDForV2_11(clipId);
-    } else {
-        mClipIDList = nullptr;
+        if (clipId && !clipId->str().empty()) {
+            const std::string& s = clipId->str();
+            size_t start = 0, end;
+            while ((end = s.find(',', start)) != std::string::npos) {
+                mClipIDList.push_back(s.substr(start, end - start));
+                start = end + 1;
+            }
+            mClipIDList.push_back(s.substr(start));
+        }
     }
-    setDrawOrders(mPivotDrawOrders);
 }
 
 void IDrawData::setupInterpolate(ModelContext* mc, MeshContext* ctx) {

@@ -10,6 +10,7 @@ class PivotManager;
 class WarpDeformer final : public Deformer {
 public:
     WarpDeformer() = default;
+    ~WarpDeformer() override;
 
     int getType() const override { return TYPE_WARP; }
     void read(class BinaryReader& br) override;

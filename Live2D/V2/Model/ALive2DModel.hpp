@@ -10,7 +10,7 @@ class DrawParamOpenGL;
 class ALive2DModel {
 public:
     ALive2DModel();
-    virtual ~ALive2DModel() = default;
+    virtual ~ALive2DModel();
 
     void setModelImpl(ModelImpl* impl) { mModelImpl = impl; }
     ModelImpl* getModelImpl();

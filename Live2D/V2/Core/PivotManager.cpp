@@ -8,6 +8,10 @@
 
 namespace live2d {
 
+PivotManager::~PivotManager() {
+    for (auto* p : mParamPivotTable) delete p;
+}
+
 void PivotManager::read(BinaryReader& br) {
     mParamPivotTable = br.readObject<std::vector<ParamPivots*>>();
 }

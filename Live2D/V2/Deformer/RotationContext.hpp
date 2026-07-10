@@ -10,6 +10,7 @@ class AffineEnt;
 class RotationContext final : public DeformerContext {
 public:
     explicit RotationContext(RotationDeformer* deformer);
+    ~RotationContext() override;
 
     RotationDeformer* mRotationDeformer;
     AffineEnt* mInterpolatedAffine = nullptr;

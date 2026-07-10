@@ -11,6 +11,7 @@ class AffineEnt;
 class RotationDeformer final : public Deformer {
 public:
     RotationDeformer() = default;
+    ~RotationDeformer() override;
 
     int getType() const override { return TYPE_ROTATION; }
     void read(class BinaryReader& br) override;

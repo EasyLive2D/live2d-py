@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <cstring>
 #include <type_traits>
+#include <functional>
 
 namespace live2d {
 
@@ -17,6 +18,7 @@ class BinaryReader {
 public:
     explicit BinaryReader(std::vector<uint8_t> buf)
         : mBuf(std::move(buf)), mOffset(0), mFormatVersion(0), mOffset8Bit(0), mCurrent8Bit(0) {}
+    ~BinaryReader();
 
     // -- Basic types (big-endian binary format) --
     int readNumber();
@@ -61,6 +63,7 @@ private:
     int mOffset8Bit;
     int mCurrent8Bit;
     std::vector<void*> mObjects;
+    std::vector<std::function<void()>> mDeleters;
 
     // Trait to detect std::vector specializations
     template<typename T> struct is_vector : std::false_type {};
@@ -146,6 +149,7 @@ inline T BinaryReader::readObjectVector(int type) {
 
         int count = readType();
         T* resultPtr = new T();
+        mDeleters.push_back([resultPtr]() { delete resultPtr; });
         resultPtr->reserve(count);
         for (int i = 0; i < count; i++) {
             resultPtr->push_back(readObject<ElemType>());
@@ -168,6 +172,7 @@ inline T BinaryReader::readObjectVector(int type) {
         }
         int count = readType();
         T* resultPtr = new T();
+        mDeleters.push_back([resultPtr]() { delete resultPtr; });
         resultPtr->reserve(count);
         for (int i = 0; i < count; i++) {
             resultPtr->push_back(readObject<ElemType>());

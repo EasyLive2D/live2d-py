@@ -17,6 +17,7 @@ public:
     static constexpr int COLOR_COMPOSITION_MULTIPLY = 2;
 
     Mesh();
+    ~Mesh() override;
 
     int getType() const override { return TYPE_MESH; }
     void read(class BinaryReader& br) override;

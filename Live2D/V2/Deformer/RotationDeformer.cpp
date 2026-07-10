@@ -11,6 +11,11 @@
 
 namespace live2d {
 
+RotationDeformer::~RotationDeformer() {
+    delete mPivotManager;
+    for (auto* a : mAffines) delete a;
+}
+
 void RotationDeformer::read(BinaryReader& br) {
     Deformer::read(br);
     mPivotManager = br.readObject<PivotManager*>();

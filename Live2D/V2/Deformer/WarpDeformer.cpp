@@ -11,6 +11,10 @@
 
 namespace live2d {
 
+WarpDeformer::~WarpDeformer() {
+    delete mPivotMgr;
+}
+
 void WarpDeformer::read(BinaryReader& br) {
     Deformer::read(br);
     mCol = br.readInt32();
