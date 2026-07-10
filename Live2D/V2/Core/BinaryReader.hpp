@@ -1,11 +1,11 @@
 #pragma once
 
 #include "DEF.hpp"
+#include "../Common/Log.hpp"
 
 #include <vector>
 #include <cstdint>
 #include <string>
-#include <stdexcept>
 #include <cstring>
 #include <type_traits>
 #include <functional>
@@ -103,7 +103,8 @@ inline T BinaryReader::readObjectDispatch(std::false_type /*is_vector*/, int typ
 // Helper: reads a primitive-typed array directly (type code already consumed)
 template<typename ElemType>
 inline std::vector<ElemType> readPrimitiveArray(BinaryReader* /*br*/) {
-    throw std::runtime_error("Unsupported primitive array type");
+    Error("Unsupported primitive array type");
+    return {};
 }
 
 template<>
@@ -135,16 +136,16 @@ inline T BinaryReader::readObjectVector(int type) {
         if (actualType == OBJECT_REF) {
             int index = readInt32();
             if (index < 0 || index >= static_cast<int>(mObjects.size())) {
-                throw std::runtime_error("Invalid object ref index in vector: "
-                                         + std::to_string(index));
+                Error("Invalid object ref index in vector: %d", index);
+                return T{};
             }
             auto* storedVec = static_cast<T*>(mObjects[index]);
             return *storedVec;
         }
 
         if (actualType != 15) {
-            throw std::runtime_error(
-                "Expected array type (15), got " + std::to_string(actualType));
+            Error("Expected array type (15), got %d", actualType);
+            return T{};
         }
 
         int count = readType();
@@ -161,14 +162,14 @@ inline T BinaryReader::readObjectVector(int type) {
         if (actualType == OBJECT_REF) {
             int index = readInt32();
             if (index < 0 || index >= static_cast<int>(mObjects.size())) {
-                throw std::runtime_error("OBJECT_REF invalid for nested vec at "
-                                         + std::to_string(index));
+                Error("OBJECT_REF invalid for nested vec at %d", index);
+                return T{};
             }
             return *static_cast<T*>(mObjects[index]);
         }
         if (actualType != 15) {
-            throw std::runtime_error("Expected array type (15) for nested vec, got "
-                                     + std::to_string(actualType));
+            Error("Expected array type (15) for nested vec, got %d", actualType);
+            return T{};
         }
         int count = readType();
         T* resultPtr = new T();
@@ -184,8 +185,8 @@ inline T BinaryReader::readObjectVector(int type) {
         if (actualType == OBJECT_REF) {
             int index = readInt32();
             if (index < 0 || index >= static_cast<int>(mObjects.size())) {
-                throw std::runtime_error("Invalid object ref index for primitive: "
-                                         + std::to_string(index));
+                Error("Invalid object ref index for primitive: %d", index);
+                return T{};
             }
             return *static_cast<T*>(mObjects[index]);
         }
@@ -208,9 +209,8 @@ inline T BinaryReader::readObjectPtr(int type) {
     if (actualType == OBJECT_REF) {
         int index = readInt32();
         if (index < 0 || index >= static_cast<int>(mObjects.size())) {
-            throw std::runtime_error("Invalid object reference index: "
-                                     + std::to_string(index)
-                                     + " size=" + std::to_string(mObjects.size()));
+            Error("Invalid object reference index: %d size=%zu", index, mObjects.size());
+            return nullptr;
         }
         return static_cast<T>(mObjects[index]);
     }

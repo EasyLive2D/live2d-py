@@ -12,7 +12,7 @@
 #include "../Core/PartsDataContext.hpp"
 #include "../Util/UtInterpolate.hpp"
 #include <cstdio>
-#include <stdexcept>
+#include "../Common/Log.hpp"
 
 namespace live2d {
 
@@ -45,7 +45,7 @@ void Mesh::read(BinaryReader& br) {
         if (mOptionFlag != 0) {
             if ((mOptionFlag & 1) != 0) {
                 (void)br.readInt32();
-                throw std::runtime_error("not handled");
+                Error("Mesh read: not handled option flag");
             }
             if ((mOptionFlag & MASK_COLOR_COMPOSITION) != 0) {
                 mColorCompositionType = (mOptionFlag & MASK_COLOR_COMPOSITION) >> 1;

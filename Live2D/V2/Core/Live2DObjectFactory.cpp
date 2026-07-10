@@ -12,8 +12,8 @@
 #include "../Deformer/WarpDeformer.hpp"
 #include "../Deformer/AffineEnt.hpp"
 #include "../Draw/Mesh.hpp"
-#include <stdexcept>
 #include <string>
+#include "../Common/Log.hpp"
 
 namespace live2d {
 
@@ -39,7 +39,8 @@ std::unique_ptr<ISerializable> Live2DObjectFactory::create(int clsNo) {
         }
     }
 
-    throw std::runtime_error("Unknown class ID: " + std::to_string(clsNo));
+    Error("Unknown class ID: %d", clsNo);
+    return nullptr;
 }
 
 } // namespace live2d

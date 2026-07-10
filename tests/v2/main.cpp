@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
 
     using namespace std::chrono_literals;
     // --- Baseline (idle, no model) -------------------------------------------
-    std::this_thread::sleep_for(5s);
+    // std::this_thread::sleep_for(1s);
 
     // --- Load model ----------------------------------------------------------
     EnableLive2DLog(true);
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
         int showParams = nParams < 15 ? nParams : 15;
         printf("  First %d parameters:\n", showParams);
         for (int i = 0; i < showParams; i++) {
-            printf("    [%d] %-35s  val=%.3f  min=%.2f  max=%.2f  def=%.2f\n",
+            printf("    [%d] %-31s  val=%.3f  min=%.2f  max=%.2f  def=%.2f\n",
                    i, model.getParameterId(i).c_str(),
                    model.getParameterValue(i),
                    model.getParameterMin(i),
@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
         model.startRandomMotion("", 3);
         printf("\nStarted random idle motion.\n");
 
-        std::this_thread::sleep_for(5s);  // model loaded, before render
+        // std::this_thread::sleep_for(1s);  // model loaded, before render
 
         printf("Running... (press ESC to exit)\n");
         int frameCount = 0;
@@ -168,9 +168,9 @@ int main(int argc, char* argv[]) {
         }
         printf("Frames rendered: %d\n", frameCount);
 
-        std::this_thread::sleep_for(5s);  // render ended, before destruction
+        // std::this_thread::sleep_for(1s);  // render ended, before destruction
     } // model destroyed — GL context still alive for glDeleteTextures
-    std::this_thread::sleep_for(5s);       // after destruction baseline
+    // std::this_thread::sleep_for(1s);       // after destruction baseline
 
     // --- Cleanup -------------------------------------------------------------
     glfwDestroyWindow(window);

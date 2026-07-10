@@ -1,7 +1,7 @@
 #include "DrawParamOpenGL.hpp"
 #include <cstdio>
+#include "../Common/Log.hpp"
 #include <cstring>
-#include <stdexcept>
 
 namespace live2d {
 
@@ -357,7 +357,10 @@ void DrawParamOpenGL::drawTexture(int texNo, const std::array<float, 4>& screenC
                 dstAlpha = GL_ONE;
                 break;
             default:
-                throw std::runtime_error("Unsupported composition type: " + std::to_string(compositionType));
+                Error("Unsupported composition type: %d", compositionType);
+                srcRGB = GL_ONE; dstRGB = GL_ONE_MINUS_SRC_ALPHA;
+                srcAlpha = GL_ONE; dstAlpha = GL_ONE_MINUS_SRC_ALPHA;
+                break;
         }
     }
 

@@ -70,7 +70,8 @@ int BinaryReader::readNumber() {
     if ((b4 & 128) == 0)
         return ((b1 & 127) << 21) | ((b2 & 127) << 14) | ((b3 & 127) << 7) | (b4 & 255);
 
-    throw std::runtime_error("number parse error");
+    Error("number parse error");
+    return 0;
 }
 
 double BinaryReader::readDouble() {
@@ -184,8 +185,8 @@ void* BinaryReader::readObjectUntyped(int type) {
     if (type == OBJECT_REF) {
         int index = readInt32();
         if (index < 0 || index >= static_cast<int>(mObjects.size())) {
-            throw std::runtime_error("Invalid object reference index: " + std::to_string(index)
-                + " (size=" + std::to_string(mObjects.size()) + ")");
+            Error("Invalid object reference index: %d (size=%zu)", index, mObjects.size());
+            return nullptr;
         }
         return mObjects[index];
     }
@@ -243,10 +244,12 @@ void* BinaryReader::readKnownTypeObject(int type) {
         return arr;
     }
     if (type == 23) {
-        throw std::runtime_error("type not implemented");
+        Error("type not implemented");
+        return nullptr;
     }
 
-    throw std::runtime_error("type error: " + std::to_string(type));
+    Error("type error: %d", type);
+    return nullptr;
 }
 
 } // namespace live2d
