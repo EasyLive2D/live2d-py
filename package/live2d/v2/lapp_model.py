@@ -418,3 +418,6 @@ class LAppModel(L2DBaseModel):
 
     def GetPixelsPerUnit(self) -> int:
         return 1
+    
+    def DestroyRenderer(self):
+        pass
