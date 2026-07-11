@@ -44,10 +44,7 @@ jobs:
             for whl in dist/*.whl; do
               auditwheel repair "$whl" -w dist/ || true
             done
-            for whl in dist/*manylinux*.whl; do
-              python3 /work/tools/fix_wheel_meta.py "$whl"
-            done
-
+            
             chown -R $(stat -c "%u:%g" /work) /work/dist /work/build
 
             echo "=== Built wheels ==="
@@ -63,10 +60,10 @@ jobs:
           files: |
             dist/*.whl
 
-      - name: Publish to PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-        run: |
-          python -m pip install twine
-          twine upload dist/*.whl --skip-existing
+      # - name: Publish to PyPI
+      #   env:
+      #     TWINE_USERNAME: __token__
+      #     TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      #   run: |
+      #     python -m pip install twine
+      #     twine upload dist/*.whl --skip-existing
