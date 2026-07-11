@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.26)
 
 project(LAppModelWrapper)
 
-# ---- Platform settings ----
 if(APPLE)
   set(CMAKE_CXX_STANDARD 11)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -27,7 +26,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif()
 
 # ---- Cubism Native SDK ----
-include(Live2D/Live2D.cmake)
+add_subdirectory(Live2D)
 
 # set(VIEWER 1)
 

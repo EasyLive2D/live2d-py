@@ -7,9 +7,9 @@ Configure (MSVC):
 cmake -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE --no-warn-unused-cli -S . -B build -G "Visual Studio 18 2026" -T host=x64 -A x64
 ```
 
-Build SDK2 (static lib):
+Build V2 static lib:
 ```
-cmake --build build --config Release --target SDK2 -j 24
+cmake --build build --config Release --target V2 -j 24
 ```
 
 Build v2cpp .pyd:
@@ -26,41 +26,54 @@ cmake --build build --config Release --target Live2DV2Wrapper -j 24
 ## Directory Structure
 
 ```
-Live2D/
-  Common/                # Shared: Log.hpp/cpp, stb_image.h
-  Glad/                  # Shared: OpenGL loader
-  V2/                    # v2cpp SDK (ported from Python v2)
-    Core/                # BinaryReader, Id, ISerializable, PivotManager
-    Model/               # Live2DModelOpenGL, ModelContext, ALive2DModel
-    Draw/                # Mesh, IDrawData
-    Deformer/            # RotationDeformer, WarpDeformer, AffineEnt
-    Graphics/            # DrawParamOpenGL, ClippingManagerOpenGL, shaders
-    Motion/              # Live2DMotion, AMotion, MotionQueueManager
-    Physics/             # PhysicsHair
-    Framework/           # LAppModel, L2DBaseModel, L2DModelMatrix, MatrixManager, L2DPose, L2DEyeBlink
-    Util/                # UtMath, UtInterpolate
-  V3/                    # v3 SDK (Cubism Native)
-    cmake/               # Live2D.cmake, Core.cmake, Framework.cmake, Glad.cmake, Main.cmake
-    Core/                # Cubism Core (prebuilt libs)
-    Framework/           # Cubism Framework
-    Main/                # LAppModel, MatrixManager, LAppPal
+Live2D/                    # Live2D SDK (git submodule, see Live2D/README.md)
+  CMakeLists.txt           # Top-level entry: Common, Glad, V2, V3 orchestration
+  Common/                  # Shared: Log.hpp/cpp
+  Glad/                    # Shared: OpenGL loader (glad)
+  V2/
+    cmake/V2.cmake         # V2 target: includes, links, alias (Live2D::V2)
+    src/                   # v2cpp SDK sources (ported from Python v2)
+      CMakeLists.txt
+      LAppModel.cpp/hpp    # High-level model (loading, update, draw, hit test)
+      Core/                # BinaryReader, Id, ParamDef, PivotManager
+      Model/               # Live2DModelOpenGL, ModelContext, ALive2DModel
+      Draw/                # Mesh, IDrawData
+      Deformer/            # RotationDeformer, WarpDeformer, AffineEnt
+      Graphics/            # DrawParamOpenGL, ClippingManagerOpenGL
+      Motion/              # Live2DMotion, AMotion
+      Framework/           # L2DBaseModel, L2DModelMatrix, MatrixManager, L2DPose, L2DEyeBlink
+      Util/                # UtMath, UtInterpolate, stb_impl
+  V3/                      # v3 SDK (Cubism Native)
+    cmake/                 # V3.cmake, Core.cmake, Framework.cmake, Main.cmake
+    Core/                  # Cubism Core (prebuilt libs)
+    Framework/             # Cubism Framework
+    Main/                  # LAppModel, MatrixManager, LAppPal
+      auto_patch.cmake     # Auto-patches Framework sources during configure
 
-V2Wrapper/               # CPython limited API bindings
-  Init.cpp               # Module init, glInit, clearBuffer
-  PyLAppModel.cpp        # LAppModel Python wrapper
-
-Wrapper/                 # v3 CPython bindings
+Wrapper/
+  V2/                      # v2cpp CPython bindings
+    Init.cpp               # Module init, glInit, clearBuffer
+    PyLAppModel.cpp/hpp    # LAppModel Python wrapper
+  V3/                      # v3 CPython bindings
 
 package/live2d/
-  v2cpp/                 # v2cpp Python package
-    __init__.py          # Re-exports from _v2cpp
-  v3/                    # v3 Python package
+  v2cpp/                   # v2cpp Python package
+    __init__.py            # Re-exports from _v2cpp
+  v3/                      # v3 Python package
 
 cmake/
-  SDK2.cmake             # v2cpp static lib build
-  V2Wrapper.cmake        # _v2cpp.pyd build
-  Wrapper.cmake          # v3 live2d.pyd build
+  Wrapper.cmake            # Shared: Python3 config, set_wrapper_output()
 ```
+
+### Live2D Target Aliases
+
+| Alias | Description |
+|---|---|
+| `Live2D::Common` | Shared logging (Log.hpp) |
+| `Live2D::V2` | Cubism 2.x C++ port (static lib) |
+| `Live2D::V3Core` | Cubism Native Core (prebuilt import) |
+| `Live2D::V3Framework` | Cubism Native Framework |
+| `Live2D::V3` | V3 top-level (Model, LAppPal, ...) |
 
 ## Key Technical Decisions
 

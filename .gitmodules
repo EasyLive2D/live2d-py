@@ -1,3 +1,6 @@
 [submodule "tests/v2/glfw"]
 	path = tests/v2/glfw
 	url = https://github.com/glfw/glfw.git
+[submodule "Live2D"]
+	path = Live2D
+	url = git@github.com:EasyLive2D/easylive2d-cpp.git

@@ -62,7 +62,7 @@ target_link_libraries(Live2DViewer
     Qt6::Widgets
     Qt6::Gui
     Qt6::OpenGLWidgets 
-    Live2D::Main
+    Live2D::V3
 )
 
 # Platform-specific output directories
@@ -93,7 +93,7 @@ if(WIN32)
         COMMAND
         ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/moeroid.ico $<TARGET_FILE_DIR:Live2DViewer>/moeroid.ico
         COMMAND 
-        ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/../Live2D/V3/Framework/src/Rendering/OpenGL/Shaders/Standard $<TARGET_FILE_DIR:Live2DViewer>/FrameworkShaders
+        ${CMAKE_COMMAND} -E copy_directory $<TARGET_PROPERTY:Framework,LIVE2D_SHADER_DIR> $<TARGET_FILE_DIR:Live2DViewer>/FrameworkShaders
     )
 else()
     # Linux deployment - just copy the icon
@@ -102,8 +102,8 @@ else()
         POST_BUILD
         COMMAND
         ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/moeroid.ico $<TARGET_FILE_DIR:Live2DViewer>/moeroid.ico
-        COMMAND 
-        ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/../Live2D/V3/Framework/src/Rendering/OpenGL/Shaders/Standard $<TARGET_FILE_DIR:Live2DViewer>/FrameworkShaders
+        COMMAND
+        ${CMAKE_COMMAND} -E copy_directory $<TARGET_PROPERTY:Framework,LIVE2D_SHADER_DIR> $<TARGET_FILE_DIR:Live2DViewer>/FrameworkShaders
     )
 endif()
 

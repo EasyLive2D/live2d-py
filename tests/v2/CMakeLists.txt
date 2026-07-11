@@ -19,14 +19,8 @@ add_executable(V2Test
   main.cpp
 )
 
-target_include_directories(V2Test PRIVATE
-  ${CMAKE_SOURCE_DIR}/Live2D/Glad/include
-  ${CMAKE_SOURCE_DIR}/Live2D/Common
-)
-
 target_link_libraries(V2Test PRIVATE
   Live2D::V2
-  glad
   glfw
 )
 
