@@ -4,3 +4,4 @@
 [submodule "Live2D"]
 	path = Live2D
 	url = git@github.com:EasyLive2D/easylive2d-cpp.git
+	branch = main
