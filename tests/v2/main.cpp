@@ -24,7 +24,7 @@
 #include <GLFW/glfw3.h>
 #include <GL/glew.h>   // glad OpenGL 4.6 core loader
 
-#include "Framework/LAppModel.hpp"
+#include "LAppModel.hpp"
 #include "Log.hpp"
 
 // ============================================================================

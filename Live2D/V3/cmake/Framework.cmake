@@ -1,6 +1,6 @@
 set(FRAMEWORK_SOURCE OpenGL)
 # Add Cubism Native Framework.
-add_subdirectory(${LIVE2D_ROOT}/Framework)
+add_subdirectory(${LIVE2D_ROOT}/V3/Framework)
 # Add rendering definition to framework.
 target_compile_definitions(Framework PUBLIC ${CSM_TARGET})
 
@@ -13,11 +13,10 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 endif()
 # Link libraries to framework.
 
-target_include_directories(Framework PUBLIC ${LIVE2D_ROOT}/Main/src)
+# include for HackProperties
+target_include_directories(Framework PUBLIC ${LIVE2D_ROOT}/V3/Main/src)
 target_link_libraries(Framework Live2DCubismCore)
 
-if (CMAKE_SYSTEM_NAME MATCHES "Android")
-else()
-  target_include_directories(Framework PUBLIC ${LIVE2D_ROOT}/Glad/include)
+if (NOT CMAKE_SYSTEM_NAME MATCHES "Android")
   target_link_libraries(Framework glad)
 endif()

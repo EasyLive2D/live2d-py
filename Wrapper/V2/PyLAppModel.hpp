@@ -1,6 +1,6 @@
 #pragma once
 #include "Python.hpp"
-#include "../../Live2D/V2/Framework/LAppModel.hpp"
+#include "LAppModel.hpp"
 
 struct PyLAppModelObject {
     PyObject_HEAD

@@ -4,9 +4,9 @@ import os.path
 import time
 
 import glfw
-import live2d.v3 as live2d
+# import live2d.v3 as live2d
 # import live2d.v2 as live2d
-# import live2d.v2cpp as live2d
+import live2d.v2cpp as live2d
 
 if live2d.LIVE2D_VERSION == 3:
     from live2d.v3 import StandardParams
@@ -180,7 +180,6 @@ def main():
 
     # if crashes when exiting, try to explicitly destroy the renderer before terminating glfw
     # this is a workaround for a known issue in some environments where the OpenGL context is not properly released
-    model.DestroyRenderer()
     glfw.terminate()
 
 

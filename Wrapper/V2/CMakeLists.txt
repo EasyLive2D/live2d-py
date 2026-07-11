@@ -6,13 +6,9 @@ add_library(${V2_TARGET} SHARED
     PyLAppModel.cpp
 )
 
-target_include_directories(${V2_TARGET} PRIVATE ${CMAKE_SOURCE_DIR}/Live2D/Glad/include)
-target_link_libraries(${V2_TARGET} PRIVATE V2 Python3::SABIModule)
+target_link_libraries(${V2_TARGET} PRIVATE Live2D::V2 Python3::SABIModule)
 
 set_wrapper_output(${V2_TARGET} "_v2cpp")
-
-# Alias for external projects: target_link_libraries(foo Live2D::V2Wrapper)
-add_library(Live2D::V2Wrapper ALIAS ${V2_TARGET})
 
 add_custom_command(
     TARGET ${V2_TARGET} POST_BUILD

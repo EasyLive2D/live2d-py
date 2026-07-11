@@ -6,7 +6,7 @@ if(DEFINED PYTHON_INSTALLATION_PATH)
     message("Found PYTHON_INSTALLATION_PATH in environment variables")
     set(CMAKE_PREFIX_PATH ${PYTHON_INSTALLATION_PATH})
 else()
-    message("Not found PYTHON_INSTALLATION_PATH in environment variables. \nUse default path.")
+    message("[Python]: Not found PYTHON_INSTALLATION_PATH in environment variables. \n[Python]: Use default path.")
     set(CMAKE_PREFIX_PATH D:/Dev/Python/x64/3.14.5)
 endif()
 

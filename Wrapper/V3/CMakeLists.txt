@@ -6,7 +6,7 @@ add_library(${V3_TARGET} SHARED
     PyModel.cpp
 )
 
-target_link_libraries(${V3_TARGET} PRIVATE Live2D::Main Python3::SABIModule)
+target_link_libraries(${V3_TARGET} PRIVATE Live2D::V3 Python3::SABIModule)
 
 set_wrapper_output(${V3_TARGET} "_v3cpp")
 

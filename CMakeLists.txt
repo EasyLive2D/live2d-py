@@ -26,37 +26,23 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   execute_process(COMMAND chcp 65001)
 endif()
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-  # Error on delete of pointer to incomplete type
-  add_compile_options(-Werror=delete-incomplete)
-endif()
-
-# ---- Shared: Glad (OpenGL loader, used by both v2 and v3) ----
-if(NOT CMAKE_SYSTEM_NAME MATCHES "Android")
-  add_subdirectory(Live2D/Glad ${CMAKE_CURRENT_BINARY_DIR}/Live2D/Glad)
-  add_library(Live2D::Glad ALIAS glad)
-endif()
-
-# ---- Shared Wrapper config (Python3, output naming) ----
-include(cmake/Wrapper.cmake)
-
-# ---- V3: Cubism Native SDK ----
-include(Live2D/V3/cmake/Live2D.cmake)
+# ---- Cubism Native SDK ----
+include(Live2D/Live2D.cmake)
 
 # set(VIEWER 1)
-# ---- V2: Live2D Cubism 2.x C++ port ----
-option(BUILD_V2CPP "Build v2cpp C++ port" ON)
 
 if(DEFINED VIEWER)
-  message("Build for Viewer")
+  message("[Target]: Viewer")
   include(cmake/Live2DViewer.cmake)
 else()
-  message("Build for Wrapper")
+  message("[Target]: Wrapper")
+  # ---- Shared Wrapper config (Python3, output naming) ----
+  include(cmake/Wrapper.cmake)
+
   add_subdirectory(Wrapper/V3 ${CMAKE_CURRENT_BINARY_DIR}/Wrapper/V3)
-  if(BUILD_V2CPP)
-    add_subdirectory(Live2D/V2 ${CMAKE_CURRENT_BINARY_DIR}/Live2D/V2)
-    add_subdirectory(Wrapper/V2 ${CMAKE_CURRENT_BINARY_DIR}/Wrapper/V2)
-    add_subdirectory(tests/v2 ${CMAKE_CURRENT_BINARY_DIR}/tests/v2)
-  endif()
+  add_subdirectory(Wrapper/V2 ${CMAKE_CURRENT_BINARY_DIR}/Wrapper/V2)
 endif()
+
+# testing
+add_subdirectory(tests/v2 ${CMAKE_CURRENT_BINARY_DIR}/tests/v2)
 

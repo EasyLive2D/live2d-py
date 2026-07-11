@@ -1,4 +1,4 @@
-add_library(V3
+add_library(${V3_TARGET}
   STATIC
   ${CMAKE_CURRENT_SOURCE_DIR}/Model.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Model.cpp
@@ -13,6 +13,4 @@ add_library(V3
   ${CMAKE_CURRENT_SOURCE_DIR}/MatrixManager.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/MatrixManager.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/HackProperties.h
-  ${LIVE2D_COMMON}/Log.cpp
-  ${LIVE2D_COMMON}/Log.hpp
 )

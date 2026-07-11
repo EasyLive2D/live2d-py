@@ -1,7 +1,8 @@
+#include <gl/glew.h>
+
 #include <stdio.h>
 #include "Python.hpp"
 #include "PyLAppModel.hpp"
-#include "../../Live2D/V2/Graphics/DrawParamOpenGL.hpp"
 
 // glad GL loader
 extern "C" int gladLoadGL();
@@ -19,7 +20,9 @@ static PyObject* v2cpp_dispose(PyObject*, PyObject*) { Py_RETURN_NONE; }
 static PyObject* v2cpp_clearBuffer(PyObject*, PyObject* args) {
     float r=0,g=0,b=0,a=0;
     if (!PyArg_ParseTuple(args, "|ffff", &r,&g,&b,&a)) return nullptr;
-    live2d::DrawParamOpenGL::clearBuffer(r, g, b, a);
+    glClearColor(r, g, b, a);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glClearDepth(1.0);
     Py_RETURN_NONE;
 }
 static PyObject* v2cpp_enableLog(PyObject*, PyObject* args) { int e; PyArg_ParseTuple(args,"p",&e); Py_RETURN_NONE; }
