@@ -180,10 +180,15 @@ class LAppModel(L2DBaseModel):
         t = time_sec * 2 * math.pi
         if self.mainMotionManager.isFinished():
             if callable(self.curMotionFinishHandler):
-                self.curMotionFinishHandler(self.curMotionGroup, self.curMotionNo)
+                # Save and clear BEFORE calling, so re-entrant StartMotion
+                # (called from within the callback) can set new handler safely.
+                handler = self.curMotionFinishHandler
+                group = self.curMotionGroup
+                no = self.curMotionNo
                 self.curMotionFinishHandler = None
                 self.curMotionGroup = ""
                 self.curMotionNo = -1
+                handler(group, no)
 
         updated = False
         if self.__clearFlag:

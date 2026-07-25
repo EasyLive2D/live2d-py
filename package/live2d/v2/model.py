@@ -179,8 +179,11 @@ class LAppModel(L2DBaseModel):
         t = time_sec * 2 * math.pi
         if self.mainMotionManager.isFinished():
             if callable(self.finishCallback):
-                self.finishCallback()
+                # Save and clear BEFORE calling, so re-entrant StartMotion
+                # (called from within the callback) can set new handler safely.
+                cb = self.finishCallback
                 self.finishCallback = None
+                cb()
 
         updated = False
         if self.__clearFlag:

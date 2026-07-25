@@ -15,10 +15,10 @@ class L2DMotionManager(MotionQueueManager):
         return self.reservePriority
 
     def reserveMotion(self, priority):
-        if self.reservePriority >= priority:
+        if self.reservePriority > priority:
             return False
 
-        if self.currentPriority >= priority:
+        if self.currentPriority > priority:
             return False
 
         self.reservePriority = priority
