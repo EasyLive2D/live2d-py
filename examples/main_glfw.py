@@ -5,8 +5,8 @@ import time
 
 import glfw
 # import live2d.v3 as live2d
-# import live2d.v2 as live2d
-import live2d.v2cpp as live2d
+import live2d.v2 as live2d
+# import live2d.v2cpp as live2d
 
 if live2d.LIVE2D_VERSION == 3:
     from live2d.v3 import StandardParams
@@ -14,6 +14,8 @@ else:
     from live2d.v2 import StandardParams
 from live2d.utils import log
 from live2d.utils.lipsync import WavHandler
+
+import OpenGL.GL as GL
 
 live2d.enableLog(True)
 live2d.setLogLevel(live2d.Live2DLogLevels.LV_DEBUG)
@@ -127,6 +129,11 @@ def main():
         model.Drag(x, y)
         currentTopClickedPartId = getHitFeedback(x, y)
     glfw.set_cursor_pos_callback(window, on_cursor_pos)
+
+    def on_resize(window, width, height):
+        GL.glViewport(0, 0, width, height)
+        model.Resize(width, height)
+    glfw.set_window_size_callback(window, on_resize)
 
     glfw.swap_interval(0)
 

@@ -75,8 +75,13 @@ class MatrixManager:
         self.__projection.multScale(self.__scale, self.__scale)
         self.__projection.translate(self.__offsetX, self.__offsetY)
 
-        self.__projection.mul(self.__projection.getArray(), model_matrix.getArray(), self.__projection.getArray())
-        self.__projection.mul(self.__rotation, self.__projection.getArray(), self.__projection.getArray())
+        # Apply rotation to model matrix BEFORE projection
+        # This prevents shear distortion when window is non-square.
+        # Correct: P * (R * M), not R * (P * M).
+        mm_arr = model_matrix.getArray().copy()
+        L2DMatrix44.mul(self.__rotation, mm_arr, mm_arr)
+
+        self.__projection.mul(self.__projection.getArray(), mm_arr, self.__projection.getArray())
         return self.__projection.getArray()
 
     def rotate(self, deg: float):
