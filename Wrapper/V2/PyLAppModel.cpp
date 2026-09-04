@@ -1,6 +1,7 @@
 #include "PyLAppModel.hpp"
 #include "Log.hpp"
 #include "Python.hpp"
+#include <modsupport.h>
 #include <object.h>
 #include <pytypedefs.h>
 
@@ -45,21 +46,16 @@ void PyLAppModel_dealloc(PyLAppModelObject* self)
     PyObject_Free(self);
 }
 
-static PyObject* PyLAppModel_LoadModelJson(PyLAppModelObject* self, PyObject* args)
+static PyObject* PyLAppModel_LoadModelJson(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
 {
     const char* path;
-    const char* version = nullptr;
-    int disablePrecision = 0;
-    if (!PyArg_ParseTuple(args, "s|sp", &path, &version, &disablePrecision))
+    const char* kwlist[] = {"path", "create_renderer", nullptr};
+    bool createRenderer = true;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s|b", kwlist, &path, &createRenderer))
         return nullptr;
-    try {
-        bool ok = self->model->loadModelJson(path);
-        return PyBool_FromLong(ok ? 1 : 0);
-    }
-    catch (const std::exception& e) {
-        PyErr_SetString(PyExc_RuntimeError, e.what());
-        return nullptr;
-    }
+
+    self->model->loadModelJson(path, createRenderer);
+    Py_RETURN_NONE;
 }
 
 static PyObject* PyLAppModel_Resize(PyLAppModelObject* self, PyObject* args)
@@ -466,7 +462,7 @@ static PyGetSetDef PyLAppModel_getset[] = {
     {nullptr}};
 
 PyMethodDef PyLAppModel_methods[] = {
-    {"LoadModelJson", (PyCFunction)PyLAppModel_LoadModelJson, METH_VARARGS, ""},
+    {"LoadModelJson", (PyCFunction)PyLAppModel_LoadModelJson, METH_VARARGS|METH_KEYWORDS, ""},
     {"Resize", (PyCFunction)PyLAppModel_Resize, METH_VARARGS, ""},
     {"Drag", (PyCFunction)PyLAppModel_Drag, METH_VARARGS, ""},
     {"IsMotionFinished", (PyCFunction)PyLAppModel_IsMotionFinished, METH_NOARGS, ""},

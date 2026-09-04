@@ -8,10 +8,12 @@ import glfw
 # import live2d.v2 as live2d
 import live2d.v2cpp as live2d
 
-if live2d.LIVE2D_VERSION == 3:
+if live2d.LIVE2D_VARIANT == "v3":
     from live2d.v3 import StandardParams
-else:
+elif live2d.LIVE2D_VARIANT == "v2":
     from live2d.v2 import StandardParams
+elif live2d.LIVE2D_VARIANT == "v2cpp":
+    from live2d.v2cpp import StandardParams
 from live2d.utils import log
 from live2d.utils.lipsync import WavHandler
 
@@ -36,10 +38,14 @@ def main():
     live2d.glInit()
 
     model = live2d.LAppModel()
-    if live2d.LIVE2D_VERSION == 3:
+    if live2d.LIVE2D_VARIANT == "v3":
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
-    else:
+    elif live2d.LIVE2D_VARIANT == "v2":
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/shizuku/shizuku.model.json"))
+    elif live2d.LIVE2D_VARIANT == "v2cpp":
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"),
+                            create_renderer=False)  # Load model without creating renderer
+        model.CreateRenderer()
 
     model.Resize(*display)
 

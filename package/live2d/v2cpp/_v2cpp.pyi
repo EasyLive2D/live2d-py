@@ -8,7 +8,7 @@ class LAppModel:
     autoBreath: bool
     autoBlink: bool
 
-    def LoadModelJson(self, path: str) -> None:
+    def LoadModelJson(self, path: str, create_renderer: bool = True) -> None:
         """Load model from .model.json file."""
         ...
     def Resize(self, w: int, h: int) -> None:
@@ -119,16 +119,6 @@ class LAppModel:
     def ReleaseRenderer(self) -> None:
         """Release the renderer."""
         ...
-
-
-class Live2DLogLevels:
-    LV_DEBUG: int = 0
-    LV_INFO: int = 0
-    LV_WARN: int = 0
-    LV_ERROR: int = 0
-
-
-LIVE2D_VERSION: int = 2
 
 
 def init() -> None:

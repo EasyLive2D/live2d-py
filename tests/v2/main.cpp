@@ -115,12 +115,8 @@ int main(int argc, char* argv[]) {
 
     {
         live2d::LAppModel model;
-        if (!model.loadModelJson(modelPath)) {
-            fprintf(stderr, "ERROR: loadModelJson() failed for: %s\n", modelPath.c_str());
-            glfwDestroyWindow(window);
-            glfwTerminate();
-            return 1;
-        }
+        model.loadModelJson(modelPath);
+
         printf("Model loaded successfully!\n");
         printf("  Canvas: %.0f x %.0f\n", model.getCanvasWidth(), model.getCanvasHeight());
         printf("  Parameters: %d\n", model.getParameterCount());

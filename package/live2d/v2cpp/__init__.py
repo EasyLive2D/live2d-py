@@ -94,6 +94,7 @@ class Live2DLogLevels:
     LV_ERROR = 0
 
 
+LIVE2D_VARIANT = "v2cpp"
 LIVE2D_VERSION = 2
 
 __all__ = [
@@ -113,5 +114,6 @@ __all__ = [
     "glRelease",
     "clearBuffer",
     "dispose",
+    "LIVE2D_VARIANT",
     "LIVE2D_VERSION",
 ]

@@ -53,6 +53,7 @@ def dispose():
     pass
 
 
+LIVE2D_VARIANT = "v2"
 LIVE2D_VERSION = 2
 
 __all__ = ['LAppModel',
