@@ -113,6 +113,12 @@ class LAppModel:
     def GetCanvasSizePixel(self) -> tuple[float, float]:
         """Get canvas size in pixels."""
         ...
+    def CreateRenderer(self) -> Any:
+        """Create a renderer for the model."""
+        ...
+    def ReleaseRenderer(self) -> None:
+        """Release the renderer."""
+        ...
 
 
 class Live2DLogLevels:
