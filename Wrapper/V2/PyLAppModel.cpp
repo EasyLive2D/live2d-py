@@ -1,4 +1,5 @@
 #include "PyLAppModel.hpp"
+#include "Log.hpp"
 #include "Python.hpp"
 
 // ---- Callback helpers (Python → C++ conversion, no live2d dependency) ----
@@ -27,7 +28,9 @@ int PyLAppModel_init(PyLAppModelObject* self, PyObject*, PyObject*) {
 }
 
 void PyLAppModel_dealloc(PyLAppModelObject* self) {
+    Info("deallocate: cpp LAppModel(at=%p)", self->model);
     delete self->model;
+    Info("deallocate: PyLAppModelObject(at=%p)", self);
     PyObject_Free(self);
 }
 
