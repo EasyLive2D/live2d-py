@@ -59,7 +59,7 @@ LONG_DESCRIPTION = (
 AUTHOR = "Arkueid"
 AUTHOR_EMAIL = "thetardis@qq.com"
 URL = "https://github.com/Arkueid/live2d-py"
-REQUIRES_PYTHON = ">=3.2"
+REQUIRES_PYTHON = ">=3.11"
 INSTALL_REQUIRES = ["numpy", "pyopengl", "pillow"]
 
 
@@ -269,11 +269,11 @@ def run_cmake():
         else:
             print("Building for 32 bit")
             cmake_args += ["-A", "Win32"]
-        # native options
-        build_args += ["--", "/m:2"]
+        # native options: use all available cores instead of a fixed /m:2
+        build_args += ["--", "/m:{}".format(os.cpu_count() or 2)]
     else:
         cmake_args += ["-DCMAKE_BUILD_TYPE=" + "Release"]
-        build_args += ["--", "-j2"]
+        build_args += ["--", "-j{}".format(os.cpu_count() or 2)]
     build_folder = os.path.join(os.getcwd(), "build")
 
     if not os.path.exists(build_folder):
@@ -361,4 +361,7 @@ setup(
     package_dir={"": "package"},
     keywords=["Live2D", "Cubism Live2D", "Cubism SDK", "Cubism SDK for Python"],
     python_requires=REQUIRES_PYTHON,
+    # The extension modules link python3.dll (stable ABI, untagged .pyd names),
+    # so one cp311-abi3 wheel per platform covers every Python >= 3.11.
+    options={"bdist_wheel": {"py_limited_api": "cp311"}},
 )

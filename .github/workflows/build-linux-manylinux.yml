@@ -7,6 +7,10 @@ on:
     branches: [ manylinux, build-all ]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-manylinux:
     name: Build manylinux wheels
@@ -16,6 +20,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Cache Cubism SDK
+        uses: actions/cache@v4
+        with:
+          path: |
+            Live2D/V3/Core
+            Live2D/V3/Framework
+          key: csmsdk-${{ hashFiles('setup.py') }}
 
       - name: Build wheels in manylinux container
         run: |
@@ -32,22 +46,25 @@ jobs:
             # clear stale cmake cache
             rm -rf build/
 
-            # Install cmake once (use cp310 as bootstrap)
-            /opt/python/cp310-cp310/bin/pip install cmake
-            export PATH="/opt/python/cp310-cp310/bin:$PATH"
+            # Install cmake once
+            /opt/python/cp311-cp311/bin/pip install cmake
+            export PATH="/opt/python/cp311-cp311/bin:$PATH"
 
-            for ver in 10 11 12 13 14; do
-              PYBIN="/opt/python/cp3${ver}-cp3${ver}/bin"
-              [ -x "$PYBIN/python" ] || continue
-              echo "=== Building with $PYBIN/python ==="
-              "$PYBIN/pip" install "setuptools<82" wheel
-              "$PYBIN/python" setup.py bdist_wheel
-            done
+            # Stable-ABI build: one cp311-abi3 wheel covers Python >= 3.11
+            PYBIN=/opt/python/cp311-cp311/bin
+            "$PYBIN/pip" install -c /work/.github/constraints.txt setuptools wheel
+            "$PYBIN/python" setup.py bdist_wheel
 
-            # Tag wheels as manylinux (repair then strip invalid PEP 639 fields)
+            # Tag wheels as manylinux
             for whl in dist/*.whl; do
               auditwheel repair "$whl" -w dist/ || true
             done
+
+            # Verify: metadata check + install + import with the building interpreter
+            "$PYBIN/pip" install twine
+            "$PYBIN/python" -m twine check dist/*.whl
+            "$PYBIN/pip" install --force-reinstall dist/*.whl
+            "$PYBIN/python" -c "import live2d.v2cpp, live2d.v3"
 
             # Fix file ownership for host
             chown -R $(stat -c "%u:%g" /work) /work/dist /work/build
@@ -62,15 +79,23 @@ jobs:
           '
 
       - name: Upload wheels to release
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: |
             dist/*.whl
 
-      # - name: Publish to PyPI
-      #   env:
-      #     TWINE_USERNAME: __token__
-      #     TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      #   run: |
-      #     python -m pip install twine
-      #     twine upload dist/*.whl --skip-existing
+      - name: Build sdist
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          python -m pip install -c .github/constraints.txt setuptools wheel
+          python setup.py sdist
+
+      - name: Publish sdist to PyPI
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run: |
+          python -m pip install twine
+          twine upload dist/*.tar.gz --skip-existing

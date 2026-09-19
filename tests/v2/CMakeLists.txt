@@ -35,3 +35,10 @@ set_target_properties(V2Test PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/tests/v2/Release
   RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_BINARY_DIR}/tests/v2/Debug
 )
+
+# Wire into ctest for local use: `ctest --test-dir build` (opens a GLFW window;
+# not run in CI since runners are headless)
+include(CTest)
+if(BUILD_TESTING)
+  add_test(NAME V2Test COMMAND V2Test)
+endif()

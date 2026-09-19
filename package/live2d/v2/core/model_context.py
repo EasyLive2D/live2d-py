@@ -48,12 +48,23 @@ class ModelContext:
         self.model = model
         self.clipManager = None
         self.dpGL = None
+        # Id -> index caches (Id objects are unhashable because __eq__ is
+        # defined without __hash__, so key by the interned id string).
+        self._paramIndexCache = {}
+        self._drawDataIndexCache = {}
+        self._partsDataIndexCache = {}
 
     def getDrawDataIndex(self, drawDataId) -> int:
+        key = drawDataId.id if isinstance(drawDataId, Id) else str(drawDataId)
+        idx = self._drawDataIndexCache.get(key)
+        if idx is not None:
+            return idx
         for aH in range(len(self.drawDataList) - 1, 0 - 1, -1):
             if self.drawDataList[aH] is not None and self.drawDataList[aH].getId() == drawDataId:
+                self._drawDataIndexCache[key] = aH
                 return aH
 
+        self._drawDataIndexCache[key] = -1
         return -1
 
     def getDrawData(self, aH):
@@ -256,12 +267,20 @@ class ModelContext:
         aM.endDraw()
 
     def getParamIndex(self, paramId):
+        key = paramId.id if isinstance(paramId, Id) else str(paramId)
+        idx = self._paramIndexCache.get(key)
+        if idx is not None:
+            return idx
+
         for i in range(0, len(self.paramIdList), 1):
             p = self.paramIdList[i]
             if p == paramId:
+                self._paramIndexCache[key] = i
                 return i
 
-        return self.extendAndAddParam(paramId, 0, ModelContext.PARAM_FLOAT_MIN, ModelContext.PARAM_FLOAT_MAX)
+        idx = self.extendAndAddParam(paramId, 0, ModelContext.PARAM_FLOAT_MIN, ModelContext.PARAM_FLOAT_MAX)
+        self._paramIndexCache[key] = idx
+        return idx
 
     def getDeformerIndex(self, aH):
         for aI in range(len(self.deformerList) - 1, 0 - 1, -1):
@@ -342,10 +361,16 @@ class ModelContext:
         return aH.getPartsOpacity()
 
     def getPartsDataIndex(self, aI):
+        key = aI.id if isinstance(aI, Id) else str(aI)
+        idx = self._partsDataIndexCache.get(key)
+        if idx is not None:
+            return idx
         for aH in range(len(self.partsDataList) - 1, 0 - 1, -1):
             if self.partsDataList[aH] is not None and self.partsDataList[aH].getId() == aI:
+                self._partsDataIndexCache[key] = aH
                 return aH
 
+        self._partsDataIndexCache[key] = -1
         return -1
 
     def getDeformerContext(self, aH):

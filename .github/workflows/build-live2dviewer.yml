@@ -8,18 +8,20 @@ on:
       - "v*.*.*"
     branches: [ live2d-viewer ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
-    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
-    # You can convert this to a matrix build if you need cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: windows-latest
     permissions:
       contents: write
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -27,10 +29,18 @@ jobs:
         python-version: 3.13
         architecture: X64
         cache: pip
-    
+
     - name: Install build deps
       run: |
-        python -m pip install --upgrade setuptools
+        python -m pip install -c .github/constraints.txt setuptools
+
+    - name: Cache Cubism SDK
+      uses: actions/cache@v4
+      with:
+        path: |
+          Live2D/V3/Core
+          Live2D/V3/Framework
+        key: csmsdk-${{ hashFiles('setup.py') }}
 
     - name: Download CsmNativeSDK
       run: python setup.py download
@@ -71,6 +81,7 @@ jobs:
         Compress-Archive -Path ${{github.workspace}}/x64 -DestinationPath ${{github.workspace}}/Live2DViewer-win64.zip
 
     - name: Upload Wheel to Release
+      if: startsWith(github.ref, 'refs/tags/v')
       uses: softprops/action-gh-release@v2
       with:
         files: |
