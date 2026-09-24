@@ -69,3 +69,5 @@ csmsdk_temp
 
 *.png
 !docs/*.png
+
+raw/

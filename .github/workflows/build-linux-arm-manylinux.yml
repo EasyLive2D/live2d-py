@@ -49,11 +49,14 @@ jobs:
 
             # Stable-ABI build: one cp311-abi3 wheel covers Python >= 3.11
             PYBIN=/opt/python/cp311-cp311/bin
-            "$PYBIN/pip" install --upgrade setuptools wheel
+            "$PYBIN/pip" install --upgrade setuptools wheel packaging
             "$PYBIN/python" setup.py bdist_wheel
 
-            for whl in dist/*.whl; do
-              auditwheel repair "$whl" -w dist/ || true
+            mkdir -p raw
+            mv dist/*.whl raw/
+
+            for whl in raw/*.whl; do
+              auditwheel repair "$whl" -w dist/
             done
 
             # Verify: metadata check + install + import with the building interpreter
