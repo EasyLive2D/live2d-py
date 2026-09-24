@@ -49,9 +49,9 @@ void PyLAppModel_dealloc(PyLAppModelObject* self)
 static PyObject* PyLAppModel_LoadModelJson(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
 {
     const char* path;
-    const char* kwlist[] = {"path", "create_renderer", nullptr};
+    static const char* kwlist[] = {"path", "create_renderer", nullptr};
     bool createRenderer = true;
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s|b", kwlist, &path, &createRenderer))
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s|b", const_cast<char**>(kwlist), &path, &createRenderer))
         return nullptr;
 
     self->model->loadModelJson(path, createRenderer);
@@ -222,7 +222,7 @@ static PyObject* PyLAppModel_StartMotion(PyLAppModelObject* self, PyObject* args
     static const char* kwlist[] = {
         "", "", "", "onStartMotionHandler", "onFinishMotionHandler", nullptr};
     if (!PyArg_ParseTupleAndKeywords(
-            args, kwargs, "sii|OO", (char**)kwlist, &group, &no, &priority, &onStart, &onFinish))
+            args, kwargs, "sii|OO", const_cast<char**>(kwlist), &group, &no, &priority, &onStart, &onFinish))
         return nullptr;
 
     self->model->startMotion(
@@ -240,7 +240,7 @@ static PyObject* PyLAppModel_StartRandomMotion(PyLAppModelObject* self, PyObject
     static const char* kwlist[] = {
         "name", "priority", "onStartMotionHandler", "onFinishMotionHandler", nullptr};
     if (!PyArg_ParseTupleAndKeywords(
-            args, kwargs, "|OOOO", (char**)kwlist, &nameObj, &prioObj, &onStart, &onFinish))
+            args, kwargs, "|OOOO", const_cast<char**>(kwlist), &nameObj, &prioObj, &onStart, &onFinish))
         return nullptr;
 
     int priority = 3;

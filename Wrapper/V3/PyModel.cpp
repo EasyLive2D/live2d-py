@@ -426,10 +426,10 @@ static PyObject *PyModel_StartMotion(PyModelObject *self, PyObject *args, PyObje
 	int no, priority = 3;
 	PyObject *onStartHandler = nullptr;
 	PyObject *onFinishHandler = nullptr;
-	static char *kwlist[] = {
-		(char *)"group", (char *)"no", (char *)"priority", (char *)"onStart", (char *)"onFinish",
+	static const char *kwlist[] = {
+		"group", "no", "priority", "onStart", "onFinish",
 		NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "si|iOO", kwlist, &group, &no, &priority, &onStartHandler, &onFinishHandler))
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "si|iOO", const_cast<char**>(kwlist), &group, &no, &priority, &onStartHandler, &onFinishHandler))
 	{
 		PyErr_SetString(PyExc_TypeError, "arguments must be (str, int, [int, [callable, callable]])");
 		return NULL;
@@ -446,9 +446,9 @@ static PyObject *PyModel_StartRandomMotion(PyModelObject *self, PyObject *args, 
 
 	PyObject *onStartHandler = nullptr;
 	PyObject *onFinishHandler = nullptr;
-	static char *kwlist[] = {(char *)"group", (char *)"priority", (char *)"onStart", (char *)"onFinish", NULL};
+	static const char *kwlist[] = {"group",  "priority",  "onStart", "onFinish", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|ziOO", kwlist, &group, &priority, &onStartHandler, &onFinishHandler))
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|ziOO", const_cast<char**>(kwlist), &group, &priority, &onStartHandler, &onFinishHandler))
 	{
 		PyErr_SetString(PyExc_TypeError, "arguments must be ([str, [int, [callable, callable]]])");
 		return NULL;
