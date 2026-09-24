@@ -1,0 +1,4 @@
+# 强制所有文件使用 LF 换行符
+* text=auto eol=lf
+# 忽略权限变更
+* -diff mode
