@@ -2,7 +2,8 @@
 #
 # Enable with: cmake -DV2CPP_TEST=ON ...
 #
-set(V2CPP_TEST "Build v2cpp test executable" ON)
+# default to off for manylinux workflow
+set(V2CPP_TEST "Build v2cpp test executable" OFF)
 
 if(NOT V2CPP_TEST)
   return()
