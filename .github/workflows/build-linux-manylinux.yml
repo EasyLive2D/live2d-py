@@ -52,7 +52,7 @@ jobs:
 
             # Stable-ABI build: one cp311-abi3 wheel covers Python >= 3.11
             PYBIN=/opt/python/cp311-cp311/bin
-            "$PYBIN/pip" install -c /work/.github/constraints.txt setuptools wheel
+            "$PYBIN/pip" install --upgrade setuptools wheel
             "$PYBIN/python" setup.py bdist_wheel
 
             # Tag wheels as manylinux
@@ -88,7 +88,8 @@ jobs:
       - name: Build sdist
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          python -m pip install -c .github/constraints.txt setuptools wheel
+          python -m pip install --upgrade setuptools
+          python -m pip install wheel
           python setup.py sdist
 
       - name: Publish sdist to PyPI

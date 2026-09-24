@@ -1,3 +1,0 @@
-# Shared CI pin: setuptools 82 re-enables PEP 639 License-Expression metadata,
-# which diverges per OS and broke PyPI uploads (see commit 66de16d).
-setuptools<82

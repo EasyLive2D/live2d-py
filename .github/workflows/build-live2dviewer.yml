@@ -32,7 +32,7 @@ jobs:
 
     - name: Install build deps
       run: |
-        python -m pip install -c .github/constraints.txt setuptools
+        python -m pip install --upgrade setuptools
 
     - name: Cache Cubism SDK
       uses: actions/cache@v4
