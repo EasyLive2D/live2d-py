@@ -3,11 +3,14 @@
 # Enable with: cmake -DV2CPP_TEST=ON ...
 #
 # default to off for manylinux workflow
-set(V2CPP_TEST "Build v2cpp test executable" OFF)
+# set(V2CPP_TEST 1)
 
-if(NOT V2CPP_TEST)
+if(DEFINED V2CPP_TEST)
+  message("V2CPP.TEST Enabled")
+else()
   return()
 endif()
+
 
 # ---- GLFW (git submodule) --------------------------------------------------
 set(GLFW_BUILD_DOCS     OFF CACHE INTERNAL "")
