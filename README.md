@@ -74,7 +74,7 @@
 |----------|---------------|-------------|----------------|-------------|------|
 | macOS arm64 | `>=3.11` |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 | Windows x64 | `>=3.11` |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-| Linux x64 | `>=3.11` |:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|
+| Linux x64 | `>=3.11` |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 
 注：
 
@@ -180,6 +180,8 @@ pip install live2d-py
 [D2Evil](https://github.com/UlyssesWu/D2Evil) (`moc` 文件分析)
 
 [facial-landmarks-for-cubism](https://github.com/adrianiainlam/facial-landmarks-for-cubism) （面捕参考）
+
+[nlohmann/json](https://github.com/nlohmann/json) (v2cpp)
 
 Live2D 模型:
 
