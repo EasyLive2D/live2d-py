@@ -89,9 +89,9 @@ class Parameter:
 
 class Live2DLogLevels:
     LV_DEBUG = 0
-    LV_INFO = 0
-    LV_WARN = 0
-    LV_ERROR = 0
+    LV_INFO = 1
+    LV_WARN = 2
+    LV_ERROR = 3
 
 
 LIVE2D_VARIANT = "v2cpp"

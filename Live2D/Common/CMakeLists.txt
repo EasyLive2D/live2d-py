@@ -1,5 +1,6 @@
 add_library(Common STATIC 
     ${LIVE2D_ROOT}/Common/Log.cpp
+    ${LIVE2D_ROOT}/Common/Debug.cpp
 )
 
 set_target_properties(Common PROPERTIES POSITION_INDEPENDENT_CODE ON)

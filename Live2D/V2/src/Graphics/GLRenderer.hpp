@@ -85,6 +85,7 @@ private:
     // Framebuffers for clipping masks
     GLuint mFramebuffer = 0;
     GLuint mFramebufferTexture = 0;
+    GLuint mCurrentProgram = 0;
 
     std::shared_ptr<ClippingManagerOpenGL> mClipManager;
 };

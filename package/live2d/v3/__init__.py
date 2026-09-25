@@ -24,9 +24,9 @@ class HitArea:
 
 class Live2DLogLevels:
     LV_DEBUG: int = 0
-    LV_INFO: int = 0
-    LV_WARN: int = 0
-    LV_ERROR: int = 0
+    LV_INFO: int = 1
+    LV_WARN: int = 2
+    LV_ERROR: int = 3
 
 
 def init():

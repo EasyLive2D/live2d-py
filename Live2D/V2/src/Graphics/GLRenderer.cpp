@@ -162,8 +162,7 @@ GLuint GLRenderer::compileShader(GLenum type, const char* src)
     if (!ok) {
         char buf[512];
         glGetShaderInfoLog(shader, 512, nullptr, buf);
-        fprintf(stderr,
-                "Shader compile error (%s): %s\n",
+        Error("Shader compile error (%s): %s\n",
                 type == GL_VERTEX_SHADER ? "vertex" : "fragment",
                 buf);
     }
@@ -188,7 +187,7 @@ void GLRenderer::initShaders()
     if (!linked) {
         char buf[512];
         glGetProgramInfoLog(mShaderNormal, 512, nullptr, buf);
-        fprintf(stderr, "Normal program link error: %s\n", buf);
+        Error("Normal program link error: %s\n", buf);
     }
     glDeleteShader(vsNorm);
     glDeleteShader(fsNorm);
@@ -260,7 +259,8 @@ void GLRenderer::clearBuffer(float r, float g, float b, float a)
 
 void GLRenderer::setupDraw(ModelContext* modelContext)
 {
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*)&mCurrentFBO);
+    glGetIntegerv(GL_CURRENT_PROGRAM, reinterpret_cast<GLint*>(&mCurrentProgram));
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, reinterpret_cast<GLint*>(&mCurrentFBO));
     glDisable(GL_SCISSOR_TEST);
     glDisable(GL_STENCIL_TEST);
     glDisable(GL_DEPTH_TEST);
@@ -274,6 +274,12 @@ void GLRenderer::setupDraw(ModelContext* modelContext)
 void GLRenderer::endDraw()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, mCurrentFBO);
+    // When changing model: v2cpp => v3,
+    // v3 may get save the wrong program id to `lastProgramId`
+    // and produce an silent gl error when restore `lastProgramId`.
+    // This error will be checked and raised in v2.
+    // Thus, re-bind program to `0` 
+    glUseProgram(mCurrentProgram);
 }
 
 void GLRenderer::setMatrix(const float m[16])
@@ -509,37 +515,6 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
     glBufferData(
         GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(int16_t), indices.data(), GL_STATIC_DRAW);
 
-    // Debug: verify actual GL blend state
-    static int sBlendCheck = 0;
-#ifndef __ANDROID__
-    if (getenv("V2CPP_DUMP") && sBlendCheck < 80) {
-        GLint actualSrcRGB, actualDstRGB, actualSrcA, actualDstA;
-        GLint actualEqRGB, actualEqA;
-        glGetIntegerv(GL_BLEND_SRC_RGB, &actualSrcRGB);
-        glGetIntegerv(GL_BLEND_DST_RGB, &actualDstRGB);
-        glGetIntegerv(GL_BLEND_SRC_ALPHA, &actualSrcA);
-        glGetIntegerv(GL_BLEND_DST_ALPHA, &actualDstA);
-        glGetIntegerv(GL_BLEND_EQUATION_RGB, &actualEqRGB);
-        glGetIntegerv(GL_BLEND_EQUATION_ALPHA, &actualEqA);
-        GLint srgb;
-        glGetIntegerv(GL_FRAMEBUFFER_SRGB, &srgb);
-        fprintf(stderr,
-                "  [BLEND_CHECK#%d] set=(%d,%d,%d,%d) actual=(%d,%d,%d,%d) eq=(%d,%d) sRGB=%d\n",
-                sBlendCheck,
-                srcRGB,
-                dstRGB,
-                srcAlpha,
-                dstAlpha,
-                actualSrcRGB,
-                actualDstRGB,
-                actualSrcA,
-                actualDstA,
-                actualEqRGB,
-                actualEqA,
-                srgb);
-        sBlendCheck++;
-    }
-#endif
     glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_SHORT, 0);
 
     glDisableVertexAttribArray(0);
