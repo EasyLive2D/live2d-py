@@ -7,7 +7,11 @@
 #include "../Draw/IDrawData.hpp"
 #include "../Core/ModelImpl.hpp"
 #include "../Core/DEF.hpp"
+#ifdef __ANDROID__
+#include <GLES/gl.h>
+#else
 #include <GL/glew.h>
+#endif
 #include <cstdio>
 #include <cstring>
 #include <algorithm>

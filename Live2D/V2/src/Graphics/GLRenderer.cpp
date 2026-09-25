@@ -8,6 +8,10 @@
 #include "Model/ModelContext.hpp"
 #include <cstdio>
 #include <cstring>
+#ifdef __ANDROID__
+#include <GLES3/gl3.h>
+#endif
+
 
 namespace live2d {
 
@@ -507,6 +511,7 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
 
     // Debug: verify actual GL blend state
     static int sBlendCheck = 0;
+#ifndef __ANDROID__
     if (getenv("V2CPP_DUMP") && sBlendCheck < 80) {
         GLint actualSrcRGB, actualDstRGB, actualSrcA, actualDstA;
         GLint actualEqRGB, actualEqA;
@@ -534,6 +539,7 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
                 srgb);
         sBlendCheck++;
     }
+#endif
     glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_SHORT, 0);
 
     glDisableVertexAttribArray(0);

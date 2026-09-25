@@ -1,7 +1,11 @@
 #pragma once
 
 #include "ClippingManagerOpenGL.hpp"
+#ifdef __ANDROID__
+#include <GLES/gl.h>
+#else
 #include <GL/glew.h>
+#endif
 #include <array>
 #include <cstdint>
 #include <memory>

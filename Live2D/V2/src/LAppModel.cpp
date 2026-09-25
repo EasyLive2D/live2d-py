@@ -15,7 +15,12 @@
 #include "Motion/Live2DMotion.hpp"
 #include "Util/UtSystem.hpp"
 #include "nlohmann/json.hpp"
+#ifdef __ANDROID__
+#include <GLES/gl.h>
+#include <GLES3/gl3.h>
+#else
 #include <GL/glew.h>
+#endif
 #include <cmath>
 #include <cstdlib>
 #include <filesystem>
