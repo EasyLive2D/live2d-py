@@ -17,6 +17,8 @@ public:
     void SetScaleY(float sy);
     void Rotate(float deg);
     void InvertTransform(float* x, float* y);
+    const int GetWidth() const { return _ww; }
+    const int GetHeight() const { return _wh; }
 private:
     Csm::CubismMatrix44 _screenToScene;
     Csm::CubismMatrix44 _p;

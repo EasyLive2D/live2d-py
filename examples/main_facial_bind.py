@@ -192,7 +192,9 @@ def main():
 
     def on_click(win, btn, act, mods):
         if btn == glfw.MOUSE_BUTTON_LEFT and act == glfw.PRESS:
-            model.SetRandomExpression()
+            print("current expression: %s" % model.SetRandomExpression())
+        elif btn == glfw.MOUSE_BUTTON_RIGHT and act == glfw.PRESS:
+            model.ResetExpressions()
     glfw.set_mouse_button_callback(window, on_click)
     glfw.swap_interval(1)
 

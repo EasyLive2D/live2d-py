@@ -298,24 +298,19 @@ void Model::SetupModel()
         const csmChar* group = _modelSetting->GetMotionGroupName(i);
         PreloadMotionGroup(group);
     }
-    Debug("Model setup complete1");
     _motionManager->StopAllMotions();
-    Debug("Model setup complete2");
     _matrixManager.SetModelWH(_model->GetCanvasWidth(), _model->GetCanvasHeight());
-    Debug("Model setup complete3");
     _ParamAngleXi = _model->GetParameterIndex(_idParamAngleX);
     _ParamAngleYi = _model->GetParameterIndex(_idParamAngleY);
     _ParamAngleZi = _model->GetParameterIndex(_idParamAngleZ);
     _ParamBodyAngleXi = _model->GetParameterIndex(_idParamBodyAngleX);
     _ParamEyeBallXi = _model->GetParameterIndex(_idParamEyeBallX);
     _ParamEyeBallYi = _model->GetParameterIndex(_idParamEyeBallY);
-    Debug("Model setup complete4");
     _tmpOrderedDrawIndice = new int[_model->GetDrawableCount()];
     csmModel* model = _model->GetModel();
     _parameterDefaultValues = csmGetParameterDefaultValues(model);
     _parameterValues = csmGetParameterValues(model);
     _parameterCount = csmGetParameterCount(model);
-    Debug("Model setup complete5");
     _savedParameterValues.resize(_parameterCount);
     SaveParameters();
     Debug("Model setup complete");
@@ -531,6 +526,10 @@ void Model::SaveParameters()
 void Model::Resize(int width, int height)
 {
     _matrixManager.UpdateScreenToScene(width, height);
+    auto renderer = GetRenderer<Rendering::CubismRenderer_OpenGLES2>();
+    if (renderer) {
+        renderer->SetRenderTargetSize(width, height);
+    }
 }
 
 void Model::SetOffset(float x, float y)
@@ -802,7 +801,7 @@ void Model::HitPart(float x, float y, void* collector,
     _matrixManager.ScreenToScene(&x, &y);
     _matrixManager.InvertTransform(&x, &y);
     const csmInt32 drawableCount = _model->GetDrawableCount();
-    const csmInt32* renderOrders = _model->GetDrawableRenderOrders();
+    const csmInt32* renderOrders = GetDrawableRenderOrders();
     for (csmInt32 i = 0; i < drawableCount; i++) {
         // 绘制顺序，先绘制的被后绘制的覆盖
         _tmpOrderedDrawIndice[drawableCount - 1 - renderOrders[i]] = i;
@@ -845,7 +844,7 @@ void Model::HitPart(float x, float y, void* collector,
                 continue;
             }
             collect(collector, partId);
-            hitParts.insert(partId);
+            hitParts.emplace(partId);
             topClicked = true;
             break;
         }
@@ -863,7 +862,7 @@ void Model::HitDrawable(float x, float y, void* collector,
     _matrixManager.InvertTransform(&x, &y);
 
     const csmInt32 drawableCount = _model->GetDrawableCount();
-    const csmInt32* renderOrders = _model->GetDrawableRenderOrders();
+    const csmInt32* renderOrders = GetDrawableRenderOrders();
     for (csmInt32 i = 0; i < drawableCount; i++) {
         // 绘制顺序，先绘制的被后绘制的覆盖
         _tmpOrderedDrawIndice[drawableCount - 1 - renderOrders[i]] = i;
@@ -931,7 +930,7 @@ bool Model::IsPartHit(int index, float x, float y)
     }
 
     const csmInt32 drawableCount = _model->GetDrawableCount();
-    const csmInt32* renderOrders = _model->GetDrawableRenderOrders();
+    const csmInt32* renderOrders = GetDrawableRenderOrders();
     for (csmInt32 i = 0; i < drawableCount; i++) {
         // 绘制顺序，先绘制的被后绘制的覆盖
         _tmpOrderedDrawIndice[drawableCount - 1 - renderOrders[i]] = i;
@@ -1005,7 +1004,7 @@ void Model::Drag(float x, float y)
 void Model::CreateRenderer(int maskBufferCount)
 {
     _textureManager.ReleaseTextures();
-    CubismUserModel::CreateRenderer(maskBufferCount);
+    CubismUserModel::CreateRenderer(_matrixManager.GetWidth(), _matrixManager.GetHeight(), maskBufferCount);
     SetupTextures();
 }
 
@@ -1032,12 +1031,12 @@ void Model::Draw()
     renderer->DrawModel();
 }
 
-int Model::GetPartCount()
+const int Model::GetPartCount() const
 {
     return _model->GetPartCount();
 }
 
-void Model::GetPartIds(void* collector, void (*collect)(void* collector, const char* id))
+void Model::GetPartIds(void* collector, void (*collect)(void* collector, const char* id)) const
 {
     for (csmInt32 i = 0; i < _model->GetPartCount(); i++) {
         collect(collector, _model->GetPartId(i)->GetString().GetRawString());
@@ -1051,31 +1050,33 @@ void Model::SetPartOpacity(int index, float opacity)
 
 void Model::SetPartScreenColor(int index, float r, float g, float b, float a)
 {
-    _model->SetPartScreenColor(index, r, g, b, a);
-    if (_model->GetOverrideColorForPartScreenColors(index)) {
-        return;
+    auto& overrideColors = _model->GetOverrideMultiplyAndScreenColor();
+    overrideColors.SetPartScreenColor(index, r, g, b, a);
+    if (!overrideColors.GetPartScreenColorEnabled(index)) {
+        overrideColors.SetPartMultiplyColorEnabled(index, true);
     }
-    _model->SetOverrideColorForPartScreenColors(index, true);
 }
 
 void Model::SetPartMultiplyColor(int index, float r, float g, float b, float a)
 {
-    _model->SetPartMultiplyColor(index, r, g, b, a);
-    if (_model->GetOverrideColorForPartMultiplyColors(index)) {
-        return;
+    auto& overrideColors = _model->GetOverrideMultiplyAndScreenColor();
+    overrideColors.SetPartMultiplyColor(index, r, g, b, a);
+    if (!overrideColors.GetPartMultiplyColorEnabled(index)) {
+        overrideColors.SetPartMultiplyColorEnabled(index, true);
     }
-    _model->SetOverrideColorForPartMultiplyColors(index, true);
 }
 
-void Model::GetPartScreenColor(int index, float &r, float &g, float &b, float &a)
+void Model::GetPartScreenColor(int index, float &r, float &g, float &b, float &a) const
 {
-    auto c = _model->GetPartScreenColor(index);
+    const auto& overrideColors = _model->GetOverrideMultiplyAndScreenColor();
+    const auto c = overrideColors.GetPartScreenColor(index);
     r = c.R; g = c.G; b = c.B; a = c.A;
 }
 
-void Model::GetPartMultiplyColor(int index, float &r, float &g, float &b, float &a)
+void Model::GetPartMultiplyColor(int index, float &r, float &g, float &b, float &a) const
 {
-    auto c = _model->GetPartMultiplyColor(index);
+    const auto& overrideColors = _model->GetOverrideMultiplyAndScreenColor();
+    const auto c = overrideColors.GetPartMultiplyColor(index);
     r = c.R; g = c.G; b = c.B; a = c.A;
 }
 
@@ -1115,21 +1116,15 @@ const unsigned short* Model::GetDrawableIndices(int index)
 void Model::SetDrawableMultiColor(int index, float r, float g, float b, float a)
 {
     const int count = _model->GetDrawableVertexCount(index);
-    if (index < 0 || index >= count) {
-        return;
-    }
-    _model->SetOverrideFlagForDrawableMultiplyColors(index, true);
-    _model->SetMultiplyColor(index, r, g, b, a);
+    auto& overrideColors = _model->GetOverrideMultiplyAndScreenColor();
+    overrideColors.SetDrawableMultiplyColor(index, r, g, b, a);
 }
 
 void Model::SetDrawableScreenColor(int index, float r, float g, float b, float a)
 {
     const int count = _model->GetDrawableVertexCount(index);
-    if (index < 0 || index >= count) {
-        return;
-    }
-    _model->SetOverrideFlagForDrawableScreenColors(index, true);
-    _model->SetScreenColor(index, r, g, b, a);
+    auto& overrideColors = _model->GetOverrideMultiplyAndScreenColor();
+    overrideColors.SetDrawableScreenColor(index, r, g, b, a);
 }
 
 void Model::AddExpression(const char* expressionId)
@@ -1385,4 +1380,8 @@ void Model::PreloadMotionGroup(const csmChar* group)
             }
         });
     }
+}
+
+const int* Model::GetDrawableRenderOrders() const {
+    return _model->GetRenderOrders();
 }

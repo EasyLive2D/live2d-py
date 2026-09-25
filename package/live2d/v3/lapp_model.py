@@ -19,19 +19,37 @@ class LAppModel:
         self._sound_cache = {}          # (group, index) -> sound path
         self._lastFrame = time.time()   # for delta time calculation
         self._offset_x, self._offset_y = 0.0, 0.0  # tracked for SetOffsetX/SetOffsetY
+        # self._frameWidth = 0
+        # self._frameHeight = 0
 
     # ---- loading / resize / draw ----
 
     def LoadModelJson(self, modelJsonPath: str, maskBufferCount: int = 2):
         self._model.LoadModelJson(modelJsonPath)
         if not self._renderer_created:
-            self._model.CreateRenderer(maskBufferCount)
+            # self.__checkFrameSizeValid(self._frameWidth, self._frameHeight)
+            self._model.CreateRenderer(# self._frameWidth, self._frameHeight, 
+                                       maskBufferCount)
             self._renderer_created = True
     
-    def CreateRenderer(self, maskBufferCount: int = 2):
+    def CreateRenderer(self, frameWidth: int = 0, frameHeight: int = 0, maskBufferCount: int = 2):
+        # frameWidth = self._frameWidth if frameWidth <= 0 else frameWidth
+        # frameHeight = self._frameHeight if frameHeight <= 0 else frameHeight
+        # self.__checkFrameSizeValid(frameWidth, frameHeight)
         if not self._renderer_created:
-            self._model.CreateRenderer(maskBufferCount)
+            self._model.CreateRenderer(# frameWidth, frameHeight, 
+                                       maskBufferCount)
             self._renderer_created = True
+
+    def __checkFrameSizeValid(self, frameWidth: int, frameHeight: int):
+        return
+        # TODO: Enable in the future if there is display bugs.
+        # Frame size is equal to `RenderTargetSize`.
+        # Currently, frame size is set by Resize, and when the size changed, 
+        # render target will be recreated.
+        if frameWidth <= 0 or frameHeight <= 0:
+            error_msg = f"size(%d, %d) is invalid or not initialized by calling `Resize`" % (frameWidth, frameHeight)
+            raise RuntimeError(error_msg)
     
     def DestroyRenderer(self):
         if self._renderer_created:
@@ -40,6 +58,8 @@ class LAppModel:
 
     def Resize(self, width: int, height: int):
         self._model.Resize(width, height)
+        # self._frameWidth = width
+        # self._frameHeight = height
 
     def Draw(self):
         self._model.Draw()

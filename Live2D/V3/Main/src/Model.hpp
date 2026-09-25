@@ -167,13 +167,13 @@ public:
     void Draw();
 
     // part
-    int GetPartCount();
-    void GetPartIds(void *collector, void (*collect)(void *collector, const char *id));
+    const int GetPartCount() const;
+    void GetPartIds(void *collector, void (*collect)(void *collector, const char *id)) const;
     void SetPartOpacity(int index, float opacity);
     void SetPartScreenColor(int index, float r, float g, float b, float a);
     void SetPartMultiplyColor(int index, float r, float g, float b, float a);
-    void GetPartScreenColor(int index, float &r, float &g, float &b, float &a);
-    void GetPartMultiplyColor(int index, float &r, float &g, float &b, float &a);
+    void GetPartScreenColor(int index, float &r, float &g, float &b, float &a) const;
+    void GetPartMultiplyColor(int index, float &r, float &g, float &b, float &a) const;
 
     // drawable
     int GetDrawableCount();
@@ -234,6 +234,8 @@ private:
     void SetupModel();
 
     bool IsHit(CubismIdHandle drawableId, csmFloat32 pointX, csmFloat32 pointY) override;
+
+    const int* GetDrawableRenderOrders() const;
 
 private:
     ICubismModelSetting *_modelSetting;

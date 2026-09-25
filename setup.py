@@ -44,7 +44,7 @@ with open(os.path.join(os.path.dirname(__file__), "package", "live2d", "__init__
             VERSION = _line.split('"')[1]
             break
 CUBISM_SDK_DISTRIBUTION = (
-    "https://cubism.live2d.com/sdk-native/bin/CubismSdkForNative-5-r.4.1.zip"
+    "https://cubism.live2d.com/sdk-native/bin/CubismSdkForNative-5-r.5.zip"
 )
 
 NAME = "live2d-py"
