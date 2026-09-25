@@ -5,6 +5,32 @@
 #include <Log.hpp>
 #include <stdio.h>
 
+#ifdef DEBUG_ENABLE_SYNC_GL_ERROR
+#include <Debug.hpp>
+
+static void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
+                                       GLsizei length, const GLchar* message, const void* userParam)
+{
+    // 过滤掉通知级别的消息，只关注错误和警告
+    if (severity == GL_DEBUG_SEVERITY_NOTIFICATION)
+        return;
+
+    fprintf(stderr,
+            "[GL ERROR]: %s type = 0x%x, severity = 0x%x, message = %s\n",
+            (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
+            type,
+            severity,
+            message);
+    Live2D::Debug::PrintStackWithLines("[GL ERROR]");
+
+    // 让程序崩溃，便于调试器捕获
+    if (severity == GL_DEBUG_SEVERITY_HIGH) {
+        int* a = nullptr;
+        a[10] = 1000;
+    }
+}
+#endif
+
 
 static PyObject* v2cpp_init(PyObject*, PyObject*)
 {
@@ -16,6 +42,18 @@ static PyObject* v2cpp_glInit(PyObject*, PyObject*)
         PyErr_SetString(PyExc_RuntimeError, "Failed to initialize OpenGL");
         return nullptr;
     }
+
+#ifdef DEBUG_ENABLE_SYNC_GL_ERROR
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    glDebugMessageCallback(glDebugCallback, NULL);
+
+    // 先全部关闭
+    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_FALSE);
+
+    // 只打开 HIGH 严重级别（通常是真正的错误）
+    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_HIGH, 0, NULL, GL_TRUE);
+#endif
     Py_RETURN_NONE;
 }
 static PyObject* v2cpp_glRelease(PyObject*, PyObject*)

@@ -38,6 +38,8 @@ else()
   # ---- Shared Wrapper config (Python3, output naming) ----
   include(cmake/Wrapper.cmake)
 
+  # add_compile_definitions(DEBUG_ENABLE_SYNC_GL_ERROR)
+
   add_subdirectory(Wrapper/V3 ${CMAKE_CURRENT_BINARY_DIR}/Wrapper/V3)
   add_subdirectory(Wrapper/V2 ${CMAKE_CURRENT_BINARY_DIR}/Wrapper/V2)
 endif()

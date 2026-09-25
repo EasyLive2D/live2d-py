@@ -4,9 +4,9 @@ import os.path
 import time
 
 import glfw
-import live2d.v3 as live2d
+# import live2d.v3 as live2d
 # import live2d.v2 as live2d
-# import live2d.v2cpp as live2d
+import live2d.v2cpp as live2d
 
 if live2d.LIVE2D_VARIANT == "v3":
     from live2d.v3 import StandardParams
@@ -41,9 +41,9 @@ def main():
     if live2d.LIVE2D_VARIANT == "v3":
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
     elif live2d.LIVE2D_VARIANT == "v2":
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/shizuku/shizuku.model.json"))
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"))
     elif live2d.LIVE2D_VARIANT == "v2cpp":
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"),
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"),
                             create_renderer=False)  # Load model without creating renderer
         model.CreateRenderer()
 

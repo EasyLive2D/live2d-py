@@ -220,7 +220,7 @@ static PyObject* PyLAppModel_StartMotion(PyLAppModelObject* self, PyObject* args
     PyObject* onStart = nullptr;
     PyObject* onFinish = nullptr;
     static const char* kwlist[] = {
-        "", "", "", "onStartMotionHandler", "onFinishMotionHandler", nullptr};
+        "group", "no", "priority", "onStartMotionHandler", "onFinishMotionHandler", nullptr};
     if (!PyArg_ParseTupleAndKeywords(
             args, kwargs, "sii|OO", const_cast<char**>(kwlist), &group, &no, &priority, &onStart, &onFinish))
         return nullptr;
@@ -238,7 +238,7 @@ static PyObject* PyLAppModel_StartRandomMotion(PyLAppModelObject* self, PyObject
     PyObject* onStart = nullptr;
     PyObject* onFinish = nullptr;
     static const char* kwlist[] = {
-        "name", "priority", "onStartMotionHandler", "onFinishMotionHandler", nullptr};
+        "group", "priority", "onStartMotionHandler", "onFinishMotionHandler", nullptr};
     if (!PyArg_ParseTupleAndKeywords(
             args, kwargs, "|OOOO", const_cast<char**>(kwlist), &nameObj, &prioObj, &onStart, &onFinish))
         return nullptr;

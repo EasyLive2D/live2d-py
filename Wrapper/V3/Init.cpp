@@ -12,6 +12,32 @@
 
 #include "PyModel.hpp"
 
+#ifdef DEBUG_ENABLE_SYNC_GL_ERROR
+#include <Debug.hpp>
+
+static void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
+                                       GLsizei length, const GLchar* message, const void* userParam)
+{
+    // 过滤掉通知级别的消息，只关注错误和警告
+    if (severity == GL_DEBUG_SEVERITY_NOTIFICATION)
+        return;
+
+    fprintf(stderr,
+            "[GL ERROR]: %s type = 0x%x, severity = 0x%x, message = %s\n",
+            (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
+            type,
+            severity,
+            message);
+    Live2D::Debug::PrintStackWithLines("[GL ERROR]");
+
+    // 让程序崩溃，便于调试器捕获
+    if (severity == GL_DEBUG_SEVERITY_HIGH) {
+        int* a = nullptr;
+        a[10] = 1000;
+    }
+}
+#endif
+
 static LAppAllocator _cubismAllocator;
 static Csm::CubismFramework::Option _cubismOption;
 
@@ -39,33 +65,6 @@ static PyObject* live2d_dispose()
     Csm::CubismFramework::Dispose();
     Py_RETURN_NONE;
 }
-
-// #define DEBUG_ENABLE_SYNC_GL_ERROR
-#ifdef DEBUG_ENABLE_SYNC_GL_ERROR
-#include <Debug.hpp>
-
-static void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
-                                       GLsizei length, const GLchar* message, const void* userParam)
-{
-    // 过滤掉通知级别的消息，只关注错误和警告
-    if (severity == GL_DEBUG_SEVERITY_NOTIFICATION)
-        return;
-
-    fprintf(stderr,
-            "[GL ERROR]: %s type = 0x%x, severity = 0x%x, message = %s\n",
-            (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
-            type,
-            severity,
-            message);
-    Live2D::Debug::PrintStackWithLines("[GL ERROR]");
-
-    // 让程序崩溃，便于调试器捕获
-    if (severity == GL_DEBUG_SEVERITY_HIGH) {
-        int* a = nullptr;
-        a[10] = 1000;
-    }
-}
-#endif
 
 static PyObject* live2d_glInit()
 {
