@@ -60,7 +60,7 @@ jobs:
         arch: win64_msvc2022_64 # optional
 
     - name: Configure Debug
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DVIEWER=1
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DVIEWER=ON
 
     - name: Build Debug
       # Build your program with the given configuration
@@ -69,7 +69,7 @@ jobs:
     - name: Configure Release
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release -DVIEWER=1
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release -DVIEWER=ON
 
     - name: Build Release
       # Build your program with the given configuration

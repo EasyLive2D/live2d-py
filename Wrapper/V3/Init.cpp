@@ -11,7 +11,7 @@
 #include <Windows.h>
 #endif
 
-#ifdef DEBUG_ENABLE_CALL_STACK
+#ifdef DEBUG_ENABLE_CALLSTACK
 #include <Debug.hpp>
 using namespace Live2D::Common::Debug;
 #endif
@@ -20,7 +20,7 @@ using namespace Live2D::Common::Debug;
 
 using namespace Live2D::Common::Log;
 
-#ifdef DEBUG_ENABLE_CALL_STACK
+#ifdef DEBUG_ENABLE_CALLSTACK
 static void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
                                        GLsizei length, const GLchar* message, const void* userParam)
 {
@@ -76,7 +76,7 @@ static PyObject* live2d_glInit()
         LOGE("Can't initilize glad.");
     }
 
-#ifdef DEBUG_ENABLE_CALL_STACK
+#ifdef DEBUG_ENABLE_CALLSTACK
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(glDebugCallback, NULL);
@@ -190,7 +190,7 @@ static PyModuleDef liv2d_module = {
 // 模块初始化函数的实现
 PyMODINIT_FUNC PyInit__v3cpp(void)
 {
-#ifdef DEBUG_ENABLE_CALL_STACK
+#ifdef DEBUG_ENABLE_CALLSTACK
     InstallCrashHandler();
 #endif
     PyObject* m = PyModule_Create(&liv2d_module);

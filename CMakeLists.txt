@@ -35,9 +35,9 @@ if (DEBUG_ENABLE_ASAN)
   add_link_options(-fsanitize=address -shared-libasan)
 endif()
 
-if (DEBUG_ENABLE_CALL_STACK)
+if (DEBUG_ENABLE_CALLSTACK)
   message("[CallStack] on")
-  add_compile_definitions(DEBUG_ENABLE_CALL_STACK)
+  add_compile_definitions(DEBUG_ENABLE_CALLSTACK)
   add_compile_options("/Od" "/Ob0")
 endif()
 

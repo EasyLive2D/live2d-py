@@ -5,14 +5,14 @@
 #include <Log.hpp>
 #include <stdio.h>
 
-#ifdef DEBUG_ENABLE_CALL_STACK
+#ifdef DEBUG_ENABLE_CALLSTACK
 #include <Debug.hpp>
 using namespace Live2D::Common::Debug;
 #endif
 
 using namespace Live2D::Common::Log;
 
-#ifdef DEBUG_ENABLE_CALL_STACK
+#ifdef DEBUG_ENABLE_CALLSTACK
 static void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
                                        GLsizei length, const GLchar* message, const void* userParam)
 {
@@ -47,7 +47,7 @@ static PyObject* v2cpp_glInit(PyObject*, PyObject*)
         return nullptr;
     }
 
-#ifdef DEBUG_ENABLE_CALL_STACK
+#ifdef DEBUG_ENABLE_CALLSTACK
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(glDebugCallback, NULL);
@@ -121,7 +121,7 @@ static PyModuleDef v2cpp_module = {
 
 PyMODINIT_FUNC PyInit__v2cpp(void)
 {
-#ifdef DEBUG_ENABLE_CALL_STACK
+#ifdef DEBUG_ENABLE_CALLSTACK
     InstallCrashHandler();
 #endif
     PyObject* m = PyModule_Create(&v2cpp_module);

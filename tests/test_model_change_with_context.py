@@ -100,6 +100,13 @@ def main():
 
     glfw.set_mouse_button_callback(window, on_mouse_left_button)
 
+    def on_resize(window, w, h):
+        current_model.Resize(w, h)
+        glViewport(0, 0, w, h)
+        nonlocal display
+        display = (w, h)
+    glfw.set_window_size_callback(window, on_resize)
+
     glfw.swap_interval(1)
 
 
