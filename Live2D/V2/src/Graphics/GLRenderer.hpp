@@ -34,10 +34,10 @@ public:
     void preDraw(ModelContext* modelContext);
     void draw(ModelContext* modelContext);
 
-    void setClipBufPre_clipContextForDraw(void* ctx) { mClipDrawCtx = ctx; }
-    void setClipBufPre_clipContextForMask(void* ctx) { mClipMaskCtx = ctx; }
-    void* mClipMaskCtx = nullptr;   // Mask RENDER pass (writes to FBO)
-    void* mClipDrawCtx = nullptr;   // Clipped DRAW pass (uses mask)
+    void setClipDrawMode(bool on) { mClipDrawMode = on; }
+    void setClipMaskMode(bool on) { mClipMaskMode = on; }
+    bool mClipMaskMode = false;   // Mask RENDER pass (writes to FBO)
+    bool mClipDrawMode = false;   // Clipped DRAW pass (uses mask)
     int mClipChannel = 0;
     void setCulling(bool cull) { mCulling = cull; }
     static void clearBuffer(float r, float g, float b, float a);

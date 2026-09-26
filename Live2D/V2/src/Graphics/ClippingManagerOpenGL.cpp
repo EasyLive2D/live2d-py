@@ -280,9 +280,9 @@ void ClippingManagerOpenGL::setupClip(ModelContext* modelContext)
             auto* ctx = modelContext->getDrawContext(idx);
             mRenderer.setClipMatrix(clip->mMatrixForMask.data());
             mRenderer.mClipChannel = clip->mLayoutChannelNo;
-            mRenderer.setClipBufPre_clipContextForMask((void*)1);
+            mRenderer.setClipMaskMode(true);
             mesh->draw(&mRenderer, modelContext, ctx);
-            mRenderer.setClipBufPre_clipContextForMask(nullptr);
+            mRenderer.setClipMaskMode(false);
         }
     }
 

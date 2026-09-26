@@ -173,7 +173,7 @@ void Mesh::draw(GLRenderer* renderer, ModelContext* mctx, MeshContext* dctx)
         renderer->mClipChannel = cc->mLayoutChannelNo;
         renderer->setClipMatrix(cc->mMatrixForDraw.data());
     }
-    renderer->setClipBufPre_clipContextForDraw(dctx->mClipBufPre_clipContext);
+    renderer->setClipDrawMode(dctx->mClipBufPre_clipContext != nullptr);
     renderer->setCulling(mCulling);
 
     auto* pctx2 = mctx->getPartsContext(dctx->mPartsIndex);

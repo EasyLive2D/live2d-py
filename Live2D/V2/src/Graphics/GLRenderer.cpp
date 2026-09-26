@@ -345,7 +345,7 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
                              float opacity, int compositionType,
                              const std::array<float, 4>& multiplyColor)
 {
-    if (opacity < 0.01f && mClipMaskCtx == nullptr)
+    if (opacity < 0.01f && !mClipMaskMode)
         return;
 
     float a_w = mBaseRed * opacity;
@@ -356,10 +356,10 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
     static int sDrawCallNo = 0;
     sDrawCallNo++;
     int callNo = sDrawCallNo;
-    const char* path = mClipMaskCtx ? "MASK" : mClipDrawCtx ? "CLIP" : "NORM";
+    const char* path = mClipMaskMode ? "MASK" : mClipDrawMode ? "CLIP" : "NORM";
 
 
-    if (mClipMaskCtx) {
+    if (mClipMaskMode) {
         // Path 1: Mask RENDER — use clip's matrixForMask as u_mvpMatrix
         glFrontFace(GL_CCW);
         glUseProgram(mShaderNormal);
@@ -378,7 +378,7 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, getTexture(texNo));
         glUniform1i(mUniforms.normTexture0, 1);
-    } else if (mClipDrawCtx) {
+    } else if (mClipDrawMode) {
         // Path 2: Clipped DRAW — uses mask FBO
         glUseProgram(mShaderMask);
         glUniformMatrix4fv(mUniforms.maskMvp, 1, GL_FALSE, mMatrix4x4.data());
@@ -403,7 +403,7 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, mFramebufferTexture);
         glUniform1i(mUniforms.maskTexture1, 2);
-        mClipDrawCtx = nullptr;
+        mClipDrawMode = false;
     } else {
         // Path 3: Normal draw
         glUseProgram(mShaderNormal);
@@ -438,7 +438,7 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
     // Python glBlendFuncSeparate(src_color, src_factor, dst_color, dst_factor)
     //   maps to OpenGL: (srcRGB, dstRGB, srcAlpha, dstAlpha)
     GLenum srcRGB, dstRGB, srcAlpha, dstAlpha;
-    if (mClipMaskCtx) {
+    if (mClipMaskMode) {
         // MASK path: always use NORMAL blending
         srcRGB = GL_ONE;
         dstRGB = GL_ONE_MINUS_SRC_ALPHA;
