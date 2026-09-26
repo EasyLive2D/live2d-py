@@ -71,3 +71,5 @@ csmsdk_temp
 !docs/*.png
 
 raw/
+
+examples/live2d

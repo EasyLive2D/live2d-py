@@ -1,12 +1,18 @@
 import resources
 import math
+import os
 import os.path
+import sys
 import time
+
+if sys.platform.startswith("linux") and not os.environ.get("PYOPENGL_PLATFORM"):
+    # glfw 创建的是 GLX 上下文；PyOpenGL 在本机默认选 EGL 会导致 context 跟踪失效
+    os.environ["PYOPENGL_PLATFORM"] = "glx"
 
 import glfw
 # import live2d.v3 as live2d
-# import live2d.v2 as live2d
-import live2d.v2cpp as live2d
+import live2d.v2 as live2d
+# import live2d.v2cpp as live2d
 
 if live2d.LIVE2D_VARIANT == "v3":
     from live2d.v3 import StandardParams
@@ -41,7 +47,7 @@ def main():
     if live2d.LIVE2D_VARIANT == "v3":
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
     elif live2d.LIVE2D_VARIANT == "v2":
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"))
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"), create_renderer=False)
     elif live2d.LIVE2D_VARIANT == "v2cpp":
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"),
                             create_renderer=False)  # Load model without creating renderer
