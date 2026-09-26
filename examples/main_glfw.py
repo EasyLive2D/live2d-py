@@ -11,8 +11,8 @@ if sys.platform.startswith("linux") and not os.environ.get("PYOPENGL_PLATFORM"):
 
 import glfw
 # import live2d.v3 as live2d
-import live2d.v2 as live2d
-# import live2d.v2cpp as live2d
+# import live2d.v2 as live2d
+import live2d.v2cpp as live2d
 
 if live2d.LIVE2D_VARIANT == "v3":
     from live2d.v3 import StandardParams
@@ -48,6 +48,7 @@ def main():
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
     elif live2d.LIVE2D_VARIANT == "v2":
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"), create_renderer=False)
+        model.CreateRenderer()
     elif live2d.LIVE2D_VARIANT == "v2cpp":
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"),
                             create_renderer=False)  # Load model without creating renderer

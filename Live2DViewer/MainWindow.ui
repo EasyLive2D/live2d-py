@@ -154,7 +154,7 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string>打开（model3.json)</string>
+               <string>打开（model3.json model.json)</string>
               </property>
               <property name="icon">
                <iconset theme="QIcon::ThemeIcon::DocumentOpen"/>

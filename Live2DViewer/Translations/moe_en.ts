@@ -76,8 +76,8 @@
     </message>
     <message>
         <location filename="../MainWindow.ui" line="157"/>
-        <source>打开（model3.json)</source>
-        <translation>Open (model3.json)</translation>
+        <source>打开 (model3.json model.json)</source>
+        <translation>Open (model3.json model.json)</translation>
     </message>
     <message>
         <location filename="../MainWindow.ui" line="198"/>

@@ -6,8 +6,8 @@
 
 #include "MainWindow.hpp"
 
-#include <LAppAllocator.hpp>
-#include <LAppPal.hpp>
+#include <V3/LAppAllocator.hpp>
+#include <V3/LAppPal.hpp>
 #include <CubismFramework.hpp>
 
 #ifdef _WIN32

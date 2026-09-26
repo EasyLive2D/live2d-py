@@ -1,10 +1,12 @@
-
-add_subdirectory(${LIVE2D_ROOT}/V3/Main)
+add_subdirectory(${LIVE2D_ROOT}/V3/src)
 
 set_property(TARGET ${V3_TARGET} PROPERTY CXX_STANDARD 17)
 set_property(TARGET ${V3_TARGET} PROPERTY CXX_STANDARD_REQUIRED ON)
 
-target_include_directories(${V3_TARGET} PUBLIC ${LIVE2D_ROOT}/V3/Main/src)
+target_include_directories(${V3_TARGET} 
+  PRIVATE ${LIVE2D_ROOT}/V3/include/V3
+  INTERFACE ${LIVE2D_ROOT}/V3/include
+)
 
 if(APPLE)
   set(CMAKE_CXX_STANDARD 11)

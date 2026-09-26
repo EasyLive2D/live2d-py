@@ -4,7 +4,16 @@ set(V2_TARGET V2)
 add_subdirectory(${LIVE2D_ROOT}/V2/src)
 
 target_include_directories(${V2_TARGET}
-    PUBLIC  ${LIVE2D_ROOT}/V2/src
+    INTERFACE ${LIVE2D_ROOT}/V2/include
+    PRIVATE ${LIVE2D_ROOT}/V2/include/V2
+    PRIVATE ${LIVE2D_ROOT}/V2/include/V2/Core
+    PRIVATE ${LIVE2D_ROOT}/V2/include/V2/Deformer
+    PRIVATE ${LIVE2D_ROOT}/V2/include/V2/Draw
+    PRIVATE ${LIVE2D_ROOT}/V2/include/V2/Framework
+    PRIVATE ${LIVE2D_ROOT}/V2/include/V2/Graphics
+    PRIVATE ${LIVE2D_ROOT}/V2/include/V2/Model
+    PRIVATE ${LIVE2D_ROOT}/V2/include/V2/Motion
+    PRIVATE ${LIVE2D_ROOT}/V2/include/V2/Util
 )
 
 if (NOT CMAKE_SYSTEM_NAME MATCHES "Android")

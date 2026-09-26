@@ -14,7 +14,7 @@ endif()
 # Link libraries to framework.
 
 # include for HackProperties
-target_include_directories(Framework PUBLIC ${LIVE2D_ROOT}/V3/Main/src)
+target_include_directories(Framework PUBLIC ${LIVE2D_ROOT}/V3/include/V3)
 target_link_libraries(Framework Live2DCubismCore)
 
 if (NOT CMAKE_SYSTEM_NAME MATCHES "Android")

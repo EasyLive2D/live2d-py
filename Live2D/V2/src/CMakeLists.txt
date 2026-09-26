@@ -11,8 +11,6 @@ add_library(${V2_TARGET} STATIC
     Core/ParamPivots.cpp
     Core/PivotManager.cpp
     Model/ModelContext.cpp
-    # Model/ALive2DModel.cpp
-    # Model/Live2DModelOpenGL.cpp
     Deformer/Deformer.cpp
     Deformer/AffineEnt.cpp
     Deformer/RotationDeformer.cpp
@@ -39,6 +37,6 @@ add_library(${V2_TARGET} STATIC
     Util/UtInterpolate.cpp
     Util/UtSystem.cpp
     Util/stb_impl.cpp
-    LAppModel.cpp
+    Model.cpp
 )
 

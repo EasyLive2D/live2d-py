@@ -1,6 +1,6 @@
 #include <GL/glew.h>
 
-#include "PyLAppModel.hpp"
+#include "PyModel.hpp"
 #include "Python.hpp"
 #include <Log.hpp>
 #include <stdio.h>

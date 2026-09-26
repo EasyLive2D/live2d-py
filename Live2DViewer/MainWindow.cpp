@@ -37,7 +37,7 @@ void MainWindow::onTabCloseRequested(int index)
 
 void MainWindow::onOpenModel()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("打开模型"), "../../Resources/v3", tr("Model Json (*.model3.json)"));
+    QString fileName = QFileDialog::getOpenFileName(this, tr("打开模型"), "../../Resources/v3", tr("Model Json (*.model3.json *.model.json)"));
 
     if (fileName.isEmpty())
         return;

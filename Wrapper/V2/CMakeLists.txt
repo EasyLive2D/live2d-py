@@ -3,7 +3,7 @@ set(V2_WRAPPER Live2DV2Wrapper)
 
 add_library(${V2_WRAPPER} SHARED
     Init.cpp
-    PyLAppModel.cpp
+    PyModel.cpp
 )
 
 target_link_libraries(${V2_WRAPPER} PRIVATE Live2D::V2 Python3::SABIModule)

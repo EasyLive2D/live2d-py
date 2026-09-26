@@ -1,9 +1,14 @@
 #pragma once
-#include <Model.hpp>
+#include <V2/Model.hpp>
+#include <V3/Model.hpp>
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
 #include <QOpenGLShaderProgram>
 #include <QMenu>
+#include <optional>
+
+
+using namespace Live2D;
 
 
 struct ParamValue
@@ -12,7 +17,17 @@ struct ParamValue
     float value;
 };
 
-using namespace Live2D::V3;
+enum Version {
+    V2 = 2,
+    V3 = 3
+};
+
+union ModelHolder {
+    Version version;
+    V2::Model* model2;
+    V3::Model* model3;
+};
+
 
 class Live2DScene : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -44,14 +59,14 @@ public:
 
     void LoadModel(const QString& filePath);
 
-    Model *GetModel();
+    ModelHolder& GetModel();
 
     QVector<ParamValue>* GetParamValues();
 
     void selectDrawable(int index);
 
 private:
-    Model *model;
+    ModelHolder holder;
 
     long long lastUpdateTime;
 

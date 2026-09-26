@@ -1,10 +1,11 @@
-set(LIVE2D_COMMON ${LIVE2D_ROOT}/Common)
 set(V3_TARGET V3)
 
 include(${CMAKE_CURRENT_LIST_DIR}/Core.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/Framework.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/Main.cmake)
-
+# 在配置阶段立即执行文件修改脚本
+include(${CMAKE_CURRENT_LIST_DIR}/PatchACubismMotion.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/PatchCubismShader_OpenGLES2.cmake)
 
 # 读 _version.py
 file(READ "${CMAKE_SOURCE_DIR}/package/live2d/__init__.py" _ver_content)
