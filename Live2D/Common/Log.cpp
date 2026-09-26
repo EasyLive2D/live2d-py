@@ -2,7 +2,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
-#include <mutex>
+#include <atomic>
 
 #ifdef CSM_TARGET_ANDROID_ES2
 #include <android/log.h>

@@ -3,3 +3,4 @@ _v3cpp.pyd
 _v3cpp.dylib
 _v3cpp.pdb
 *.dll
+*.so

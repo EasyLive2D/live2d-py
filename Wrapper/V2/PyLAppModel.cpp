@@ -45,6 +45,7 @@ void PyLAppModel_dealloc(PyLAppModelObject* self)
     LOGI("deallocate: cpp LAppModel(at=%p)", self->model);
     delete self->model;
     LOGI("deallocate: PyLAppModelObject(at=%p)", self);
+    self->model = nullptr;
     PyObject_Free(self);
 }
 

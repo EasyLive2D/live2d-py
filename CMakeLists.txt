@@ -33,6 +33,9 @@ if (DEBUG_ENABLE_CALL_STACK)
   message("[CallStack] on")
   add_compile_definitions(DEBUG_ENABLE_CALL_STACK)
   add_compile_options("/Od" "/Ob0")
+  # enable asan for memory corruption
+  add_compile_options(-fsanitize=address -fno-omit-frame-pointer -g -O1)
+  add_link_options(-fsanitize=address -shared-libasan)
 endif()
 
 add_subdirectory(Live2D)
