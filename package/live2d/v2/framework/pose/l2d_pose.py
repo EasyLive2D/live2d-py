@@ -1,6 +1,7 @@
-﻿from ..Live2DFramework import Live2DFramework
+﻿import json
+
 from .l2d_parts_param import L2DPartsParam
-from ...core import Array, UtSystem
+from ...core import UtSystem
 
 
 class L2DPose:
@@ -8,7 +9,7 @@ class L2DPose:
     def __init__(self):
         self.lastTime = 0
         self.lastModel = None
-        self.partsGroups = Array()
+        self.partsGroups = []
 
     def updateParam(self, model):
         if model != self.lastModel:
@@ -105,15 +106,14 @@ class L2DPose:
     @staticmethod
     def load(buf):
         ret = L2DPose()
-        pm = Live2DFramework.getPlatformManager()
-        json = pm.jsonParseFromBytes(buf)
-        pose_list_info = json.get("parts_visible")
+        js = json.loads(buf)
+        pose_list_info = js.get("parts_visible")
         pose_num = len(pose_list_info)
         for i_pose in range(pose_num):
             pose_info = pose_list_info[i_pose]
             id_list_info = pose_info.get("group")
             id_num = len(id_list_info)
-            parts_group = Array()
+            parts_group = []
             for i_group in range(id_num):
                 parts_info = id_list_info[i_group]
                 parts = L2DPartsParam(parts_info["id"])
@@ -122,7 +122,7 @@ class L2DPose:
                     continue
                 link_list_info = parts_info.get("link")
                 link_num = len(link_list_info)
-                parts.link = Array()
+                parts.link = []
                 for i_link in range(link_num):
                     link_parts = L2DPartsParam(link_list_info[i_link])
                     parts.link.append(link_parts)

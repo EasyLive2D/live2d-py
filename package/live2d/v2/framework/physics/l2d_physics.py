@@ -1,11 +1,12 @@
-﻿from ...core import PhysicsHair, Array, UtSystem
-from ..Live2DFramework import Live2DFramework
+﻿import json
+
+from ...core import PhysicsHair, UtSystem
 
 
 class L2DPhysics:
 
     def __init__(self):
-        self.physicsList = Array()
+        self.physicsList = []
         self.startTimeMSec = UtSystem.getUserTimeMSec()
 
     def updateParam(self, model):
@@ -16,9 +17,8 @@ class L2DPhysics:
     @staticmethod
     def load(buf):
         ret = L2DPhysics()
-        pm = Live2DFramework.getPlatformManager()
-        json = pm.jsonParseFromBytes(buf)
-        params = json.get("physics_hair")
+        js = json.loads(buf)
+        params = js.get("physics_hair")
         param_num = len(params)
         for i in range(param_num):
             param = params[i]

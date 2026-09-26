@@ -1,7 +1,4 @@
 ﻿from ..io.iserializable import ISerializable
-from ..type import Array
-
-
 class ParamDefSet(ISerializable):
 
     def __init__(self):

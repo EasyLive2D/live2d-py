@@ -1,7 +1,6 @@
 ﻿from typing import Optional, List, TYPE_CHECKING
 
 from ..io.iserializable import ISerializable
-from ..type import Array
 from ..param import ParamDefSet
 
 if TYPE_CHECKING:
@@ -21,7 +20,7 @@ class ModelImpl(ISerializable):
             self.paramDefSet = ParamDefSet()
 
         if self.partsDataList is None:
-            self.partsDataList = Array()
+            self.partsDataList = []
 
     def getCanvasWidth(self):
         return self.canvasWidth

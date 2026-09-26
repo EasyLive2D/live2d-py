@@ -4,9 +4,7 @@ from .idraw_data import IDrawData
 from .mesh_context import MeshContext
 from ..DEF import LIVE2D_FORMAT_VERSION_V2_8_TEX_OPTION, VERTEX_STEP, VERTEX_TYPE, VERTEX_OFFSET, \
     VERTEX_TYPE_OFFSET0_STEP2, REVERSE_TEXTURE_T, VERTEX_TYPE_OFFSET2_STEP5
-from ..live2d import Live2D
 from ..param import PivotManager
-from ..type import Int16Array, Float32Array
 from ..util import UtInterpolate
 
 if TYPE_CHECKING:
@@ -59,7 +57,7 @@ class Mesh(IDrawData):
         self.pointCount = br.readInt32()
         self.polygonCount = br.readInt32()
         obj = br.readObject()
-        self.indexArray = Int16Array(self.polygonCount * 3)
+        self.indexArray = [0] * (self.polygonCount * 3)
         for i in range(self.polygonCount * 3 - 1, 0 - 1, -1):
             self.indexArray[i] = obj[i]
 
@@ -89,11 +87,11 @@ class Mesh(IDrawData):
         if ctx.interpolatedPoints is not None:
             ctx.interpolatedPoints = None
 
-        ctx.interpolatedPoints = Float32Array(vertexCount)
+        ctx.interpolatedPoints = [0.0] * (vertexCount)
         if ctx.transformedPoints is not None:
             ctx.transformedPoints = None
 
-        ctx.transformedPoints = Float32Array(vertexCount) if needTransform else None
+        ctx.transformedPoints = [0.0] * (vertexCount) if needTransform else None
         vertexType = VERTEX_TYPE
 
         if vertexType == VERTEX_TYPE_OFFSET0_STEP2:

@@ -22,9 +22,9 @@ Live2D v2 核心渲染系统由以下几个关键模块组成：
 ```
 ALive2DModel (抽象基类)
     └─ Live2DModelOpenGL (OpenGL 具体实现)
-        ├─ ModelContext (模型状态管理)
-        ├─ DrawParamOpenGL (渲染参数)
-        └─ ClippingManagerOpenGL (剪裁管理)
+        ├─ ModelContext (模型状态管理, 纯数据)
+        └─ GLRenderer (渲染器: 着色器/VBO/FBO/纹理)
+            └─ ClippingManagerOpenGL (剪裁管理)
 
 ModelContext 内部:
     ├─ deformerList (变形器列表)
@@ -166,11 +166,11 @@ for each mesh in drawDataList:
     mesh.setupTransform(modelContext, context)      # 应用变换
 ```
 
-### 2. 剪裁蒙版预处理 (`ModelContext.preDraw()`)
+### 2. 剪裁蒙版预处理 (`GLRenderer.preDraw()`)
 
 ```python
-dp.setupDraw()
-clipManager.setupClip(modelContext, dp)
+renderer.setupDraw()
+clipManager.setupClip(modelContext)
 ```
 
 `ClippingManager.setupClip()` 执行：
@@ -179,7 +179,7 @@ clipManager.setupClip(modelContext, dp)
 3. 切换到离屏帧缓冲区
 4. 渲染蒙版层到纹理
 
-### 3. 绘制阶段 (`ModelContext.draw()`)
+### 3. 绘制阶段 (`GLRenderer.draw()`)
 
 ```python
 for each drawOrder in orderList_firstDrawIndex:
@@ -192,7 +192,7 @@ for each drawOrder in orderList_firstDrawIndex:
             opacity = (drawData.getOpacity(drawContext) *
                      drawContext.partsOpacity *
                      drawContext.baseOpacity)
-            drawData.draw(dp, modelContext, drawContext)
+            drawData.draw(renderer, modelContext, drawContext)
         drawIndex = nextList_drawIndex[drawIndex]
 ```
 
@@ -717,7 +717,7 @@ float maskVal = clipMask.r + clipMask.g + clipMask.b + clipMask.a;
 | 扭曲变形器 | `core/deformer/warp_deformer.py` |
 | 插值算法 | `core/util/ut_interpolate.py` |
 | 枢轴管理 | `core/param/pivot_manager.py` |
-| 渲染参数 | `core/graphics/draw_param_opengl.py` |
+| 渲染参数 | `core/graphics/gl_renderer.py` |
 | 剪裁管理 | `core/graphics/clipping_manager_opengl.py` |
 | 物理模拟 | `core/physics/physics_hair.py` |
 | 运动系统 | `core/motion/live2d_motion.py` |

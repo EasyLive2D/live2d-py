@@ -1,12 +1,18 @@
 print("[v2] Pure Python impl, try faster: live2d.v2cpp")
 
-from .core import Live2D, Live2DGLWrapper
+from .core import Live2D
 from .core import log as __log
-from .framework import Live2DFramework
 from .lapp_define import MotionGroup, MotionPriority, HitArea
 from .lapp_model import LAppModel
 from .params import Parameter, StandardParams
-from .platform_manager import PlatformManager
+
+
+def __getattr__(name):
+    if name == "Live2DGLWrapper":
+        from .core.live2d_gl_wrapper import Live2DGLWrapper
+        globals()[name] = Live2DGLWrapper
+        return Live2DGLWrapper
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 class Live2DLogLevels:
@@ -18,10 +24,10 @@ class Live2DLogLevels:
 
 def init():
     Live2D.init()
-    Live2DFramework.setPlatformManager(PlatformManager())
 
 
 def clearBuffer(r=0.0, g=0.0, b=0.0, a=0.0):
+    from .core.live2d_gl_wrapper import Live2DGLWrapper
     Live2DGLWrapper.clearColor(r, g, b, a)
     Live2DGLWrapper.clear(Live2DGLWrapper.COLOR_BUFFER_BIT)
 

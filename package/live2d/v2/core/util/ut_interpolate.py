@@ -2,8 +2,6 @@
 from typing import TYPE_CHECKING
 
 from .ut_system import UtSystem
-from ..type import Float32Array
-
 if TYPE_CHECKING:
     from ..model_context import ModelContext
     from ..param import PivotManager
@@ -92,7 +90,7 @@ class UtInterpolate:
             return int(br + (bq - br) * a4)
         else:
             aV = 1 << a1
-            aY = Float32Array(aV)
+            aY = [0.0] * (aV)
             for bh in range(0, aV, 1):
                 aI: float = bh
                 aH = 1
@@ -102,7 +100,7 @@ class UtInterpolate:
 
                 aY[bh] = aH
 
-            bs = Float32Array(aV)
+            bs = [0.0] * (aV)
             for aU in range(0, aV, 1):
                 bs[aU] = pivotValue[a3[aU]]
 
@@ -181,7 +179,7 @@ class UtInterpolate:
                                                                                       aQ - aR) * a8)))
         else:
             aV = 1 << a1
-            aY = Float32Array(aV)
+            aY = [0.0] * (aV)
             for bh in range(0, aV, 1):
                 aI: float = bh
                 aH = 1
@@ -191,7 +189,7 @@ class UtInterpolate:
 
                 aY[bh] = aH
 
-            bq = Float32Array(aV)
+            bq = [0.0] * (aV)
             for aU in range(0, aV, 1):
                 bq[aU] = pivotValue[a2[aU]]
 
@@ -341,7 +339,7 @@ class UtInterpolate:
                 aQ += ptStep
         else:
             b4 = 1 << aN
-            bJ = Float32Array(b4)
+            bJ = [0.0] * (b4)
             for bj in range(0, b4, 1):
                 aH: float = bj
                 aM = 1
@@ -351,7 +349,7 @@ class UtInterpolate:
 
                 bJ[bj] = aM
 
-            bg: List[List[float]] | List[Any] = Float32Array(b4)
+            bg: List[List[float]] | List[Any] = [0.0] * (b4)
             for aX in range(0, b4, 1):
                 bg[aX] = pivotPoints[bw[aX]]
 

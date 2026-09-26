@@ -5,7 +5,6 @@ from .deformer import Deformer
 from .rotation_context import RotationContext
 from ..DEF import LIVE2D_FORMAT_VERSION_V2_10_SDK2
 from ..param import PivotManager
-from ..type import Float32Array, Array
 from ..util import UtMath
 
 if TYPE_CHECKING:
@@ -240,7 +239,7 @@ class RotationDeformer(Deformer):
                             rotationContext.interpolatedAffine.rotationDeg = (1 - weight4) * part9 + weight4 * part10
                         else:
                             affineCount = int(pow(2, pivotCount))
-                            weights = Float32Array(affineCount)
+                            weights = [0.0] * (affineCount)
                             for i in range(0, affineCount, 1):
                                 index = i
                                 weight = 1
@@ -250,7 +249,7 @@ class RotationDeformer(Deformer):
 
                                 weights[i] = weight
 
-                            affines = Array()
+                            affines = []
                             for i in range(0, affineCount, 1):
                                 affines[i] = self.affines[pivotIndices[i]]
 

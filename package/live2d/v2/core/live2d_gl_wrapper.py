@@ -1,4 +1,4 @@
-﻿import OpenGL.GL as gl
+import OpenGL.GL as gl
 import numpy as np
 
 
@@ -17,6 +17,7 @@ class Live2DGLWrapper:
     TEXTURE_MIN_FILTER = gl.GL_TEXTURE_MIN_FILTER
     TEXTURE_MAG_FILTER = gl.GL_TEXTURE_MAG_FILTER
     LINEAR = gl.GL_LINEAR
+    LINEAR_MIPMAP_NEAREST = gl.GL_LINEAR_MIPMAP_NEAREST
     CLAMP_TO_EDGE = gl.GL_CLAMP_TO_EDGE
     TEXTURE_WRAP_S = gl.GL_TEXTURE_WRAP_S
     TEXTURE_WRAP_T = gl.GL_TEXTURE_WRAP_T
@@ -46,6 +47,7 @@ class Live2DGLWrapper:
     TRIANGLES = gl.GL_TRIANGLES
     UNSIGNED_SHORT = gl.GL_UNSIGNED_SHORT
     FRAMEBUFFER_BINDING = gl.GL_FRAMEBUFFER_BINDING
+    VIEWPORT = gl.GL_VIEWPORT
     DEPTH_BUFFER_BIT = gl.GL_DEPTH_BUFFER_BIT
     ONE_MINUS_SRC_COLOR = gl.GL_ONE_MINUS_SRC_COLOR
     BLEND_SRC_RGB = gl.GL_BLEND_SRC_RGB
@@ -108,6 +110,10 @@ class Live2DGLWrapper:
     @staticmethod
     def texParameteri(*args):
         gl.glTexParameteri(*args)
+
+    @staticmethod
+    def generateMipmap(t):
+        gl.glGenerateMipmap(t)
 
     @staticmethod
     def framebufferTexture2D(*args):

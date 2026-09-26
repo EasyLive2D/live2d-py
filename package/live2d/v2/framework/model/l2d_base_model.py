@@ -1,7 +1,9 @@
-﻿from typing import Dict, Union, Optional
+﻿from typing import TYPE_CHECKING, Dict, Union, Optional
 
-from ...core import Live2DModelOpenGL, Live2DMotion
-from ..Live2DFramework import Live2DFramework
+from PIL import Image
+
+from ...core import Live2DMotion
+from ...core.live2d_model_opengl import Live2DModelOpenGL
 from ..matrix import L2DModelMatrix
 from ..motion import L2DExpressionMotion, L2DMotionManager
 from ..physics import L2DPhysics
@@ -33,6 +35,7 @@ class L2DBaseModel:
         self.motions = {}
         self.expressions: Dict = {}
         self.isTexLoaded = False
+        self._pendingTextures = []
 
     def getModelMatrix(self):
         return self.modelMatrix
@@ -83,12 +86,9 @@ class L2DBaseModel:
     def getExpressionManager(self):
         return self.expressionManager
 
-    def loadModelData(self, path, version: str):
-        pm = Live2DFramework.getPlatformManager()
-        if self.debugMode:
-            pm.log("Load model : " + path)
-
-        self.live2DModel = pm.loadLive2DModel(path, version)
+    def loadModelData(self, path, version: str, create_renderer: bool = True):
+        with open(path, 'rb') as f:
+            self.live2DModel = Live2DModelOpenGL.loadModel(f.read(), version, create_renderer)
         self.live2DModel.saveParam()
 
         self.modelMatrix = L2DModelMatrix(self.live2DModel.getCanvasWidth(),
@@ -100,22 +100,31 @@ class L2DBaseModel:
 
     def loadTexture(self, no, path):
         self.texCount += 1
-        pm = Live2DFramework.getPlatformManager()
-        if self.debugMode:
-            pm.log("Load Texture : " + path)
-
-        pm.loadTexture(self.live2DModel, no, path)
+        if self.live2DModel.getDrawParam() is None:
+            self._pendingTextures.append((no, path))
+        else:
+            self._uploadTexture(no, path)
 
         self.texCount -= 1
         if self.texCount == 0:
             self.isTexLoaded = True
 
-    def loadMotion(self, name, path):
-        pm = Live2DFramework.getPlatformManager()
-        if self.debugMode:
-            pm.log("Load Motion : " + path)
+    def _uploadTexture(self, no, path):
+        image = Image.open(path)
+        if image.mode != 'RGBA':
+            image = image.convert("RGBA")
+        width, height = image.size
+        self.live2DModel.setTextureData(no, width, height, image.tobytes())
 
-        buf = pm.loadBytes(path)
+    def flushPendingTextures(self):
+        pending = self._pendingTextures
+        self._pendingTextures = []
+        for no, path in pending:
+            self._uploadTexture(no, path)
+
+    def loadMotion(self, name, path):
+        with open(path, 'rb') as f:
+            buf = f.read()
 
         motion = Live2DMotion.loadMotion(buf)
         if name is not None:
@@ -123,27 +132,20 @@ class L2DBaseModel:
         return motion
 
     def loadExpression(self, name, path):
-        pm = Live2DFramework.getPlatformManager()
-        if self.debugMode:
-            pm.log("Load Expression : " + path)
-
         if name is not None:
-            buf = pm.loadBytes(path)
+            with open(path, 'rb') as f:
+                buf = f.read()
             self.expressions[name] = L2DExpressionMotion.loadJson(buf)
 
     def loadPose(self, path) -> L2DPose:
-        pm = Live2DFramework.getPlatformManager()
-        if self.debugMode:
-            pm.log("Load Pose : " + path)
-        buf = pm.loadBytes(path)
+        with open(path, 'rb') as f:
+            buf = f.read()
         self.pose = L2DPose.load(buf)
         return self.pose
 
     def loadPhysics(self, path):
-        pm = Live2DFramework.getPlatformManager()
-        if self.debugMode:
-            pm.log("Load Physics : " + path)
-        buf = pm.loadBytes(path)
+        with open(path, 'rb') as f:
+            buf = f.read()
         self.physics = L2DPhysics.load(buf)
 
     def hitTestSimple(self, drawID, testX, testY):

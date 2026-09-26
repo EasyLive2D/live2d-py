@@ -2,8 +2,6 @@
 
 from .parts_context import PartsDataContext
 from ..io.iserializable import ISerializable
-from ..type import Array
-
 if TYPE_CHECKING:
     from ..draw import Mesh
     from ..id import Id
@@ -19,8 +17,8 @@ class PartsData(ISerializable):
         self.drawDataList: List[Mesh] | None = None
 
     def initDirect(self):
-        self.deformerList = Array()
-        self.drawDataList = Array()
+        self.deformerList = []
+        self.drawDataList = []
 
     def read(self, aH):
         self.locked = aH.readBit()

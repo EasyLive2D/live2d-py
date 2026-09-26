@@ -31,7 +31,9 @@ class LAppModel(L2DBaseModel):
 
         self.__clearFlag = False
 
-    def LoadModelJson(self, modelSettingPath: str, version: str = "#version 120\n"):
+    def LoadModelJson(self, modelSettingPath: str, version: str = "#version 120\n", *, create_renderer: bool = True):
+        if isinstance(version, bool):
+            create_renderer, version = version, "#version 120\n"
         self.setUpdating(True)
         self.setInitialized(False)
         self.modelHomeDir = os.path.dirname(modelSettingPath) + "/"
@@ -41,7 +43,7 @@ class LAppModel(L2DBaseModel):
 
         path = self.modelHomeDir + self.modelSetting.getModelFile()
 
-        self.loadModelData(path, version)
+        self.loadModelData(path, version, create_renderer)
 
         for i in range(self.modelSetting.getTextureNum()):
             tex_paths = self.modelHomeDir + self.modelSetting.getTextureFile(i)
@@ -424,5 +426,14 @@ class LAppModel(L2DBaseModel):
     def GetPixelsPerUnit(self) -> int:
         return 1
     
+    def CreateRenderer(self):
+        if self.live2DModel.getDrawParam() is not None:
+            return
+        self.live2DModel.createRenderer()
+        self.flushPendingTextures()
+
+    def ReleaseRenderer(self):
+        self.live2DModel.releaseRenderer()
+
     def DestroyRenderer(self):
-        pass
+        self.ReleaseRenderer()

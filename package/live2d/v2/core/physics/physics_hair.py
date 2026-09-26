@@ -1,6 +1,5 @@
 import math
 
-from ..type import Array
 from ..util import UtMath
 from .physics_constants import *
 from .physics_point import PhysicsPoint
@@ -27,8 +26,8 @@ class PhysicsHair:
         self.angleVelocity = 0
         self.lastTime = 0
         self.currentTime = 0
-        self.sourceParams = Array()
-        self.targetParams = Array()
+        self.sourceParams = []
+        self.targetParams = []
         self.setup(0.3, 0.5, 0.1)
 
     def setup(self, length=None, stiffness=None, mass=None):

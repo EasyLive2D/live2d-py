@@ -4,7 +4,6 @@ from typing import List, Any
 from .live2d_object_factory import Live2DObjectFactory
 from ..DEF import OBJECT_REF
 from ..id import Id
-from ..type import Int32Array, Float32Array, Float64Array, Array
 
 
 class BinaryReader:
@@ -96,7 +95,7 @@ class BinaryReader:
     def readInt32Array(self):
         self.checkBits()
         aI = self.readType()
-        aH = Int32Array(aI)
+        aH = [0] * (aI)
         for aJ in range(0, aI, 1):
             aH[aJ] = self.readInt32()
 
@@ -105,7 +104,7 @@ class BinaryReader:
     def readFloat32Array(self):
         self.checkBits()
         aI = self.readType()
-        aH = Float32Array(aI)
+        aH = [0.0] * (aI)
         for aJ in range(0, aI, 1):
             aH[aJ] = self.readFloat32()
 
@@ -114,7 +113,7 @@ class BinaryReader:
     def readFloat64Array(self):
         self.checkBits()
         aI = self.readType()
-        aH = Float64Array(aI)
+        aH = [0.0] * (aI)
         for aJ in range(0, aI, 1):
             aH[aJ] = self.readDouble()
 
@@ -164,7 +163,7 @@ class BinaryReader:
             return self.readUTF8String()
         elif aN == 15:
             aH = self.readType()
-            aI = Array(aH)
+            aI = [None] * (aH)
             for aJ in range(0, aH, 1):
                 aI[aJ] = self.readObject()
             return aI

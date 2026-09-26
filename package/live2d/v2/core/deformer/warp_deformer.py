@@ -1,8 +1,6 @@
 ﻿from .deformer import Deformer
 from .warp_context import WarpContext
-from ..live2d import Live2D
 from ..param import PivotManager
-from ..type import Float32Array
 from ..util import UtInterpolate
 
 
@@ -30,12 +28,12 @@ class WarpDeformer(Deformer):
         if aI.interpolatedPoints is not None:
             aI.interpolatedPoints = None
 
-        aI.interpolatedPoints = Float32Array(aJ * 2)
+        aI.interpolatedPoints = [0.0] * (aJ * 2)
         if aI.transformedPoints is not None:
             aI.transformedPoints = None
 
         if self.needTransform():
-            aI.transformedPoints = Float32Array(aJ * 2)
+            aI.transformedPoints = [0.0] * (aJ * 2)
         else:
             aI.transformedPoints = None
 

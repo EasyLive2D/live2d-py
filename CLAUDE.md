@@ -39,7 +39,7 @@ Live2D/                    # Live2D SDK (git submodule, see Live2D/README.md)
       Model/               # Live2DModelOpenGL, ModelContext, ALive2DModel
       Draw/                # Mesh, IDrawData
       Deformer/            # RotationDeformer, WarpDeformer, AffineEnt
-      Graphics/            # DrawParamOpenGL, ClippingManagerOpenGL
+      Graphics/            # GLRenderer, ClippingManagerOpenGL
       Motion/              # Live2DMotion, AMotion
       Framework/           # L2DBaseModel, L2DModelMatrix, MatrixManager, L2DPose, L2DEyeBlink
       Util/                # UtMath, UtInterpolate, stb_impl

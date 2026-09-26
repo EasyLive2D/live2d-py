@@ -1,4 +1,3 @@
-from ..type import Array
 from ..util import UtString
 from .amotion import AMotion
 from .motion import Motion
@@ -13,7 +12,7 @@ class Live2DMotion(AMotion):
     def __init__(self):
 
         super().__init__()
-        self.motions = Array()
+        self.motions = []
         self.srcFps = 30
         self.maxLength = 0
         self.loop = False

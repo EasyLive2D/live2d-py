@@ -120,6 +120,7 @@ class ALive2DModel(ABC):
         return self.modelContext.getDrawData(index)
 
     def getTransformedPoints(self, drawDataIndex):
+        from .draw import MeshContext
         drawContext = self.modelContext.getDrawContext(drawDataIndex)
         if isinstance(drawContext, MeshContext):
             return drawContext.getTransformedPoints()
@@ -127,6 +128,7 @@ class ALive2DModel(ABC):
         return None
 
     def getIndexArray(self, drawDataIndex):
+        from .draw import IDrawData, Mesh
         if drawDataIndex < 0 or drawDataIndex >= len(self.modelContext.drawDataList):
             return None
 
@@ -167,5 +169,4 @@ class ALive2DModel(ABC):
 
         model.setModelImpl(modelImpl)
         model_context = model.getModelContext()
-        model_context.setDrawParam(model.getDrawParam())
         model_context.init()

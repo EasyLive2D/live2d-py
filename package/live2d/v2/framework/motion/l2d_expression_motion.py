@@ -1,5 +1,6 @@
-﻿from ...core import AMotion, Array
-from ..Live2DFramework import Live2DFramework
+﻿import json
+
+from ...core import AMotion
 from .l2d_expression_param import L2DExpressionParam
 
 
@@ -11,7 +12,7 @@ class L2DExpressionMotion(AMotion):
 
     def __init__(self):
         super().__init__()
-        self.paramList = Array()
+        self.paramList = []
 
     def updateParamExe(self, model, timeMSec, weight, motionQueueEnt):
         for i in range(len(self.paramList) - 1, -1, -1):
@@ -26,8 +27,7 @@ class L2DExpressionMotion(AMotion):
     @staticmethod
     def loadJson(buf):
         ret = L2DExpressionMotion()
-        pm = Live2DFramework.getPlatformManager()
-        js = pm.jsonParseFromBytes(buf)
+        js = json.loads(buf)
         ret.setFadeIn(int(js.get("fade_in", 0)) if int(js.get("fade_in", 0)) > 0 else 1000)
         ret.setFadeOut(int(js.get("fade_out", 0)) if int(js.get("fade_out", 0)) > 0 else 1000)
         if js.get("params", None) is None:

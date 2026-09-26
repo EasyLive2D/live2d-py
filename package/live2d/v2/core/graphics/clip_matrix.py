@@ -1,10 +1,7 @@
-﻿from ..type import Float32Array
-
-
-class ClipMatrix:
+﻿class ClipMatrix:
 
     def __init__(self):
-        self.m = Float32Array(16)
+        self.m = [0.0] * (16)
         self.identity()
 
     def identity(self):
@@ -15,7 +12,7 @@ class ClipMatrix:
         return self.m
 
     def getCopyMatrix(self):
-        return Float32Array(len(self.m))
+        return [0.0] * len(self.m)
 
     def setMatrix(self, aI):
         if aI is None or len(aI) != 16:

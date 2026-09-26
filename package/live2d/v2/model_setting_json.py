@@ -2,8 +2,6 @@ from typing import Union
 import json
 import math
 
-from .framework import Live2DFramework
-
 
 class ModelSettingJson:
     NAME = "name"
@@ -28,9 +26,8 @@ class ModelSettingJson:
         self.json = {}
 
     def loadModelSetting(self, path) -> None:
-        pm = Live2DFramework.getPlatformManager()
-        data = pm.loadBytes(path)
-        self.json = json.loads(data)
+        with open(path, 'rb') as f:
+            self.json = json.loads(f.read())
 
     def getTextureFile(self, n) -> Union[str, None]:
         if self.json.get(self.TEXTURES) is None or self.json[self.TEXTURES][n] is None:
