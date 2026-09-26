@@ -2,10 +2,11 @@
 #include <memory>
 #include <unordered_map>
 
-#include <vector>
 #include "../Core/Id.hpp"
+#include <vector>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 class ALive2DModel;
 class ModelImpl;
@@ -20,7 +21,8 @@ class PivotManager;
 class ParamPivots;
 
 
-class ModelContext {
+class ModelContext
+{
 public:
     static constexpr int NOT_USED_ORDER = -1;
     static constexpr int NO_NEXT = -1;
@@ -53,7 +55,10 @@ public:
     bool requireSetup() const { return mNeedSetup; }
 
     Deformer* getDeformer(int index) const { return mDeformerList[index]; }
-    DeformerContext* getDeformerContext(int index) const { return mDeformerContextList[index].get(); }
+    DeformerContext* getDeformerContext(int index) const
+    {
+        return mDeformerContextList[index].get();
+    }
     IDrawData* getDrawData(int index) const;
     MeshContext* getDrawContext(int index) const { return mDrawContextList[index].get(); }
     PartsDataContext* getPartsContext(int index) const { return mPartsContextList[index].get(); }
@@ -113,4 +118,5 @@ public:
     mutable std::unordered_map<const Id*, int> mPartsDataIndexCache;
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

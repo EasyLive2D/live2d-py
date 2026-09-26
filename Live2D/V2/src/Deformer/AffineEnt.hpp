@@ -2,9 +2,11 @@
 
 #include "../Core/ISerializable.hpp"
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
-class AffineEnt final : public ISerializable {
+class AffineEnt final : public ISerializable
+{
 public:
     AffineEnt() = default;
 
@@ -19,4 +21,5 @@ public:
     bool mReflectY = false;
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

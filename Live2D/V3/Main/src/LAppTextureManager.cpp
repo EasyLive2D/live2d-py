@@ -10,12 +10,11 @@
 #define STBI_NO_STDIO
 #define STBI_ONLY_PNG
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 #include "LAppPal.hpp"
-
-LAppTextureManager::LAppTextureManager()
-{
-}
+#include "stb_image.h"
+namespace Live2D {
+namespace V3 {
+LAppTextureManager::LAppTextureManager() {}
 
 LAppTextureManager::~LAppTextureManager()
 {
@@ -24,11 +23,9 @@ LAppTextureManager::~LAppTextureManager()
 
 LAppTextureManager::TextureInfo* LAppTextureManager::CreateTextureFromPngFile(std::string fileName)
 {
-    //search loaded texture already.
-    for (Csm::csmUint32 i = 0; i < _textures.GetSize(); i++)
-    {
-        if (_textures[i]->fileName == fileName)
-        {
+    // search loaded texture already.
+    for (Csm::csmUint32 i = 0; i < _textures.GetSize(); i++) {
+        if (_textures[i]->fileName == fileName) {
             return _textures[i];
         }
     }
@@ -43,18 +40,12 @@ LAppTextureManager::TextureInfo* LAppTextureManager::CreateTextureFromPngFile(st
 
     // png情報を取得する
     png = stbi_load_from_memory(
-        address,
-        static_cast<int>(size),
-        &width,
-        &height,
-        &channels,
-        STBI_rgb_alpha);
+        address, static_cast<int>(size), &width, &height, &channels, STBI_rgb_alpha);
     {
 
 #ifdef PREMULTIPLIED_ALPHA_ENABLE
         unsigned int* fourBytes = reinterpret_cast<unsigned int*>(png);
-        for (int i = 0; i < width * height; i++)
-        {
+        for (int i = 0; i < width * height; i++) {
             unsigned char* p = png + i * 4;
             fourBytes[i] = Premultiply(p[0], p[1], p[2], p[3]);
         }
@@ -82,16 +73,14 @@ LAppTextureManager::TextureInfo* LAppTextureManager::CreateTextureFromPngFile(st
     textureInfo->id = textureId;
 
     _textures.PushBack(textureInfo);
-    
+
 
     return textureInfo;
-
 }
 
 void LAppTextureManager::ReleaseTextures()
 {
-    for (Csm::csmUint32 i = 0; i < _textures.GetSize(); i++)
-    {
+    for (Csm::csmUint32 i = 0; i < _textures.GetSize(); i++) {
         glDeleteTextures(1, &(_textures[i]->id));
         delete _textures[i];
     }
@@ -101,10 +90,8 @@ void LAppTextureManager::ReleaseTextures()
 
 void LAppTextureManager::ReleaseTexture(Csm::csmUint32 textureId)
 {
-    for (Csm::csmUint32 i = 0; i < _textures.GetSize(); i++)
-    {
-        if (_textures[i]->id != textureId)
-        {
+    for (Csm::csmUint32 i = 0; i < _textures.GetSize(); i++) {
+        if (_textures[i]->id != textureId) {
             continue;
         }
         glDeleteTextures(1, &(_textures[i]->id));
@@ -116,10 +103,8 @@ void LAppTextureManager::ReleaseTexture(Csm::csmUint32 textureId)
 
 void LAppTextureManager::ReleaseTexture(std::string fileName)
 {
-    for (Csm::csmUint32 i = 0; i < _textures.GetSize(); i++)
-    {
-        if (_textures[i]->fileName == fileName)
-        {
+    for (Csm::csmUint32 i = 0; i < _textures.GetSize(); i++) {
+        if (_textures[i]->fileName == fileName) {
             glDeleteTextures(1, &(_textures[i]->id));
             delete _textures[i];
             _textures.Remove(i);
@@ -130,13 +115,13 @@ void LAppTextureManager::ReleaseTexture(std::string fileName)
 
 LAppTextureManager::TextureInfo* LAppTextureManager::GetTextureInfoById(GLuint textureId) const
 {
-    for (Csm::csmUint32 i = 0; i < _textures.GetSize(); i++)
-    {
-        if (_textures[i]->id == textureId)
-        {
+    for (Csm::csmUint32 i = 0; i < _textures.GetSize(); i++) {
+        if (_textures[i]->id == textureId) {
             return _textures[i];
         }
     }
 
     return NULL;
 }
+}   // namespace V3
+}   // namespace Live2D

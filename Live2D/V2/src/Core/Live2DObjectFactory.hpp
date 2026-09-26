@@ -2,13 +2,16 @@
 
 #include <memory>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 class ISerializable;
 
-class Live2DObjectFactory {
+class Live2DObjectFactory
+{
 public:
     static std::unique_ptr<ISerializable> create(int clsNo);
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

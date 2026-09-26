@@ -1,8 +1,13 @@
 #pragma once
 #include <string>
 #include <vector>
-namespace live2d {
-struct L2DPartsParam {
-    std::string mId; int mLinkCount = 0; std::vector<std::string> mLinkIds;
+namespace Live2D {
+namespace V2 {
+struct L2DPartsParam
+{
+    std::string mId;
+    int mLinkCount = 0;
+    std::vector<std::string> mLinkIds;
 };
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

@@ -3,17 +3,19 @@
 
 #include "../Core/ISerializable.hpp"
 #include "../Core/Id.hpp"
-#include <vector>
 #include <string>
+#include <vector>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 class PivotManager;
 class MeshContext;
 class ModelContext;
 class IDrawContext;
 
-class IDrawData : public ISerializable {
+class IDrawData : public ISerializable
+{
 public:
     static constexpr int DEFORMER_INDEX_NOT_INIT = -2;
     static constexpr int DEFAULT_ORDER = 500;
@@ -31,9 +33,7 @@ public:
     void setId(const Id* value) { mId = value; }
     const Id* getTargetId() const { return mTargetId; }
     void setTargetId(const Id* value) { mTargetId = value; }
-    bool needTransform() const {
-        return mTargetId != nullptr && *mTargetId != Id::DST_BASE_ID();
-    }
+    bool needTransform() const { return mTargetId != nullptr && *mTargetId != Id::DST_BASE_ID(); }
 
     static float getOpacity(MeshContext* ctx);
     static int getDrawOrder(MeshContext* ctx);
@@ -44,7 +44,6 @@ public:
 
 
 protected:
-
     const Id* mId = nullptr;
     const Id* mTargetId = nullptr;
     std::unique_ptr<PivotManager> mPivotMgr;
@@ -54,4 +53,5 @@ protected:
     std::vector<std::string> mClipIDList;
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

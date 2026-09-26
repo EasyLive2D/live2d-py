@@ -7,9 +7,11 @@
 #include "ParamDefSet.hpp"
 #include "PartsData.hpp"
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
-class ModelImpl final : public ISerializable {
+class ModelImpl final : public ISerializable
+{
 public:
     ModelImpl() = default;
     ~ModelImpl() override;
@@ -29,4 +31,5 @@ private:
     int mCanvasHeight = 400;
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

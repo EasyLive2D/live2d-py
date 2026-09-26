@@ -1,17 +1,21 @@
 #pragma once
+#include "PhysicsHair.hpp"
 #include <cstdint>
 #include <memory>
 #include <vector>
-#include "PhysicsHair.hpp"
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 class ModelContext;
-class L2DPhysics {
+class L2DPhysics
+{
 public:
     L2DPhysics();
     void updateParam(ModelContext* context);
     static L2DPhysics* load(const std::vector<uint8_t>& data);
     std::vector<std::unique_ptr<PhysicsHair>> mPhysicsList;
+
 private:
     long long mStartTimeMs = 0;
 };
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

@@ -1,18 +1,20 @@
 #pragma once
-#include <string>
-#include <unordered_map>
-#include <memory>
 #include "Core/ModelImpl.hpp"
 #include "L2DModelMatrix.hpp"
 #include "Model/ModelContext.hpp"
-namespace live2d {
+#include <memory>
+#include <string>
+#include <unordered_map>
+namespace Live2D {
+namespace V2 {
 class Live2DModelOpenGL;
 class L2DMotionManager;
 class L2DEyeBlink;
 class L2DPose;
 class L2DPhysics;
 class AMotion;
-class L2DBaseModel {
+class L2DBaseModel
+{
 public:
     L2DBaseModel();
     virtual ~L2DBaseModel();
@@ -27,8 +29,17 @@ public:
     L2DMotionManager* getExpressionManager() const { return mExpressionMgr.get(); }
     void setAlpha(float a) { mAlpha = (a < 0 ? 0 : (a > 1 ? 1 : a)); }
     float getAlpha() const { return mAlpha; }
-    void setAccel(float x, float y, float z) { mAccelX = x; mAccelY = y; mAccelZ = z; }
-    void setDrag(float x, float y) { mDragX = x; mDragY = y; }
+    void setAccel(float x, float y, float z)
+    {
+        mAccelX = x;
+        mAccelY = y;
+        mAccelZ = z;
+    }
+    void setDrag(float x, float y)
+    {
+        mDragX = x;
+        mDragY = y;
+    }
     bool isInitialized() const { return mInitialized; }
     void setInitialized(bool v) { mInitialized = v; }
     bool isUpdating() const { return mUpdating; }
@@ -48,4 +59,5 @@ protected:
     std::unique_ptr<ModelImpl> mModelImpl;
     std::unique_ptr<ModelContext> mModelContext;
 };
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

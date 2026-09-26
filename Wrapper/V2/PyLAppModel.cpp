@@ -5,6 +5,8 @@
 #include <object.h>
 #include <pytypedefs.h>
 
+using namespace Live2D::Common::Log;
+
 // ---- Callback helpers (Python → C++ conversion, no live2d dependency) ----
 static auto MakeMotionCallback(PyObject* cb) -> std::function<void(const std::string&, int)>
 {
@@ -34,24 +36,26 @@ PyObject* PyLAppModel_new(PyTypeObject* type, PyObject*, PyObject*)
 
 int PyLAppModel_init(PyLAppModelObject* self, PyObject*, PyObject*)
 {
-    self->model = new live2d::LAppModel();
+    self->model = new Live2D::V2::LAppModel();
     return 0;
 }
 
 void PyLAppModel_dealloc(PyLAppModelObject* self)
 {
-    Info("deallocate: cpp LAppModel(at=%p)", self->model);
+    LOGI("deallocate: cpp LAppModel(at=%p)", self->model);
     delete self->model;
-    Info("deallocate: PyLAppModelObject(at=%p)", self);
+    LOGI("deallocate: PyLAppModelObject(at=%p)", self);
     PyObject_Free(self);
 }
 
-static PyObject* PyLAppModel_LoadModelJson(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
+static PyObject* PyLAppModel_LoadModelJson(PyLAppModelObject* self, PyObject* args,
+                                           PyObject* kwargs)
 {
     const char* path;
     static const char* kwlist[] = {"path", "create_renderer", nullptr};
     bool createRenderer = true;
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s|b", const_cast<char**>(kwlist), &path, &createRenderer))
+    if (!PyArg_ParseTupleAndKeywords(
+            args, kwargs, "s|b", const_cast<char**>(kwlist), &path, &createRenderer))
         return nullptr;
 
     self->model->loadModelJson(path, createRenderer);
@@ -221,8 +225,15 @@ static PyObject* PyLAppModel_StartMotion(PyLAppModelObject* self, PyObject* args
     PyObject* onFinish = nullptr;
     static const char* kwlist[] = {
         "group", "no", "priority", "onStartMotionHandler", "onFinishMotionHandler", nullptr};
-    if (!PyArg_ParseTupleAndKeywords(
-            args, kwargs, "sii|OO", const_cast<char**>(kwlist), &group, &no, &priority, &onStart, &onFinish))
+    if (!PyArg_ParseTupleAndKeywords(args,
+                                     kwargs,
+                                     "sii|OO",
+                                     const_cast<char**>(kwlist),
+                                     &group,
+                                     &no,
+                                     &priority,
+                                     &onStart,
+                                     &onFinish))
         return nullptr;
 
     self->model->startMotion(
@@ -239,8 +250,14 @@ static PyObject* PyLAppModel_StartRandomMotion(PyLAppModelObject* self, PyObject
     PyObject* onFinish = nullptr;
     static const char* kwlist[] = {
         "group", "priority", "onStartMotionHandler", "onFinishMotionHandler", nullptr};
-    if (!PyArg_ParseTupleAndKeywords(
-            args, kwargs, "|OOOO", const_cast<char**>(kwlist), &nameObj, &prioObj, &onStart, &onFinish))
+    if (!PyArg_ParseTupleAndKeywords(args,
+                                     kwargs,
+                                     "|OOOO",
+                                     const_cast<char**>(kwlist),
+                                     &nameObj,
+                                     &prioObj,
+                                     &onStart,
+                                     &onFinish))
         return nullptr;
 
     int priority = 3;
@@ -462,7 +479,7 @@ static PyGetSetDef PyLAppModel_getset[] = {
     {nullptr}};
 
 PyMethodDef PyLAppModel_methods[] = {
-    {"LoadModelJson", (PyCFunction)PyLAppModel_LoadModelJson, METH_VARARGS|METH_KEYWORDS, ""},
+    {"LoadModelJson", (PyCFunction)PyLAppModel_LoadModelJson, METH_VARARGS | METH_KEYWORDS, ""},
     {"Resize", (PyCFunction)PyLAppModel_Resize, METH_VARARGS, ""},
     {"Drag", (PyCFunction)PyLAppModel_Drag, METH_VARARGS, ""},
     {"IsMotionFinished", (PyCFunction)PyLAppModel_IsMotionFinished, METH_NOARGS, ""},

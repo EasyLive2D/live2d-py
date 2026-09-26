@@ -3,9 +3,11 @@
 #include "ISerializable.hpp"
 #include "Id.hpp"
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
-class ParamDefFloat final : public ISerializable {
+class ParamDefFloat final : public ISerializable
+{
 public:
     ParamDefFloat() = default;
 
@@ -23,4 +25,5 @@ private:
     const Id* mParamId = nullptr;
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

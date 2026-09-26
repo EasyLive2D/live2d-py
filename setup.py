@@ -42,9 +42,11 @@ with open(os.path.join(os.path.dirname(__file__), "package", "live2d", "__init__
     for _line in _f:
         if _line.startswith("__version__"):
             VERSION = _line.split('"')[1]
-            break
+        elif _line.startswith("__csm_version__"):
+            CSM_VERSION = _line.split('"')[1]
+
 CUBISM_SDK_DISTRIBUTION = (
-    "https://cubism.live2d.com/sdk-native/bin/CubismSdkForNative-5-r.5.zip"
+    f"https://cubism.live2d.com/sdk-native/bin/CubismSdkForNative-{CSM_VERSION}.zip"
 )
 
 NAME = "live2d-py"
@@ -259,7 +261,7 @@ def run_cmake():
     else:
         print("[cmake] Cubism SDK already present, skipping download.")
 
-    cmake_args = ["-DBUILD_V2CPP=ON"]
+    cmake_args = []
     build_args = ["--config", "Release", "--target", "Live2DV2Wrapper", "--target", "Live2DWrapper"]
 
     if platform.system() == "Windows":
@@ -357,7 +359,7 @@ setup(
     ext_modules=[FakeExtension("LAppModelWrapper", ".")],
     cmdclass={"build_ext": CMakeBuild, "bdist_wheel": BuildWheel, "install": Install, "download": Download},
     packages=find_packages(where="package"),
-    package_data={"": ["**/*.pyd", "**/*.so", "**/*.pyi", "**/*.py"]},
+    package_data={"": ["**/*.pyd", "**/*.so", "**/*.pyi", "**/*.py", "**/*.dll"]},
     package_dir={"": "package"},
     keywords=["Live2D", "Cubism Live2D", "Cubism SDK", "Cubism SDK for Python"],
     python_requires=REQUIRES_PYTHON,

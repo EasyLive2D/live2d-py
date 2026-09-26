@@ -1,30 +1,34 @@
 #include "Mesh.hpp"
-#include "MeshContext.hpp"
+#include "../Common/Log.hpp"
 #include "../Core/BinaryReader.hpp"
 #include "../Core/DEF.hpp"
-#include "../Core/PivotManager.hpp"
-#include "../Model/ModelContext.hpp"
 #include "../Core/PartsData.hpp"
+#include "../Core/PartsDataContext.hpp"
+#include "../Core/PivotManager.hpp"
 #include "../Deformer/Deformer.hpp"
 #include "../Deformer/DeformerContext.hpp"
 #include "../Graphics/ClipContext.hpp"
 #include "../Graphics/GLRenderer.hpp"
-#include "../Core/PartsDataContext.hpp"
+#include "../Model/ModelContext.hpp"
 #include "../Util/UtInterpolate.hpp"
+#include "MeshContext.hpp"
 #include <cstdio>
-#include "../Common/Log.hpp"
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 static int sInstanceCount = 0;
 
-Mesh::Mesh() : IDrawData() {
+Mesh::Mesh()
+    : IDrawData()
+{
     mInstanceNo = sInstanceCount++;
 }
 
 Mesh::~Mesh() {}
 
-void Mesh::read(BinaryReader& br) {
+void Mesh::read(BinaryReader& br)
+{
     IDrawData::read(br);
     mTextureNo = br.readInt32();
     mPointCount = br.readInt32();
@@ -45,7 +49,7 @@ void Mesh::read(BinaryReader& br) {
         if (mOptionFlag != 0) {
             if ((mOptionFlag & 1) != 0) {
                 (void)br.readInt32();
-                Error("Mesh read: not handled option flag");
+                LOGE("Mesh read: not handled option flag");
             }
             if ((mOptionFlag & MASK_COLOR_COMPOSITION) != 0) {
                 mColorCompositionType = (mOptionFlag & MASK_COLOR_COMPOSITION) >> 1;
@@ -61,12 +65,14 @@ void Mesh::read(BinaryReader& br) {
     }
 }
 
-MeshContext* Mesh::init(ModelContext* modelContext) {
+MeshContext* Mesh::init(ModelContext* modelContext)
+{
     auto* ctx = new MeshContext(this);
     int vertexCount = mPointCount * VERTEX_STEP;
     bool needXform = needTransform();
     ctx->mInterpolatedPoints.resize(vertexCount);
-    if (needXform) ctx->mTransformedPoints.resize(vertexCount);
+    if (needXform)
+        ctx->mTransformedPoints.resize(vertexCount);
 
     if (VERTEX_TYPE == VERTEX_TYPE_OFFSET0_STEP2) {
         if (REVERSE_TEXTURE_T) {
@@ -94,22 +100,32 @@ MeshContext* Mesh::init(ModelContext* modelContext) {
     return ctx;
 }
 
-void Mesh::setupInterpolate(ModelContext* modelContext, MeshContext* meshContext) {
-    if (!mPivotMgr->checkParamUpdated(modelContext)) return;
+void Mesh::setupInterpolate(ModelContext* modelContext, MeshContext* meshContext)
+{
+    if (!mPivotMgr->checkParamUpdated(modelContext))
+        return;
     IDrawData::setupInterpolate(modelContext, meshContext);
-    if (meshContext->mParamOutside) return;
+    if (meshContext->mParamOutside)
+        return;
 
     bool paramOutside = false;
-    UtInterpolate::interpolatePoints(modelContext, mPivotMgr.get(), paramOutside,
-                                     mPointCount, mPivotPoints,
+    UtInterpolate::interpolatePoints(modelContext,
+                                     mPivotMgr.get(),
+                                     paramOutside,
+                                     mPointCount,
+                                     mPivotPoints,
                                      meshContext->mInterpolatedPoints,
-                                     VERTEX_OFFSET, VERTEX_STEP);
-    if (paramOutside) meshContext->mParamOutside = true;
+                                     VERTEX_OFFSET,
+                                     VERTEX_STEP);
+    if (paramOutside)
+        meshContext->mParamOutside = true;
 }
 
-void Mesh::setupTransform(ModelContext* mc, IDrawContext* dc) {
+void Mesh::setupTransform(ModelContext* mc, IDrawContext* dc)
+{
     auto* ctx = static_cast<MeshContext*>(dc);
-    if (ctx->mParamOutside) return;
+    if (ctx->mParamOutside)
+        return;
 
     // setupInterpolate already called for drawable level; skip base class call
     if (needTransform()) {
@@ -123,9 +139,13 @@ void Mesh::setupTransform(ModelContext* mc, IDrawContext* dc) {
             auto* deformer = mc->getDeformer(ctx->mTmpDeformerIndex);
             auto* deformerCtx = mc->getDeformerContext(ctx->mTmpDeformerIndex);
             if (deformer && !deformerCtx->isOutsideParam()) {
-                deformer->transformPoints(mc, deformerCtx,
-                    ctx->mInterpolatedPoints, ctx->mTransformedPoints,
-                    mPointCount, VERTEX_OFFSET, VERTEX_STEP);
+                deformer->transformPoints(mc,
+                                          deformerCtx,
+                                          ctx->mInterpolatedPoints,
+                                          ctx->mTransformedPoints,
+                                          mPointCount,
+                                          VERTEX_OFFSET,
+                                          VERTEX_STEP);
                 ctx->mAvailable = true;
             } else {
                 ctx->mAvailable = false;
@@ -135,17 +155,19 @@ void Mesh::setupTransform(ModelContext* mc, IDrawContext* dc) {
     }
 }
 
-int sDrawCounts[3] = {0,0,0};
-void Mesh::draw(GLRenderer* renderer, ModelContext* mctx, MeshContext* dctx) {
-    if (dctx->mParamOutside) return;
+int sDrawCounts[3] = {0, 0, 0};
+void Mesh::draw(GLRenderer* renderer, ModelContext* mctx, MeshContext* dctx)
+{
+    if (dctx->mParamOutside)
+        return;
     if (mColorCompositionType >= 0 && mColorCompositionType < 3)
         sDrawCounts[mColorCompositionType]++;
     int texNr = mTextureNo;
-    if (texNr < 0) texNr = 1;
+    if (texNr < 0)
+        texNr = 1;
 
-    auto& vertices = !dctx->mTransformedPoints.empty()
-                         ? dctx->mTransformedPoints
-                         : dctx->mInterpolatedPoints;
+    auto& vertices =
+        !dctx->mTransformedPoints.empty() ? dctx->mTransformedPoints : dctx->mInterpolatedPoints;
     if (dctx->mClipBufPre_clipContext) {
         auto* cc = static_cast<ClipContext*>(dctx->mClipBufPre_clipContext);
         renderer->mClipChannel = cc->mLayoutChannelNo;
@@ -156,8 +178,15 @@ void Mesh::draw(GLRenderer* renderer, ModelContext* mctx, MeshContext* dctx) {
 
     auto* pctx2 = mctx->getPartsContext(dctx->mPartsIndex);
     float opacity = getOpacity(dctx) * dctx->mPartsOpacity * dctx->mBaseOpacity;
-    renderer->drawTexture(texNr, pctx2->mScreenColor, mIndexArray, vertices, mUvs,
-                    opacity, mColorCompositionType, pctx2->mMultiplyColor);
+    renderer->drawTexture(texNr,
+                          pctx2->mScreenColor,
+                          mIndexArray,
+                          vertices,
+                          mUvs,
+                          opacity,
+                          mColorCompositionType,
+                          pctx2->mMultiplyColor);
 }
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

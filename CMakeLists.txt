@@ -25,20 +25,25 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   execute_process(COMMAND chcp 65001)
 endif()
 
+# ---- import config ----
+include(cmake/Config.cmake)
+
 # ---- Cubism Native SDK ----
+if (DEBUG_ENABLE_CALL_STACK)
+  message("[CallStack] on")
+  add_compile_definitions(DEBUG_ENABLE_CALL_STACK)
+  add_compile_options("/Od" "/Ob0")
+endif()
+
 add_subdirectory(Live2D)
 
-# set(VIEWER 1)
-
-if(DEFINED VIEWER)
+if(VIEWER)
   message("[Target]: Viewer")
   include(cmake/Live2DViewer.cmake)
 else()
   message("[Target]: Wrapper")
   # ---- Shared Wrapper config (Python3, output naming) ----
   include(cmake/Wrapper.cmake)
-
-  # add_compile_definitions(DEBUG_ENABLE_SYNC_GL_ERROR)
 
   add_subdirectory(Wrapper/V3 ${CMAKE_CURRENT_BINARY_DIR}/Wrapper/V3)
   add_subdirectory(Wrapper/V2 ${CMAKE_CURRENT_BINARY_DIR}/Wrapper/V2)
@@ -47,3 +52,5 @@ endif()
 # testing
 add_subdirectory(tests/v2 ${CMAKE_CURRENT_BINARY_DIR}/tests/v2)
 
+# --format--
+include(cmake/Format.cmake)

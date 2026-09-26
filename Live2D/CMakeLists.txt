@@ -21,7 +21,6 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   if(CMAKE_CL_64)
     add_link_options("/BASE:0x800000000")
   endif()
-  execute_process(COMMAND chcp 65001)
 endif()
 
 set(LIVE2D_ROOT ${CMAKE_CURRENT_LIST_DIR})

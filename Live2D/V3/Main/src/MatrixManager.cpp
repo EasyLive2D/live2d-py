@@ -1,13 +1,19 @@
-#include <cmath>
 #include "MatrixManager.hpp"
+#include <cmath>
 
-MatrixManager::MatrixManager(): _offsetX(0.0f), _offsetY(0.0f), _scaleX(1.0f), _scaleY(1.0f),
-                                _ww(800),
-                                _wh(600)                          
+namespace Live2D {
+namespace V3 {
+
+MatrixManager::MatrixManager()
+    : _offsetX(0.0f)
+    , _offsetY(0.0f)
+    , _scaleX(1.0f)
+    , _scaleY(1.0f)
+    , _ww(800)
+    , _wh(600)
 {
     // load identity
-    for (int i = 0; i < 16; i++)
-    {
+    for (int i = 0; i < 16; i++) {
         _rotation[i] = 0.0f;
     }
     _rotation[0] = _rotation[5] = _rotation[10] = _rotation[15] = 1.0f;
@@ -31,14 +37,11 @@ void MatrixManager::UpdateScreenToScene(int width, int height)
     float bottom = -1.0f;
     float top = 1.0f;
 
-    _screenToScene.LoadIdentity(); // サイズが変わった際などリセット必須
-    if (width > height)
-    {
+    _screenToScene.LoadIdentity();   // サイズが変わった際などリセット必須
+    if (width > height) {
         float sceneW = fabsf(right - left);
         _screenToScene.Scale(sceneW / width, -sceneW / width);
-    }
-    else
-    {
+    } else {
         float sceneH = fabsf(top - bottom);
         _screenToScene.Scale(sceneH / height, -sceneH / height);
     }
@@ -57,16 +60,14 @@ Csm::CubismMatrix44& MatrixManager::GetMvp()
     _m.LoadIdentity();
 
     // 不清楚为什么是1.0，官方给出示例如此
-    if (_mw > 1.0f && _ww < _wh)  // 确保图像不变形
+    if (_mw > 1.0f && _ww < _wh)   // 确保图像不变形
     {
         // 宽较长且窗口宽小于高
         _p.Scale(1.0f, (float)_ww / (float)_wh);
         // 模型宽度固定为 2.0
         _baseScale = 2.0f / _mw;
         _m.Scale(_baseScale, _baseScale);
-    }
-    else
-    {
+    } else {
         _p.Scale((float)_wh / (float)_ww, 1.0f);
         // 模型高度固定为 2.0
         _baseScale = 2.0f / _mh;
@@ -116,9 +117,11 @@ void MatrixManager::InvertTransform(float* x, float* y)
 
     // 逆旋转
     *x = _rotation[0] * tx - ty * -_rotation[1];
-    *y = -_rotation[1] * tx + ty * _rotation[0]; 
+    *y = -_rotation[1] * tx + ty * _rotation[0];
 
     // 逆基础缩放
     *x = *x / _baseScale;
     *y = *y / _baseScale;
 }
+}   // namespace V3
+}   // namespace Live2D

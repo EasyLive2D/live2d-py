@@ -1,10 +1,13 @@
 #pragma once
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
-class IDrawContext {
+class IDrawContext
+{
 public:
     virtual ~IDrawContext() = default;
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

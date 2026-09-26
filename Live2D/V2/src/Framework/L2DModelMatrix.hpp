@@ -1,9 +1,11 @@
 #pragma once
 #include <array>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
-class L2DModelMatrix {
+class L2DModelMatrix
+{
 public:
     L2DModelMatrix() { identity(); }
     L2DModelMatrix(float w, float h);
@@ -35,4 +37,5 @@ private:
     std::array<float, 16> mMat{};
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

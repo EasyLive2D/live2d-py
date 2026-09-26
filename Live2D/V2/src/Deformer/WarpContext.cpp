@@ -1,11 +1,13 @@
 #include "WarpContext.hpp"
 #include "WarpDeformer.hpp"
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 WarpContext::WarpContext(WarpDeformer* deformer)
     : DeformerContext(deformer)
-    , mWarpDeformer(deformer) {
+    , mWarpDeformer(deformer)
+{
     int pointCount = deformer->getPointCount();
     mInterpolatedPoints.resize(pointCount * 2);
 
@@ -14,4 +16,5 @@ WarpContext::WarpContext(WarpDeformer* deformer)
     }
 }
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

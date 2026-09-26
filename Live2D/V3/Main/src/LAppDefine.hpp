@@ -9,18 +9,18 @@
 #include <CubismFramework.hpp>
 
 /**
-* @brief  Sample Appで使用する定数
-*
-*/
+ * @brief  Sample Appで使用する定数
+ *
+ */
 namespace LAppDefine {
 
-    using namespace Csm;
+using namespace Csm;
 
-    extern const csmInt32 PriorityNone;             ///< モーションの優先度定数: 0
-    extern const csmInt32 PriorityIdle;             ///< モーションの優先度定数: 1
-    extern const csmInt32 PriorityNormal;           ///< モーションの優先度定数: 2
-    extern const csmInt32 PriorityForce;            ///< モーションの優先度定数: 3
+extern const csmInt32 PriorityNone;     ///< モーションの優先度定数: 0
+extern const csmInt32 PriorityIdle;     ///< モーションの優先度定数: 1
+extern const csmInt32 PriorityNormal;   ///< モーションの優先度定数: 2
+extern const csmInt32 PriorityForce;    ///< モーションの優先度定数: 3
 
-    extern const csmBool MocConsistencyValidationEnable; ///< MOC3の整合性検証機能の有効・無効
+extern const csmBool MocConsistencyValidationEnable;   ///< MOC3の整合性検証機能の有効・無効
 
-}
+}   // namespace LAppDefine

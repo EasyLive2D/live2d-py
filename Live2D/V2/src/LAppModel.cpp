@@ -29,16 +29,19 @@
 #include <string>
 #include <vector>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 using json = nlohmann::json;
+using namespace Live2D::Common::Log;
 
 // Helper: read entire file using std::filesystem::u8path for Unicode path support
 static std::vector<uint8_t> readFile(const std::string& path)
 {
     std::filesystem::path fp = std::filesystem::u8path(path);
     std::ifstream f(fp, std::ios::binary | std::ios::ate);
-    if (!f) return {};   // missing file: tellg() would be -1 -> vector((size_t)-1) throws
+    if (!f)
+        return {};   // missing file: tellg() would be -1 -> vector((size_t)-1) throws
     auto sz = f.tellg();
     f.seekg(0);
     std::vector<uint8_t> data((size_t)sz);
@@ -71,19 +74,17 @@ void LAppModel::loadModelJson(const std::string& path, bool createRenderer)
 
     // Get base directory and load .moc from JSON model field
     mModelHomeDir = path.substr(0, path.find_last_of("/\\") + 1);
-    Info("Model home directory: %s", mModelHomeDir.c_str());
+    LOGI("Model home directory: %s", mModelHomeDir.c_str());
     std::string mocPath = mModelHomeDir + data["model"].get<std::string>();
 
     auto mocData = readFile(mocPath);
-    if (mocData.empty())
-    {
-        Error("Failed to read .moc file: %s", mocPath.c_str());
-        std::abort();
+    if (mocData.empty()) {
+        LOGE("Failed to read .moc file: %s", mocPath.c_str());
     }
     loadModelData(mocData, 0);
     mModelMatrix.mWidth = (float)mModelImpl->getCanvasWidth();
     mModelMatrix.mHeight = (float)mModelImpl->getCanvasHeight();
-    Info("Load model: %s", mocPath.c_str());
+    LOGI("Load model: %s", mocPath.c_str());
 
     // Load texture paths from JSON
     parseTexturePaths(data, mTexturePaths);
@@ -94,7 +95,7 @@ void LAppModel::loadModelJson(const std::string& path, bool createRenderer)
         auto phyFile = physics->get<std::string>();
         auto phyData = readFile(mModelHomeDir + phyFile);
         if (!phyData.empty()) {
-            Info("Load physics: %s", phyFile.c_str());
+            LOGI("Load physics: %s", phyFile.c_str());
             loadPhysics(phyData);
         }
     }
@@ -107,7 +108,7 @@ void LAppModel::loadModelJson(const std::string& path, bool createRenderer)
         auto posePath = mModelHomeDir + poseFile;
         auto poseData = readFile(posePath);
         if (!poseData.empty()) {
-            Info("Load pose: %s", poseFile.c_str());
+            LOGI("Load pose: %s", poseFile.c_str());
             mPose.reset(L2DPose::load(poseData));
             // Initialize part/param indices once (PartData::initIndex uses the
             // "VISIBLE:" prefix; a bare-id pre-pass here used to append phantom
@@ -127,7 +128,7 @@ void LAppModel::loadModelJson(const std::string& path, bool createRenderer)
                 auto motData = readFile(motPath);
                 if (!motData.empty()) {
                     auto* motion = Live2DMotion::load(motData);
-                    Info("Load motion: %s", motFile.c_str());
+                    LOGI("Load motion: %s", motFile.c_str());
                     motVec.emplace_back(motion);
                 }
             }
@@ -146,7 +147,7 @@ void LAppModel::loadModelJson(const std::string& path, bool createRenderer)
             auto expName = expEntry["name"].get<std::string>();
             if (!expData.empty()) {
                 auto* expr = L2DExpressionMotion::load(expData);
-                Info("Load expression: %s", expName.c_str());
+                LOGI("Load expression: %s", expName.c_str());
                 mExpressions[expName].reset(expr);
             }
         }
@@ -225,7 +226,8 @@ void LAppModel::update()
         mMainMotionMgr->stopAllMotions();
         if (mPose) {
             for (auto& g : mPose->mMGroups)
-                for (auto& p : g.parts) p.initIndex(mModelContext.get());
+                for (auto& p : g.parts)
+                    p.initIndex(mModelContext.get());
         }
         mClearFlag = false;
     } else {
@@ -298,10 +300,8 @@ void LAppModel::draw()
 
     auto mvp = mMatrixManager.getMvp(&mModelMatrix);
 
-    if (!mRenderer) 
-    {
-        Error("Renderer not initialized");
-        std::abort();
+    if (!mRenderer) {
+        LOGE("Renderer not initialized");
         return;
     }
     mRenderer->setMatrix(mvp.data());
@@ -321,7 +321,7 @@ void LAppModel::setExpression(const std::string& name)
 {
     auto it = mExpressions.find(name);
     if (it != mExpressions.end()) {
-        Info("Start expression: %s", name.c_str());
+        LOGI("Start expression: %s", name.c_str());
         mExpressionMgr->startMotion(it->second.get(), false);
     }
 }
@@ -330,7 +330,7 @@ void LAppModel::setRandomExpression()
     if (!mExpressions.empty()) {
         auto it = mExpressions.begin();
         std::advance(it, rand() % mExpressions.size());
-        Info("Start random expression: %s", it->first.c_str());
+        LOGI("Start random expression: %s", it->first.c_str());
         mExpressionMgr->startMotion(it->second.get(), false);
     }
 }
@@ -346,11 +346,11 @@ void LAppModel::startMotion(const std::string& group, int no, int priority, Star
 
         // Priority check (match Python v2)
         if (priority == 3 /* FORCE */) {
-            Info("Start motion (force): group=%s no=%d priority=%d", group.c_str(), no, priority);
+            LOGI("Start motion (force): group=%s no=%d priority=%d", group.c_str(), no, priority);
             mMainMotionMgr->setReservePriority(priority);
         } else if (!mMainMotionMgr->reserveMotion(priority)) {
             // Lower priority than current motion — don't play
-            Info("Start motion rejected (low priority): group=%s no=%d priority=%d current=%d",
+            LOGI("Start motion rejected (low priority): group=%s no=%d priority=%d current=%d",
                  group.c_str(),
                  no,
                  priority,
@@ -369,10 +369,10 @@ void LAppModel::startMotion(const std::string& group, int no, int priority, Star
         mCurrentMotionNo = no;
         if (mOnStartMotion)
             mOnStartMotion(group, no);
-        Info("Start motion: group=%s no=%d priority=%d", group.c_str(), no, priority);
+        LOGI("Start motion: group=%s no=%d priority=%d", group.c_str(), no, priority);
         mMainMotionMgr->startMotionPrio(it->second[no].get(), priority);
     } else {
-        Info("Start motion: group=%s not found or empty", group.c_str());
+        LOGI("Start motion: group=%s not found or empty", group.c_str());
         if (mOnStartMotion)
             mOnStartMotion(group, no);
         if (mOnFinishMotion)
@@ -412,7 +412,8 @@ void LAppModel::resetPose()
 {
     if (mPose) {
         for (auto& g : mPose->mMGroups)
-            for (auto& p : g.parts) p.initIndex(mModelContext.get());
+            for (auto& p : g.parts)
+                p.initIndex(mModelContext.get());
     }
 }
 void LAppModel::rotate(float deg)
@@ -606,9 +607,8 @@ std::vector<std::string> LAppModel::hitPart(float x, float y, bool topOnly)
 
 void LAppModel::CreateRenderer()
 {
-    if (mRenderer) 
-    {
-        Warn("Renderer already exists, releasing it first");
+    if (mRenderer) {
+        LOGW("Renderer already exists, releasing it first");
         return;
     }
     mRenderer = std::make_unique<GLRenderer>(mModelContext.get(), (int)mTexturePaths.size());
@@ -622,7 +622,7 @@ void LAppModel::CreateRenderer()
                 : stbi_load_from_memory(texData.data(), (int)texData.size(), &w, &h, &n, 4);
         if (!pixels)
             continue;
-        Info("Load texture[%zu/%zu]: %s", i + 1, mTexturePaths.size(), mTexturePaths[i].c_str());
+        LOGI("Load texture[%zu/%zu]: %s", i + 1, mTexturePaths.size(), mTexturePaths[i].c_str());
 
         GLuint texId;
         glGenTextures(1, &texId);
@@ -640,11 +640,11 @@ void LAppModel::CreateRenderer()
 }
 void LAppModel::ReleaseRenderer()
 {
-    if (!mRenderer)
-    {
-        Warn("Renderer not initialized, nothing to release");
+    if (!mRenderer) {
+        LOGW("Renderer not initialized, nothing to release");
         return;
     }
     mRenderer.reset();
 }
-}   // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

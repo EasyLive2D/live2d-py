@@ -1,13 +1,16 @@
 #pragma once
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 class Deformer;
 
-class DeformerContext {
+class DeformerContext
+{
 public:
     explicit DeformerContext(Deformer* deformer)
-        : mDeformer(deformer) {}
+        : mDeformer(deformer)
+    {}
     virtual ~DeformerContext() = default;
 
     Deformer* getDeformer() const { return mDeformer; }
@@ -39,4 +42,5 @@ protected:
     float mInterpolatedOpacity = 1.0f;
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

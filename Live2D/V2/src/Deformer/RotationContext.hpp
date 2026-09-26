@@ -3,12 +3,14 @@
 
 #include "DeformerContext.hpp"
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 class RotationDeformer;
 class AffineEnt;
 
-class RotationContext final : public DeformerContext {
+class RotationContext final : public DeformerContext
+{
 public:
     explicit RotationContext(RotationDeformer* deformer);
     ~RotationContext() override;
@@ -18,4 +20,5 @@ public:
     std::unique_ptr<AffineEnt> mTransformedAffine;
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

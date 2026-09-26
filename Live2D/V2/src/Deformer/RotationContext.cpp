@@ -1,13 +1,15 @@
 #include "RotationContext.hpp"
-#include "RotationDeformer.hpp"
 #include "AffineEnt.hpp"
+#include "RotationDeformer.hpp"
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 RotationContext::RotationContext(RotationDeformer* deformer)
     : DeformerContext(deformer)
     , mRotationDeformer(deformer)
-    , mInterpolatedAffine(std::make_unique<AffineEnt>()) {
+    , mInterpolatedAffine(std::make_unique<AffineEnt>())
+{
     if (deformer->needTransform()) {
         mTransformedAffine = std::make_unique<AffineEnt>();
     }
@@ -15,4 +17,5 @@ RotationContext::RotationContext(RotationDeformer* deformer)
 
 RotationContext::~RotationContext() = default;
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

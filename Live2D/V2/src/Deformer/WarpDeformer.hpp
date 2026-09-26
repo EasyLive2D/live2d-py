@@ -4,11 +4,13 @@
 #include "Deformer.hpp"
 #include <vector>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 class PivotManager;
 
-class WarpDeformer final : public Deformer {
+class WarpDeformer final : public Deformer
+{
 public:
     WarpDeformer() = default;
     ~WarpDeformer() override;
@@ -18,16 +20,15 @@ public:
     DeformerContext* init(ModelContext* mc) override;
     void setupInterpolate(ModelContext* mc, DeformerContext* dc) override;
     bool setupTransform(ModelContext* mc, DeformerContext* dc) override;
-    void transformPoints(ModelContext* mc, DeformerContext* dc,
-                         const std::vector<float>& srcPoints, std::vector<float>& dstPoints,
-                         int numPoint, int ptOffset, int ptStep) override;
+    void transformPoints(ModelContext* mc, DeformerContext* dc, const std::vector<float>& srcPoints,
+                         std::vector<float>& dstPoints, int numPoint, int ptOffset,
+                         int ptStep) override;
 
     int getPointCount() const { return (mRow + 1) * (mCol + 1); }
 
-    static void transformPoints_sdk2(const std::vector<float>& src,
-                                      std::vector<float>& dst,
-                                      int pointCount, int srcOffset, int srcStep,
-                                      const std::vector<float>& grid, int row, int col);
+    static void transformPoints_sdk2(const std::vector<float>& src, std::vector<float>& dst,
+                                     int pointCount, int srcOffset, int srcStep,
+                                     const std::vector<float>& grid, int row, int col);
 
     int mRow = 0;
     int mCol = 0;
@@ -35,4 +36,5 @@ public:
     std::vector<std::vector<float>> mPivotPoints;
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

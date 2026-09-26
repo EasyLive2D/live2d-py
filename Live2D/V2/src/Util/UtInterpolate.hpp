@@ -2,12 +2,14 @@
 
 #include <vector>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 class ModelContext;
 class PivotManager;
 
-class UtInterpolate {
+class UtInterpolate
+{
 public:
     static float interpolateFloat(ModelContext* mdc, PivotManager* pivotMgr, bool& ret,
                                   const std::vector<float>& values);
@@ -19,4 +21,5 @@ public:
                                   std::vector<float>& dstPoints, int ptOffset, int ptStep);
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

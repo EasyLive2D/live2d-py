@@ -2,9 +2,11 @@
 #include "../Core/BinaryReader.hpp"
 #include "../Core/DEF.hpp"
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
-void AffineEnt::read(BinaryReader& br) {
+void AffineEnt::read(BinaryReader& br)
+{
     mOriginX = br.readFloat32();
     mOriginY = br.readFloat32();
     mScaleX = br.readFloat32();
@@ -16,4 +18,5 @@ void AffineEnt::read(BinaryReader& br) {
     }
 }
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

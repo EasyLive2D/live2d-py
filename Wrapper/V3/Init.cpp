@@ -5,16 +5,22 @@
 #include <LAppPal.hpp>
 #include <Log.hpp>
 #include <Rendering/OpenGL/CubismShader_OpenGLES2.hpp>
+#include <cstdlib>
 
 #ifdef WIN32
-#    include <Windows.h>
+#include <Windows.h>
+#endif
+
+#ifdef DEBUG_ENABLE_CALL_STACK
+#include <Debug.hpp>
+using namespace Live2D::Common::Debug;
 #endif
 
 #include "PyModel.hpp"
 
-#ifdef DEBUG_ENABLE_SYNC_GL_ERROR
-#include <Debug.hpp>
+using namespace Live2D::Common::Log;
 
+#ifdef DEBUG_ENABLE_CALL_STACK
 static void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
                                        GLsizei length, const GLchar* message, const void* userParam)
 {
@@ -22,18 +28,16 @@ static void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GL
     if (severity == GL_DEBUG_SEVERITY_NOTIFICATION)
         return;
 
-    fprintf(stderr,
-            "[GL ERROR]: %s type = 0x%x, severity = 0x%x, message = %s\n",
-            (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
-            type,
-            severity,
-            message);
-    Live2D::Debug::PrintStackWithLines("[GL ERROR]");
+    LOGE("[GL ERROR]: %s type = 0x%x, severity = 0x%x, message = %s\n",
+          (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
+          type,
+          severity,
+          message);
 
     // 让程序崩溃，便于调试器捕获
     if (severity == GL_DEBUG_SEVERITY_HIGH) {
-        int* a = nullptr;
-        a[10] = 1000;
+        char* arr = nullptr;
+        arr[10] = 10;
     }
 }
 #endif
@@ -69,10 +73,10 @@ static PyObject* live2d_dispose()
 static PyObject* live2d_glInit()
 {
     if (!gladLoadGL()) {
-        Error("Can't initilize glad.");
+        LOGE("Can't initilize glad.");
     }
 
-#ifdef DEBUG_ENABLE_SYNC_GL_ERROR
+#ifdef DEBUG_ENABLE_CALL_STACK
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(glDebugCallback, NULL);
@@ -142,16 +146,16 @@ static PyObject* live2d_set_log_level(PyObject* self, PyObject* args)
     if (IsLive2DLogEnabled()) {
         switch (GetLive2DLogLevel()) {
         case LV_DEBUG:
-            Debug("[Log] Level=DEBUG");
+            LOGD("[Log] Level=DEBUG");
             break;
         case LV_INFO:
-            Info("[Log] Level=INFO");
+            LOGI("[Log] Level=INFO");
             break;
         case LV_WARN:
-            Warn("[Log] Level=WARN");
+            LOGW("[Log] Level=WARN");
             break;
         case LV_ERROR:
-            Error("[Log] Level=Error");
+            LOGE("[Log] Level=Error");
             break;
         default:
             break;
@@ -186,6 +190,9 @@ static PyModuleDef liv2d_module = {
 // 模块初始化函数的实现
 PyMODINIT_FUNC PyInit__v3cpp(void)
 {
+#ifdef DEBUG_ENABLE_CALL_STACK
+    InstallCrashHandler();
+#endif
     PyObject* m = PyModule_Create(&liv2d_module);
     if (!m) {
         return NULL;
@@ -200,7 +207,7 @@ PyMODINIT_FUNC PyInit__v3cpp(void)
     SetConsoleOutputCP(65001);
 #endif
 
-    printf("[live2d.v3] Cubism Native, Python %s\n", PY_VERSION);
-    printf("[live2d.v3] official: https://www.live2d.com/sdk/download/native/\n");
+    printf("[v3] CubismNativeSDK(%s), Python(%s)\n", CUBISM_NATIVE_SDK_VERSION, PY_VERSION);
+    printf("[v3] official: https://www.live2d.com/sdk/download/native/\n");
     return m;
 }

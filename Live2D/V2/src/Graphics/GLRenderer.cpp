@@ -13,7 +13,10 @@
 #endif
 
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
+
+using namespace Live2D::Common::Log;
 
 // GLSL shaders – exact match of Python v2 draw_param_opengl.py
 // Version string (first line of each shader)
@@ -127,7 +130,8 @@ void GLRenderer::init(ModelContext* modelContext)
     mClipManager = std::make_unique<ClippingManagerOpenGL>(*this);
     std::vector<MeshContext*> rawDrawCtxs;
     rawDrawCtxs.reserve(modelContext->mDrawContextList.size());
-    for (auto& ctx : modelContext->mDrawContextList) rawDrawCtxs.push_back(ctx.get());
+    for (auto& ctx : modelContext->mDrawContextList)
+        rawDrawCtxs.push_back(ctx.get());
     mClipManager->init(modelContext, modelContext->mDrawDataList, rawDrawCtxs);
 }
 
@@ -162,9 +166,9 @@ GLuint GLRenderer::compileShader(GLenum type, const char* src)
     if (!ok) {
         char buf[512];
         glGetShaderInfoLog(shader, 512, nullptr, buf);
-        Error("Shader compile error (%s): %s\n",
-                type == GL_VERTEX_SHADER ? "vertex" : "fragment",
-                buf);
+        LOGE("Shader compile error (%s): %s\n",
+              type == GL_VERTEX_SHADER ? "vertex" : "fragment",
+              buf);
     }
     return shader;
 }
@@ -187,7 +191,7 @@ void GLRenderer::initShaders()
     if (!linked) {
         char buf[512];
         glGetProgramInfoLog(mShaderNormal, 512, nullptr, buf);
-        Error("Normal program link error: %s\n", buf);
+        LOGE("Normal program link error: %s\n", buf);
     }
     glDeleteShader(vsNorm);
     glDeleteShader(fsNorm);
@@ -205,7 +209,7 @@ void GLRenderer::initShaders()
     if (!linked) {
         char buf[512];
         glGetProgramInfoLog(mShaderMask, 512, nullptr, buf);
-        Error("Mask program link error: %s\n", buf);
+        LOGE("Mask program link error: %s\n", buf);
     }
     glDeleteShader(vsMask);
     glDeleteShader(fsMask);
@@ -278,7 +282,7 @@ void GLRenderer::endDraw()
     // v3 may get save the wrong program id to `lastProgramId`
     // and produce an silent gl error when restore `lastProgramId`.
     // This error will be checked and raised in v2.
-    // Thus, re-bind program to `0` 
+    // Thus, re-bind program to `0`
     glUseProgram(mCurrentProgram);
 }
 
@@ -378,8 +382,7 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
         // Path 2: Clipped DRAW — uses mask FBO
         glUseProgram(mShaderMask);
         glUniformMatrix4fv(mUniforms.maskMvp, 1, GL_FALSE, mMatrix4x4.data());
-        glUniformMatrix4fv(
-            mUniforms.maskClipMatrix, 1, GL_FALSE, mClipMatrix.data());
+        glUniformMatrix4fv(mUniforms.maskClipMatrix, 1, GL_FALSE, mClipMatrix.data());
         glUniform4f(mUniforms.maskBaseColor, a_w, a2, a5, a7);
         glUniform4f(mUniforms.maskScreenColor,
                     screenColor[0],
@@ -462,7 +465,7 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
             dstAlpha = GL_ONE;
             break;
         default:
-            Error("Unsupported composition type: %d", compositionType);
+            LOGE("Unsupported composition type: %d", compositionType);
             srcRGB = GL_ONE;
             dstRGB = GL_ONE_MINUS_SRC_ALPHA;
             srcAlpha = GL_ONE;
@@ -513,7 +516,7 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
         glGenBuffers(1, &mEBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
     glBufferData(
-        GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(int16_t), indices.data(), GL_STATIC_DRAW);
+        GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(int16_t), indices.data(), GL_DYNAMIC_DRAW);
 
     glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_SHORT, 0);
 
@@ -567,4 +570,5 @@ void GLRenderer::draw(ModelContext* context)
     endDraw();
 }
 
-}   // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

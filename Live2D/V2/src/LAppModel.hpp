@@ -9,7 +9,8 @@
 #include <vector>
 
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 class LAppModel : public L2DBaseModel
 {
 public:
@@ -67,6 +68,7 @@ public:
 
     bool autoBreathEnabled() const { return mAutoBreath; }
     bool autoBlinkEnabled() const { return mAutoBlink; }
+
 private:
     L2DTargetPoint mDragMgr;
     MatrixManager mMatrixManager;
@@ -82,4 +84,5 @@ private:
     int mCurrentMotionNo = 0;
     std::unique_ptr<GLRenderer> mRenderer;
 };
-}   // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

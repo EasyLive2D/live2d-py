@@ -1,4 +1,4 @@
-print("[live2d.v2] pure Python, try faster: live2d.v2cpp")
+print("[v2] Pure Python impl, try faster: live2d.v2cpp")
 
 from .core import Live2D, Live2DGLWrapper
 from .core import log as __log

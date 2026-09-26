@@ -1,36 +1,42 @@
 #include "RotationDeformer.hpp"
-#include "RotationContext.hpp"
-#include "AffineEnt.hpp"
-#include "DeformerContext.hpp"
 #include "../Core/BinaryReader.hpp"
 #include "../Core/DEF.hpp"
 #include "../Core/PivotManager.hpp"
 #include "../Model/ModelContext.hpp"
 #include "../Util/UtMath.hpp"
+#include "AffineEnt.hpp"
+#include "DeformerContext.hpp"
+#include "RotationContext.hpp"
 #include <cmath>
 #include <cstdio>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 RotationDeformer::~RotationDeformer() = default;
 
-void RotationDeformer::read(BinaryReader& br) {
+void RotationDeformer::read(BinaryReader& br)
+{
     Deformer::read(br);
     mPivotManager.reset(br.readObject<PivotManager*>());
     auto rawAffines = br.readObject<std::vector<AffineEnt*>>();
     mAffines.reserve(rawAffines.size());
-    for (auto* a : rawAffines) mAffines.emplace_back(a);
+    for (auto* a : rawAffines)
+        mAffines.emplace_back(a);
     Deformer::readOpacity(br);
 }
 
-DeformerContext* RotationDeformer::init(ModelContext* mc) {
+DeformerContext* RotationDeformer::init(ModelContext* mc)
+{
     (void)mc;
     return new RotationContext(this);
 }
 
-void RotationDeformer::setupInterpolate(ModelContext* mc, DeformerContext* dc) {
+void RotationDeformer::setupInterpolate(ModelContext* mc, DeformerContext* dc)
+{
     auto* rctx = static_cast<RotationContext*>(dc);
-    if (!mPivotManager->checkParamUpdated(mc)) return;
+    if (!mPivotManager->checkParamUpdated(mc))
+        return;
 
     bool success = false;
     int pivotCount = mPivotManager->calcPivotValues(mc, success);
@@ -62,12 +68,16 @@ void RotationDeformer::setupInterpolate(ModelContext* mc, DeformerContext* dc) {
         float ox = 0, oy = 0, sx = 0, sy = 0, rot = 0;
         for (int i = 0; i < tableSize; i++) {
             auto* a = mAffines[pivotIndices[i]].get();
-            ox += weights[i] * a->mOriginX; oy += weights[i] * a->mOriginY;
-            sx += weights[i] * a->mScaleX; sy += weights[i] * a->mScaleY;
+            ox += weights[i] * a->mOriginX;
+            oy += weights[i] * a->mOriginY;
+            sx += weights[i] * a->mScaleX;
+            sy += weights[i] * a->mScaleY;
             rot += weights[i] * a->mRotationDeg;
         }
-        rctx->mInterpolatedAffine->mOriginX = ox; rctx->mInterpolatedAffine->mOriginY = oy;
-        rctx->mInterpolatedAffine->mScaleX = sx; rctx->mInterpolatedAffine->mScaleY = sy;
+        rctx->mInterpolatedAffine->mOriginX = ox;
+        rctx->mInterpolatedAffine->mOriginY = oy;
+        rctx->mInterpolatedAffine->mScaleX = sx;
+        rctx->mInterpolatedAffine->mScaleY = sy;
         rctx->mInterpolatedAffine->mRotationDeg = rot;
     }
     auto* ref = mAffines[pivotIndices[0]].get();
@@ -76,7 +86,8 @@ void RotationDeformer::setupInterpolate(ModelContext* mc, DeformerContext* dc) {
 }
 
 static void getDirectionOnDst(ModelContext* mc, Deformer* targetDef, DeformerContext* tgtCtx,
-                              float ox, float oy, float dx, float dy, float retDir[2]) {
+                              float ox, float oy, float dx, float dy, float retDir[2])
+{
     std::vector<float> tpVec = {ox, oy};
     std::vector<float> toVec(2);
     targetDef->transformPoints(mc, tgtCtx, tpVec, toVec, 1, 0, 2);
@@ -86,23 +97,28 @@ static void getDirectionOnDst(ModelContext* mc, Deformer* targetDef, DeformerCon
         std::vector<float> testVec = {ox + stepSize * dx, oy + stepSize * dy};
         std::vector<float> transVec(2);
         targetDef->transformPoints(mc, tgtCtx, testVec, transVec, 1, 0, 2);
-        transVec[0] -= toVec[0]; transVec[1] -= toVec[1];
+        transVec[0] -= toVec[0];
+        transVec[1] -= toVec[1];
         if (transVec[0] != 0 || transVec[1] != 0) {
-            retDir[0] = transVec[0]; retDir[1] = transVec[1];
+            retDir[0] = transVec[0];
+            retDir[1] = transVec[1];
             return;
         }
         testVec = {ox - stepSize * dx, oy - stepSize * dy};
         targetDef->transformPoints(mc, tgtCtx, testVec, transVec, 1, 0, 2);
-        transVec[0] -= toVec[0]; transVec[1] -= toVec[1];
+        transVec[0] -= toVec[0];
+        transVec[1] -= toVec[1];
         if (transVec[0] != 0 || transVec[1] != 0) {
-            retDir[0] = -transVec[0]; retDir[1] = -transVec[1];
+            retDir[0] = -transVec[0];
+            retDir[1] = -transVec[1];
             return;
         }
         stepSize *= 0.1f;
     }
 }
 
-bool RotationDeformer::setupTransform(ModelContext* mc, DeformerContext* dc) {
+bool RotationDeformer::setupTransform(ModelContext* mc, DeformerContext* dc)
+{
     auto* rctx = static_cast<RotationContext*>(dc);
     rctx->setAvailable(true);
 
@@ -123,7 +139,10 @@ bool RotationDeformer::setupTransform(ModelContext* mc, DeformerContext* dc) {
 
     auto* parentDef = mc->getDeformer(rctx->mTmpDeformerIndex);
     auto* parentCtx = mc->getDeformerContext(rctx->mTmpDeformerIndex);
-    if (!parentDef || !parentCtx) { rctx->setAvailable(false); return false; }
+    if (!parentDef || !parentCtx) {
+        rctx->setAvailable(false);
+        return false;
+    }
 
     float ox = rctx->mInterpolatedAffine->mOriginX;
     float oy = rctx->mInterpolatedAffine->mOriginY;
@@ -155,12 +174,12 @@ bool RotationDeformer::setupTransform(ModelContext* mc, DeformerContext* dc) {
 }
 
 void RotationDeformer::transformPoints(ModelContext*, DeformerContext* dc,
-                                       const std::vector<float>& src,
-                                       std::vector<float>& dst,
-                                       int numPoint, int ptOffset, int ptStep) {
+                                       const std::vector<float>& src, std::vector<float>& dst,
+                                       int numPoint, int ptOffset, int ptStep)
+{
     auto* rctx = static_cast<RotationContext*>(dc);
-    auto* af = rctx->mTransformedAffine ? rctx->mTransformedAffine.get()
-                                        : rctx->mInterpolatedAffine.get();
+    auto* af =
+        rctx->mTransformedAffine ? rctx->mTransformedAffine.get() : rctx->mInterpolatedAffine.get();
     float sinR = std::sin(UtMath::DEG_TO_RAD * af->mRotationDeg);
     float cosR = std::cos(UtMath::DEG_TO_RAD * af->mRotationDeg);
     float ts = rctx->getTotalScale();
@@ -177,4 +196,5 @@ void RotationDeformer::transformPoints(ModelContext*, DeformerContext* dc,
     }
 }
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

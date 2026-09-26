@@ -1,24 +1,32 @@
 import time
 
-def Debug(*args, **kwargs):
+def LOGD(*args, **kwargs):
     print(
-        time.strftime(f"[DEBUG]"),
+        time.strftime(f"[D] "),
         *args,
         **kwargs
     )
 
 
-def Info(*args, **kwargs):
+def LOGI(*args, **kwargs):
     print(
-        time.strftime("[INFO] "),
+        time.strftime("[I] "),
         *args,
         **kwargs
     )
 
 
-def Error(*args, **kwargs):
+def LOGW(*args, **kwargs):
     print(
-        time.strftime(f"[ERROR]"),
+        time.strftime("[W] "),
+        *args,
+        **kwargs
+    )
+
+
+def LOGE(*args, **kwargs):
+    print(
+        time.strftime(f"[E] "),
         *args,
         **kwargs
     )

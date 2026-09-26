@@ -276,12 +276,12 @@ class LAppModel(L2DBaseModel):
 
         if callable(onStartMotionHandler):
             onStartMotionHandler(name, no)
-        log.Info(f"Start motion: {name} {no}")
+        log.LOGI(f"Start motion: {name} {no}")
         self.__setFadeInFadeOut(name, no, priority, mtn)
 
     def SetExpression(self, name: str):
         motion = self.expressions[name]
-        log.Info(f"Start expression: {name}")
+        log.LOGI(f"Start expression: {name}")
         self.expressionManager.startMotion(motion, False)
 
     def Draw(self):

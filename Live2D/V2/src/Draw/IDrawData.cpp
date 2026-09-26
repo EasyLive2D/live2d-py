@@ -1,18 +1,20 @@
 #include "IDrawData.hpp"
-#include "MeshContext.hpp"
 #include "../Core/BinaryReader.hpp"
 #include "../Core/DEF.hpp"
 #include "../Core/PivotManager.hpp"
 #include "../Deformer/Deformer.hpp"
 #include "../Model/ModelContext.hpp"
 #include "../Util/UtInterpolate.hpp"
+#include "MeshContext.hpp"
 #include <string>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 IDrawData::~IDrawData() = default;
 
-void IDrawData::read(BinaryReader& br) {
+void IDrawData::read(BinaryReader& br)
+{
     mId = br.readObject<const Id*>();
     mTargetId = br.readObject<const Id*>();
     mPivotMgr.reset(br.readObject<PivotManager*>());
@@ -34,22 +36,27 @@ void IDrawData::read(BinaryReader& br) {
     }
 }
 
-void IDrawData::setupInterpolate(ModelContext* mc, MeshContext* ctx) {
+void IDrawData::setupInterpolate(ModelContext* mc, MeshContext* ctx)
+{
     ctx->mParamOutside = false;
-    ctx->mInterpolatedDrawOrder = UtInterpolate::interpolateInt(
-        mc, mPivotMgr.get(), ctx->mParamOutside, mPivotDrawOrders);
+    ctx->mInterpolatedDrawOrder =
+        UtInterpolate::interpolateInt(mc, mPivotMgr.get(), ctx->mParamOutside, mPivotDrawOrders);
     // Match Python: skip opacity interpolation if outside param
-    if (ctx->mParamOutside) return;
-    ctx->mInterpolatedOpacity = UtInterpolate::interpolateFloat(
-        mc, mPivotMgr.get(), ctx->mParamOutside, mPivotOpacities);
+    if (ctx->mParamOutside)
+        return;
+    ctx->mInterpolatedOpacity =
+        UtInterpolate::interpolateFloat(mc, mPivotMgr.get(), ctx->mParamOutside, mPivotOpacities);
 }
 
-float IDrawData::getOpacity(MeshContext* ctx) {
+float IDrawData::getOpacity(MeshContext* ctx)
+{
     return ctx->mInterpolatedOpacity;
 }
 
-int IDrawData::getDrawOrder(MeshContext* ctx) {
+int IDrawData::getDrawOrder(MeshContext* ctx)
+{
     return ctx->mInterpolatedDrawOrder;
 }
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

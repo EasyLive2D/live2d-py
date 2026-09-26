@@ -3,11 +3,13 @@
 #include "DeformerContext.hpp"
 #include <vector>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 class WarpDeformer;
 
-class WarpContext final : public DeformerContext {
+class WarpContext final : public DeformerContext
+{
 public:
     explicit WarpContext(WarpDeformer* deformer);
 
@@ -16,4 +18,5 @@ public:
     std::vector<float> mTransformedPoints;
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

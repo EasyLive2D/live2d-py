@@ -1,13 +1,15 @@
 #pragma once
-#include <cstdint>
 #include "AMotion.hpp"
 #include "Motion.hpp"
-#include <vector>
+#include <cstdint>
 #include <string>
-namespace live2d {
+#include <vector>
+namespace Live2D {
+namespace V2 {
 class BinaryReader;
 class ModelContext;
-class Live2DMotion : public AMotion {
+class Live2DMotion : public AMotion
+{
 public:
     Live2DMotion();
     void updateParam(ModelContext* context, float timeSec, float weight) override;
@@ -24,4 +26,5 @@ public:
     bool mLoopFadeIn = true;
     bool mFinished = false;
 };
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

@@ -5,8 +5,8 @@
 #include <CubismModelSettingJson.hpp>
 #include <Id/CubismIdManager.hpp>
 #include <Live2DCubismCore.hpp>
-#include <Motion/CubismMotion.hpp>
 #include <Model/CubismMoc.hpp>
+#include <Motion/CubismMotion.hpp>
 #include <Rendering/OpenGL/CubismShader_OpenGLES2.hpp>
 #include <Utils/CubismString.hpp>
 
@@ -26,7 +26,10 @@ using namespace Live2D::Cubism::Framework;
 using namespace LAppDefine;
 using namespace Live2D::Cubism::Framework::DefaultParameterId;
 using namespace Live2D::Cubism::Core;
+using namespace Live2D::Common::Log;
 
+namespace Live2D {
+namespace V3 {
 namespace {
 class FakeMotion : public ACubismMotion
 {
@@ -99,7 +102,7 @@ void Model::LoadModelJson(const char* filePath)
     _modelHomeDir = p.parent_path().generic_u8string().c_str();
     _modelHomeDir += "/";
 
-    Info("load modelSetting: %s", filePath);
+    LOGI("load modelSetting: %s", filePath);
     LoadAssets(filePath, [&](csmByte* buffer, csmSizeInt size) {
         _modelSetting = new CubismModelSettingJson(buffer, size);
     });
@@ -108,19 +111,22 @@ void Model::LoadModelJson(const char* filePath)
 }
 
 ACubismMotion* Model::LoadMotion(const csmByte* buffer, csmSizeInt size, const csmChar* name,
-                                  ACubismMotion::FinishedMotionCallback onFinished,
-                                  ACubismMotion::BeganMotionCallback onBegan,
-                                  ICubismModelSetting* modelSetting,
-                                  const csmChar* group, csmInt32 index,
-                                  csmBool shouldCheckMotionConsistency)
+                                 ACubismMotion::FinishedMotionCallback onFinished,
+                                 ACubismMotion::BeganMotionCallback onBegan,
+                                 ICubismModelSetting* modelSetting, const csmChar* group,
+                                 csmInt32 index, csmBool shouldCheckMotionConsistency)
 {
     std::string fixed(reinterpret_cast<const char*>(buffer), size);
     LAppPal::FixMotionJson(fixed);
-    return CubismUserModel::LoadMotion(
-        reinterpret_cast<const csmByte*>(fixed.data()),
-        static_cast<csmSizeInt>(fixed.size()), name,
-        onFinished, onBegan, modelSetting, group, index,
-        shouldCheckMotionConsistency);
+    return CubismUserModel::LoadMotion(reinterpret_cast<const csmByte*>(fixed.data()),
+                                       static_cast<csmSizeInt>(fixed.size()),
+                                       name,
+                                       onFinished,
+                                       onBegan,
+                                       modelSetting,
+                                       group,
+                                       index,
+                                       shouldCheckMotionConsistency);
 }
 
 const char* Model::GetModelHomeDir()
@@ -180,7 +186,7 @@ void Model::SetupModel()
         csmString path = _modelSetting->GetModelFileName();
         path = _modelHomeDir + path;
 
-        Info("create model: %s", _modelSetting->GetModelFileName());
+        LOGI("create model: %s", _modelSetting->GetModelFileName());
 
         LoadAssets(path.GetRawString(), [&](csmByte* buffer, csmSizeInt size) {
             LoadModel(buffer, size, _mocConsistency);
@@ -188,7 +194,7 @@ void Model::SetupModel()
     }
 
     if (_model == nullptr) {
-        Error("Failed to SetupModel()");
+        LOGE("Failed to SetupModel()");
     }
 
     // exp3.json
@@ -282,7 +288,7 @@ void Model::SetupModel()
     }
 
     if (_modelSetting == nullptr || _modelMatrix == nullptr) {
-        Error("Failed to SetupModel()");
+        LOGE("Failed to SetupModel()");
         return;
     }
 
@@ -313,7 +319,7 @@ void Model::SetupModel()
     _parameterCount = csmGetParameterCount(model);
     _savedParameterValues.resize(_parameterCount);
     SaveParameters();
-    Debug("Model setup complete");
+    LOGD("Model setup complete");
 }
 
 bool Model::IsHit(CubismIdHandle drawableId, csmFloat32 pointX, csmFloat32 pointY)
@@ -397,7 +403,9 @@ void Model::UpdateBlink(float deltaSecs)
 void Model::UpdateExpression(float deltaSecs)
 {
     if (_expressionManager->IsFinished()) {
-        for (auto& pair : _expManagers) { pair.second->UpdateMotion(_model, deltaSecs); }
+        for (auto& pair : _expManagers) {
+            pair.second->UpdateMotion(_model, deltaSecs);
+        }
     } else {
         _expressionManager->UpdateMotion(_model, deltaSecs);
     }
@@ -520,7 +528,9 @@ void Model::LoadParameters()
 
 void Model::SaveParameters()
 {
-    for (int i = 0; i < _parameterCount; ++i) { _savedParameterValues[i] = _parameterValues[i]; }
+    for (int i = 0; i < _parameterCount; ++i) {
+        _savedParameterValues[i] = _parameterValues[i];
+    }
 }
 
 void Model::Resize(int width, int height)
@@ -570,7 +580,7 @@ void Model::StartMotion(const char* group, int no, int priority, void* startCall
     if (priority == PriorityForce) {
         _motionManager->SetReservePriority(priority);
     } else if (!_motionManager->ReserveMotion(priority)) {
-        Info("motion priority is too low.");
+        LOGI("motion priority is too low.");
         return;
     }
 
@@ -586,7 +596,7 @@ void Model::StartMotion(const char* group, int no, int priority, void* startCall
         const csmString fileName = _modelSetting->GetMotionFileName(group, no);
         if (fileName.GetLength() <= 0) {
             hasMotion = false;
-            Info("motion(%s) has no file attached", name.GetRawString());
+            LOGI("motion(%s) has no file attached", name.GetRawString());
             goto handler_label;
         }
 
@@ -611,7 +621,7 @@ void Model::StartMotion(const char* group, int no, int priority, void* startCall
                 autoDelete = true;   // 終了時にメモリから削除
             }
         });
-        Info("load tmp motion(%s)", name.GetRawString());
+        LOGI("load tmp motion(%s)", name.GetRawString());
     }
 
     if (motion) {
@@ -669,7 +679,7 @@ void Model::StartRandomMotion(const char* group, int priority, void* startCallee
     }
 
     if (gindex < 0) {
-        Info("MotionGroup [%s] not found", g.GetRawString());
+        LOGI("MotionGroup [%s] not found", g.GetRawString());
         return;
     }
 
@@ -714,7 +724,7 @@ int Model::LoadExtraMotion(const char* group, const char* motionJsonPath)
 
             _motions[name] = tmpMotion;
 
-            Info("Load extra motion: %s => [%s]", motionJsonPath, name.GetRawString());
+            LOGI("Load extra motion: %s => [%s]", motionJsonPath, name.GetRawString());
 
             if (!found) {
                 _motionGroupNames.push_back(group);
@@ -723,7 +733,7 @@ int Model::LoadExtraMotion(const char* group, const char* motionJsonPath)
                 _motionCounts[i]++;
             }
         } else {
-            Warn("Load extra motion failed: %s", motionJsonPath);
+            LOGW("Load extra motion failed: %s", motionJsonPath);
         }
     });
 
@@ -1004,7 +1014,8 @@ void Model::Drag(float x, float y)
 void Model::CreateRenderer(int maskBufferCount)
 {
     _textureManager.ReleaseTextures();
-    CubismUserModel::CreateRenderer(_matrixManager.GetWidth(), _matrixManager.GetHeight(), maskBufferCount);
+    CubismUserModel::CreateRenderer(
+        _matrixManager.GetWidth(), _matrixManager.GetHeight(), maskBufferCount);
     SetupTextures();
 }
 
@@ -1066,18 +1077,24 @@ void Model::SetPartMultiplyColor(int index, float r, float g, float b, float a)
     }
 }
 
-void Model::GetPartScreenColor(int index, float &r, float &g, float &b, float &a) const
+void Model::GetPartScreenColor(int index, float& r, float& g, float& b, float& a) const
 {
     const auto& overrideColors = _model->GetOverrideMultiplyAndScreenColor();
     const auto c = overrideColors.GetPartScreenColor(index);
-    r = c.R; g = c.G; b = c.B; a = c.A;
+    r = c.R;
+    g = c.G;
+    b = c.B;
+    a = c.A;
 }
 
-void Model::GetPartMultiplyColor(int index, float &r, float &g, float &b, float &a) const
+void Model::GetPartMultiplyColor(int index, float& r, float& g, float& b, float& a) const
 {
     const auto& overrideColors = _model->GetOverrideMultiplyAndScreenColor();
     const auto c = overrideColors.GetPartMultiplyColor(index);
-    r = c.R; g = c.G; b = c.B; a = c.A;
+    r = c.R;
+    g = c.G;
+    b = c.B;
+    a = c.A;
 }
 
 int Model::GetDrawableCount()
@@ -1132,10 +1149,10 @@ void Model::AddExpression(const char* expressionId)
     ACubismMotion* motion = _expressions[expressionId];
 
     if (motion != nullptr) {
-        Info("Add expression: [%s]", expressionId);
+        LOGI("Add expression: [%s]", expressionId);
         _expManagers[expressionId]->StartMotion(motion, false);
     } else {
-        Warn("expression[%s] is null ", expressionId);
+        LOGW("expression[%s] is null ", expressionId);
     }
 }
 
@@ -1146,19 +1163,19 @@ void Model::RemoveExpression(const char* expressionId)
     }
     _expManagers[expressionId]->StopAllMotions();
 
-    Info("remove expression: [%s]", expressionId);
+    LOGI("remove expression: [%s]", expressionId);
 }
 
 void Model::SetExpression(const char* expressionId)
 {
     ACubismMotion* motion = _expressions[expressionId];
 
-    Info("Set expression: [%s]", expressionId);
+    LOGI("Set expression: [%s]", expressionId);
 
     if (motion != nullptr) {
         _expressionManager->StartMotion(motion, false);
     } else {
-        Warn("expression[%s] is null ", expressionId);
+        LOGW("expression[%s] is null ", expressionId);
     }
 }
 
@@ -1184,10 +1201,12 @@ const char* Model::SetRandomExpression()
 
 void Model::ResetExpressions()
 {
-    for (auto& [id, expMgr] : _expManagers) { expMgr->StopAllMotions(); }
+    for (auto& [id, expMgr] : _expManagers) {
+        expMgr->StopAllMotions();
+    }
     _expressionManager->StopAllMotions();
 
-    Info("Clear all expressions");
+    LOGI("Clear all expressions");
 }
 
 void Model::ResetExpression()
@@ -1218,7 +1237,7 @@ void Model::LoadExtraExpression(const char* expressionId, const char* expression
         if (expression) {
             const std::string key = expressionId;
             if (_expressions[expressionId] != nullptr) {
-                Warn("Expression has been overwritten: %s", expressionId);
+                LOGW("Expression has been overwritten: %s", expressionId);
                 ACubismMotion::Delete(_expressions[expressionId]);
                 _expressions[expressionId] = nullptr;
             }
@@ -1228,9 +1247,9 @@ void Model::LoadExtraExpression(const char* expressionId, const char* expression
             }
             _expressions[expressionId] = expression;
             _expManagers[key] = CSM_NEW CubismExpressionMotionManager();
-            Info("Load extra expression: %s => [%s]", expressionFilePath, expressionId);
+            LOGI("Load extra expression: %s => [%s]", expressionFilePath, expressionId);
         } else {
-            Warn("Failed to load motion: %s", expressionFilePath);
+            LOGW("Failed to load motion: %s", expressionFilePath);
         }
     });
 }
@@ -1282,13 +1301,15 @@ void Model::SetAutoBreath(bool on)
     autoBreath = on;
 }
 
-bool Model::HasMocConsistencyFromFile(const char *mocFileName)
+bool Model::HasMocConsistencyFromFile(const char* mocFileName)
 {
-    if (!mocFileName || !*mocFileName) return false;
+    if (!mocFileName || !*mocFileName)
+        return false;
     csmString path = _modelHomeDir + mocFileName;
     csmSizeInt size;
-    csmByte *buffer = LAppPal::LoadFileAsBytes(path.GetRawString(), &size);
-    if (!buffer) return false;
+    csmByte* buffer = LAppPal::LoadFileAsBytes(path.GetRawString(), &size);
+    if (!buffer)
+        return false;
     bool ok = CubismMoc::HasMocConsistencyFromUnrevivedMoc(buffer, size);
     LAppPal::ReleaseBytes(buffer);
     return ok;
@@ -1318,7 +1339,9 @@ void Model::ReleaseExpressions()
 
 void Model::ReleaseExpressionManagers()
 {
-    for (auto& [id, expMgr] : _expManagers) { delete expMgr; }
+    for (auto& [id, expMgr] : _expManagers) {
+        delete expMgr;
+    }
     _expManagers.clear();
 }
 
@@ -1365,7 +1388,7 @@ void Model::PreloadMotionGroup(const csmChar* group)
         csmString path = _modelSetting->GetMotionFileName(group, i);
         path = _modelHomeDir + path;
 
-        Info("load motion: %s => [%s_%d] ", path.GetRawString(), group, i);
+        LOGI("load motion: %s => [%s_%d] ", path.GetRawString(), group, i);
 
         LoadAssets(path.GetRawString(), [&](csmByte* buffer, csmInt32 size) {
             CubismMotion* tmpMotion = static_cast<CubismMotion*>(
@@ -1382,6 +1405,9 @@ void Model::PreloadMotionGroup(const csmChar* group)
     }
 }
 
-const int* Model::GetDrawableRenderOrders() const {
+const int* Model::GetDrawableRenderOrders() const
+{
     return _model->GetRenderOrders();
 }
+}   // namespace V3
+}   // namespace Live2D

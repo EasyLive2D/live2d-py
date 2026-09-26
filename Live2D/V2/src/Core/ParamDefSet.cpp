@@ -1,15 +1,19 @@
 #include "ParamDefSet.hpp"
-#include "ParamDefFloat.hpp"
 #include "BinaryReader.hpp"
+#include "ParamDefFloat.hpp"
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 ParamDefSet::~ParamDefSet() = default;
 
-void ParamDefSet::read(BinaryReader& br) {
+void ParamDefSet::read(BinaryReader& br)
+{
     auto raw = br.readObject<std::vector<ParamDefFloat*>>();
     mParamDefList.reserve(raw.size());
-    for (auto* p : raw) mParamDefList.emplace_back(p);
+    for (auto* p : raw)
+        mParamDefList.emplace_back(p);
 }
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

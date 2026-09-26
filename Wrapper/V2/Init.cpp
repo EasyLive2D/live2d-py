@@ -5,9 +5,14 @@
 #include <Log.hpp>
 #include <stdio.h>
 
-#ifdef DEBUG_ENABLE_SYNC_GL_ERROR
+#ifdef DEBUG_ENABLE_CALL_STACK
 #include <Debug.hpp>
+using namespace Live2D::Common::Debug;
+#endif
 
+using namespace Live2D::Common::Log;
+
+#ifdef DEBUG_ENABLE_CALL_STACK
 static void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
                                        GLsizei length, const GLchar* message, const void* userParam)
 {
@@ -21,7 +26,6 @@ static void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GL
             type,
             severity,
             message);
-    Live2D::Debug::PrintStackWithLines("[GL ERROR]");
 
     // 让程序崩溃，便于调试器捕获
     if (severity == GL_DEBUG_SEVERITY_HIGH) {
@@ -43,7 +47,7 @@ static PyObject* v2cpp_glInit(PyObject*, PyObject*)
         return nullptr;
     }
 
-#ifdef DEBUG_ENABLE_SYNC_GL_ERROR
+#ifdef DEBUG_ENABLE_CALL_STACK
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(glDebugCallback, NULL);
@@ -117,6 +121,9 @@ static PyModuleDef v2cpp_module = {
 
 PyMODINIT_FUNC PyInit__v2cpp(void)
 {
+#ifdef DEBUG_ENABLE_CALL_STACK
+    InstallCrashHandler();
+#endif
     PyObject* m = PyModule_Create(&v2cpp_module);
     if (!m)
         return nullptr;
@@ -132,6 +139,6 @@ PyMODINIT_FUNC PyInit__v2cpp(void)
     }
     PyModule_AddObject(m, "LAppModel", t);
 
-    printf("[live2d.v2cpp] C++ port, Python %s\n", PY_VERSION);
+    printf("[v2cpp] C++ port, Python(%s)\n", PY_VERSION);
     return m;
 }

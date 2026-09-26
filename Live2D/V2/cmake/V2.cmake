@@ -12,6 +12,7 @@ if (NOT CMAKE_SYSTEM_NAME MATCHES "Android")
 endif()
 
 target_link_libraries(${V2_TARGET} PUBLIC Common)
+target_compile_definitions(${V2_TARGET} PUBLIC MODULE_LOG_TAG="v2")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_link_libraries(${V2_TARGET} PRIVATE stdc++fs)

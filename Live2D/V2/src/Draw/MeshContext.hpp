@@ -3,13 +3,17 @@
 #include "IDrawContext.hpp"
 #include <vector>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 class Mesh;
 
-class MeshContext : public IDrawContext {
+class MeshContext : public IDrawContext
+{
 public:
-    explicit MeshContext(Mesh* drawData) : mDrawData(drawData) {}
+    explicit MeshContext(Mesh* drawData)
+        : mDrawData(drawData)
+    {}
 
     Mesh* getDrawData() const { return mDrawData; }
 
@@ -29,4 +33,5 @@ public:
     float mClipMatrixForDraw[16] = {};
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

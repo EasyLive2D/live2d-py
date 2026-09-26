@@ -19,50 +19,50 @@ def setLogLevel(level: int):
     __logLevel = level
     match __logLevel:
         case 0:
-            Debug("[Log] Level=DEBUG")
+            LOGD("[Log] Level=DEBUG")
         case 1:
-            Info("[Log] Level=INFO")
+            LOGI("[Log] Level=INFO")
         case 2:
-            Warn("[Log] Level=WARN")
+            LOGW("[Log] Level=WARN")
         case 3:
-            Error("[Log] Level=ERROR")    
+            LOGE("[Log] Level=ERROR")    
 
 
 def getLogLevel() -> int:
     return __logLevel 
 
 
-def Debug(*args, **kwargs):
+def LOGD(*args, **kwargs):
     if __enable and 0 >= __logLevel:
         print(
-            time.strftime(f"[DEBUG]"),
+            time.strftime(f"[D] "),
             *args,
             **kwargs
         )
 
 
-def Info(*args, **kwargs):
+def LOGI(*args, **kwargs):
     if __enable and 1 >= __logLevel:
         print(
-            time.strftime("[INFO] "),
+            time.strftime("[I] "),
             *args,
             **kwargs
         )
 
 
-def Warn(*args, **kwargs):
+def LOGW(*args, **kwargs):
     if __enable and 2 >= __logLevel:
         print(
-            time.strftime(f"[WARN] "),
+            time.strftime(f"[W] "),
             *args,
             **kwargs
         )
 
 
-def Error(*args, **kwargs):
+def LOGE(*args, **kwargs):
     if __enable and 3 >= __logLevel:
         print(
-            time.strftime(f"[ERROR]"),
+            time.strftime(f"[E] "),
             *args,
             **kwargs
         )

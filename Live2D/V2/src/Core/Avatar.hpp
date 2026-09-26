@@ -5,13 +5,15 @@
 #include "Id.hpp"
 #include <vector>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 class Deformer;
 class IDrawData;
 class PartsData;
 
-class Avatar final : public ISerializable {
+class Avatar final : public ISerializable
+{
 public:
     Avatar() = default;
     ~Avatar() override;
@@ -28,4 +30,5 @@ private:
     std::vector<std::unique_ptr<IDrawData>> mDrawDataList;
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

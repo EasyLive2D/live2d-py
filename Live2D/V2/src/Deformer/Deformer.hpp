@@ -4,13 +4,15 @@
 #include "../Core/Id.hpp"
 #include <vector>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 class DeformerContext;
 class ModelContext;
 class PivotManager;
 
-class Deformer : public ISerializable {
+class Deformer : public ISerializable
+{
 public:
     static constexpr int DEFORMER_INDEX_NOT_INIT = -2;
     static constexpr int TYPE_ROTATION = 1;
@@ -23,7 +25,8 @@ public:
 
     virtual DeformerContext* init(ModelContext* mc) = 0;
     virtual void setupInterpolate(ModelContext* modelContext, DeformerContext* deformerContext) = 0;
-    virtual void interpolateOpacity(ModelContext* mdc, PivotManager* pivotMgr, DeformerContext* bctx, bool& ret);
+    virtual void interpolateOpacity(ModelContext* mdc, PivotManager* pivotMgr,
+                                    DeformerContext* bctx, bool& ret);
     virtual bool setupTransform(ModelContext* mc, DeformerContext* dc) = 0;
     virtual void transformPoints(ModelContext* mc, DeformerContext* dc,
                                  const std::vector<float>& srcPoints, std::vector<float>& dstPoints,
@@ -43,4 +46,5 @@ protected:
     std::vector<float> mPivotOpacities;
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

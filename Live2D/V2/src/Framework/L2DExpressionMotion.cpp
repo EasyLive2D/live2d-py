@@ -1,32 +1,37 @@
 #include "L2DExpressionMotion.hpp"
-#include "L2DExpressionParam.hpp"
-#include "../Model/ModelContext.hpp"
 #include "../Core/Id.hpp"
+#include "../Model/ModelContext.hpp"
+#include "L2DExpressionParam.hpp"
 #include "nlohmann/json.hpp"
 #include <string>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 using json = nlohmann::json;
 
 L2DExpressionMotion::L2DExpressionMotion() = default;
 
-void L2DExpressionMotion::updateParam(ModelContext* context, float timeSec, float weight) {
+void L2DExpressionMotion::updateParam(ModelContext* context, float timeSec, float weight)
+{
     (void)timeSec;
-    if (mParams.empty()) return;
-    if (weight <= 0) return;
+    if (mParams.empty())
+        return;
+    if (weight <= 0)
+        return;
 
     for (auto& p : mParams) {
         int pi = context->getParamIndex(&Id::getID(p.mId));
-        if (pi < 0) continue;
+        if (pi < 0)
+            continue;
 
         float cur = context->getParamFloat(pi);
         float newVal;
-        if (p.mBlendType == 0) {           // TYPE_SET
+        if (p.mBlendType == 0) {   // TYPE_SET
             newVal = cur * (1.0f - weight) + p.mValue * weight;
-        } else if (p.mBlendType == 2) {    // TYPE_MULT
+        } else if (p.mBlendType == 2) {   // TYPE_MULT
             newVal = cur * (1.0f + (p.mValue - 1.0f) * weight);
-        } else {                            // TYPE_ADD (default)
+        } else {   // TYPE_ADD (default)
             newVal = cur + p.mValue * weight;
         }
         context->setParamFloat(pi, newVal);
@@ -37,9 +42,11 @@ void L2DExpressionMotion::updateParam(ModelContext* context, float timeSec, floa
     }
 }
 
-L2DExpressionMotion* L2DExpressionMotion::load(const std::vector<uint8_t>& data) {
+L2DExpressionMotion* L2DExpressionMotion::load(const std::vector<uint8_t>& data)
+{
     auto* exp = new L2DExpressionMotion();
-    if (data.empty()) return exp;
+    if (data.empty())
+        return exp;
     // Python: pm.jsonParseFromBytes == json.loads (l2d_expression_motion.py:31-66)
     json root = json::parse(std::string((const char*)data.data(), data.size()));
 
@@ -50,17 +57,19 @@ L2DExpressionMotion* L2DExpressionMotion::load(const std::vector<uint8_t>& data)
     exp->mFadeOutSec = (fadeOutMs > 0 ? fadeOutMs : 1000) / 1000.0f;
 
     auto params = root.find("params");
-    if (params == root.end() || !params->is_array()) return exp;
+    if (params == root.end() || !params->is_array())
+        return exp;
 
     for (const auto& p : *params) {
-        if (!p.is_object()) continue;
+        if (!p.is_object())
+            continue;
         L2DExpressionParam out;
         out.mId = p.value("id", std::string());
         out.mValue = p.value("val", 0.0f);   // required in Python
         std::string calc = p.value("calc", std::string("add"));
-        out.mBlendType = (calc == "set") ? 0 : (calc == "mult") ? 2 : 1;  // unknown => TYPE_ADD
+        out.mBlendType = (calc == "set") ? 0 : (calc == "mult") ? 2 : 1;   // unknown => TYPE_ADD
 
-        if (out.mBlendType == 1) {          // TYPE_ADD: value -= def (default 0)
+        if (out.mBlendType == 1) {   // TYPE_ADD: value -= def (default 0)
             out.mDefValue = p.value("def", 0.0f);
             out.mValue -= out.mDefValue;
         } else if (out.mBlendType == 2) {   // TYPE_MULT: value /= def (default 1, 0 -> 1)
@@ -74,4 +83,5 @@ L2DExpressionMotion* L2DExpressionMotion::load(const std::vector<uint8_t>& data)
     return exp;
 }
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

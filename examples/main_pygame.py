@@ -82,31 +82,31 @@ def main():
     audioPlayed = False
 
     def on_start_motion_callback(group: str, no: int):
-        log.Info("start motion: [%s_%d]" % (group, no))
+        log.LOGI("start motion: [%s_%d]" % (group, no))
         # play your voice here
         # audioPath = os.path.join(resources.CURRENT_DIRECTORY, "path to wav file")
         # pygame.mixer.music.load(audioPath)
         # pygame.mixer.music.play()
-        # log.Info("start lipSync")
+        # log.LOGI("start lipSync")
         # wavHandler.Start(audioPath)
 
     def on_finish_motion_callback(group: str, no: int):
-        log.Info("motion finished")
+        log.LOGI("motion finished")
 
     # 获取全部可用参数
     for i in range(model.GetParameterCount()):
         param = model.GetParameter(i)
-        log.Debug(
+        log.LOGD(
             param.id, param.type, param.value, param.max, param.min, param.default
         )
 
     # 设置 part 透明度
-    # log.Debug(f"Part Count: {model.GetPartCount()}")
+    # log.LOGD(f"Part Count: {model.GetPartCount()}")
     partIds = model.GetPartIds()
     print(len(partIds))
     print(partIds)
-    # log.Debug(f"Part Ids: {partIds}")
-    # log.Debug(f"Part Id for index 2: {model.GetPartId(2)}")
+    # log.LOGD(f"Part Ids: {partIds}")
+    # log.LOGD(f"Part Id for index 2: {model.GetPartId(2)}")
     # model.SetPartOpacity(partIds.index("PartHairBack"), 0.5)
 
     currentTopClickedPartId = None
@@ -151,7 +151,7 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = pygame.mouse.get_pos()
                 # currentTopClickedPartId = getHitFeedback(x, y)
-                # log.Info(f"Clicked Part: {currentTopClickedPartId}")
+                # log.LOGI(f"Clicked Part: {currentTopClickedPartId}")
                 # model.StartRandomMotion(group="TapBody", onFinishMotionHandler=lambda : print("motion finished"), onStartMotionHandler=lambda group, no: print(f"started motion: {group} {no}"))
                 model.SetRandomExpression()
                 model.StartRandomMotion(priority=3, onFinishMotionHandler=on_finish_motion_callback)

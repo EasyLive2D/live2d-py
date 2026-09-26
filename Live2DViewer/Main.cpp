@@ -14,6 +14,8 @@
 #include <Windows.h>
 #endif
 
+using namespace Live2D::V3;
+
 int main(int argc, char *argv[])
 {
 

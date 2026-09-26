@@ -2,3 +2,4 @@ _v2cpp.pyd
 _v2cpp.so
 _v2cpp.dylib
 _v2cpp.pdb
+*.dll

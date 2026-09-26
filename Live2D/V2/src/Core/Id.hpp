@@ -1,14 +1,18 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <unordered_map>
-#include <memory>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
-class Id {
+class Id
+{
 public:
-    explicit Id(const std::string& idStr) : mId(idStr) {}
+    explicit Id(const std::string& idStr)
+        : mId(idStr)
+    {}
 
     const std::string& str() const { return mId; }
 
@@ -26,13 +30,13 @@ private:
     static std::unordered_map<std::string, std::unique_ptr<Id>> sInstances;
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D
 
 namespace std {
-template <>
-struct hash<live2d::Id> {
-    size_t operator()(const live2d::Id& id) const noexcept {
-        return hash<string>()(id.str());
-    }
+template<>
+struct hash<Live2D::V2::Id>
+{
+    size_t operator()(const Live2D::V2::Id& id) const noexcept { return hash<string>()(id.str()); }
 };
-} // namespace std
+}   // namespace std

@@ -1,23 +1,28 @@
 #include "PivotManager.hpp"
-#include "ParamPivots.hpp"
-#include "BinaryReader.hpp"
 #include "../Model/ModelContext.hpp"
+#include "BinaryReader.hpp"
 #include "DEF.hpp"
+#include "ParamPivots.hpp"
 #include <cstdio>
 #include <stdexcept>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 PivotManager::~PivotManager() = default;
 
-void PivotManager::read(BinaryReader& br) {
+void PivotManager::read(BinaryReader& br)
+{
     auto raw = br.readObject<std::vector<ParamPivots*>>();
     mParamPivotTable.reserve(raw.size());
-    for (auto* p : raw) mParamPivotTable.emplace_back(p);
+    for (auto* p : raw)
+        mParamPivotTable.emplace_back(p);
 }
 
-bool PivotManager::checkParamUpdated(ModelContext* modelContext) {
-    if (modelContext->requireSetup()) return true;
+bool PivotManager::checkParamUpdated(ModelContext* modelContext)
+{
+    if (modelContext->requireSetup())
+        return true;
 
     int initVersion = modelContext->getInitVersion();
     for (int i = static_cast<int>(mParamPivotTable.size()) - 1; i >= 0; i--) {
@@ -25,12 +30,14 @@ bool PivotManager::checkParamUpdated(ModelContext* modelContext) {
         if (paramIndex == ParamPivots::PARAM_INDEX_NOT_INIT) {
             paramIndex = modelContext->getParamIndex(mParamPivotTable[i]->getParamID());
         }
-        if (modelContext->isParamUpdated(paramIndex)) return true;
+        if (modelContext->isParamUpdated(paramIndex))
+            return true;
     }
     return false;
 }
 
-int PivotManager::calcPivotValues(ModelContext* modelContext, bool& outRet) {
+int PivotManager::calcPivotValues(ModelContext* modelContext, bool& outRet)
+{
     int paramCount = static_cast<int>(mParamPivotTable.size());
     int initVersion = modelContext->getInitVersion();
     int interpolationCount = 0;
@@ -43,8 +50,7 @@ int PivotManager::calcPivotValues(ModelContext* modelContext, bool& outRet) {
             pp->setParamIndex(paramIndex, initVersion);
         }
 
-        float paramValue = (paramIndex < 0) ? 0.0f
-                            : modelContext->getParamFloat(paramIndex);
+        float paramValue = (paramIndex < 0) ? 0.0f : modelContext->getParamFloat(paramIndex);
         int pivotCount = pp->getPivotCount();
         auto& pivotValues = pp->getPivotValues();
 
@@ -100,9 +106,9 @@ int PivotManager::calcPivotValues(ModelContext* modelContext, bool& outRet) {
     return interpolationCount;
 }
 
-void PivotManager::calcPivotIndices(std::vector<int16_t>& indexArray,
-                                   std::vector<float>& tArray,
-                                   int interpolationCount) {
+void PivotManager::calcPivotIndices(std::vector<int16_t>& indexArray, std::vector<float>& tArray,
+                                    int interpolationCount)
+{
     int tableSize = 1 << interpolationCount;
     if (tableSize + 1 > PIVOT_TABLE_SIZE) {
         printf("err 23245\n");
@@ -111,13 +117,15 @@ void PivotManager::calcPivotIndices(std::vector<int16_t>& indexArray,
     int paramCount = static_cast<int>(mParamPivotTable.size());
     int stride = 1, divisor = 1, tIndex = 0;
 
-    for (int i = 0; i < tableSize; i++) indexArray[i] = 0;
+    for (int i = 0; i < tableSize; i++)
+        indexArray[i] = 0;
 
     for (int i = 0; i < paramCount; i++) {
         auto& pp = mParamPivotTable[i];
         if (pp->getTmpT() == 0.0f) {
             int offset = pp->getTmpPivotIndex() * stride;
-            for (int j = 0; j < tableSize; j++) indexArray[j] += offset;
+            for (int j = 0; j < tableSize; j++)
+                indexArray[j] += offset;
         } else {
             int offset1 = stride * pp->getTmpPivotIndex();
             int offset2 = stride * (pp->getTmpPivotIndex() + 1);
@@ -133,4 +141,5 @@ void PivotManager::calcPivotIndices(std::vector<int16_t>& indexArray,
     tArray[tIndex] = -1.0f;
 }
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

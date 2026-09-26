@@ -10,37 +10,40 @@
 #include <CubismFramework.hpp>
 #include <string>
 
+namespace Live2D {
+namespace V3 {
 /**
-* @brief プラットフォーム依存機能を抽象化する Cubism Platform Abstraction Layer.
-*
-* ファイル読み込みや時刻取得等のプラットフォームに依存する関数をまとめる
-*
-*/
+ * @brief プラットフォーム依存機能を抽象化する Cubism Platform Abstraction Layer.
+ *
+ * ファイル読み込みや時刻取得等のプラットフォームに依存する関数をまとめる
+ *
+ */
 class LAppPal
 {
     static std::string SHADER_DIR;
 
     static void interceptShaderLoading(std::string& filePath);
+
 public:
     /**
-    * @brief ファイルをバイトデータとして読み込む
-    *
-    * ファイルをバイトデータとして読み込む
-    *
-    * @param[in]   filePath    読み込み対象ファイルのパス
-    * @param[out]  outSize     ファイルサイズ
-    * @return                  バイトデータ
-    */
+     * @brief ファイルをバイトデータとして読み込む
+     *
+     * ファイルをバイトデータとして読み込む
+     *
+     * @param[in]   filePath    読み込み対象ファイルのパス
+     * @param[out]  outSize     ファイルサイズ
+     * @return                  バイトデータ
+     */
     static Csm::csmByte* LoadFileAsBytes(const std::string filePath, Csm::csmSizeInt* outSize);
 
 
     /**
-    * @brief バイトデータを解放する
-    *
-    * バイトデータを解放する
-    *
-    * @param[in]   byteData    解放したいバイトデータ
-    */
+     * @brief バイトデータを解放する
+     *
+     * バイトデータを解放する
+     *
+     * @param[in]   byteData    解放したいバイトデータ
+     */
     static void ReleaseBytes(Csm::csmByte* byteData);
 
     static void PrintLn(const Csm::csmChar* message);
@@ -61,3 +64,5 @@ public:
      */
     static void FixMotionJson(std::string& json);
 };
+}   // namespace V3
+}   // namespace Live2D

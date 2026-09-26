@@ -11,7 +11,8 @@
 #include <memory>
 #include <vector>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 class ModelContext;
 
@@ -90,4 +91,5 @@ private:
     std::shared_ptr<ClippingManagerOpenGL> mClipManager;
 };
 
-}   // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

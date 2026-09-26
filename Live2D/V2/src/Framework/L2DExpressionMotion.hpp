@@ -1,11 +1,13 @@
 #pragma once
-#include <cstdint>
-#include <vector>
 #include "../Motion/AMotion.hpp"
 #include "L2DExpressionParam.hpp"
 #include "Model/ModelContext.hpp"
-namespace live2d {
-class L2DExpressionMotion : public AMotion {
+#include <cstdint>
+#include <vector>
+namespace Live2D {
+namespace V2 {
+class L2DExpressionMotion : public AMotion
+{
 public:
     L2DExpressionMotion();
     void updateParam(ModelContext* model, float timeSec, float weight) override;
@@ -15,7 +17,9 @@ public:
     void reset() override { mFinished = false; }
     static L2DExpressionMotion* load(const std::vector<uint8_t>& data);
     std::vector<L2DExpressionParam> mParams;
+
 private:
     bool mFinished = false;
 };
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

@@ -1,15 +1,18 @@
 #include "PhysicsHair.hpp"
-#include "../Model/ModelContext.hpp"
 #include "../Core/Id.hpp"
+#include "../Model/ModelContext.hpp"
 #include "../Util/UtMath.hpp"
 #include <cmath>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 // ---- PhysicsSrc ----
-void PhysicsSrc::update(ModelContext* context, PhysicsHair* ctx) {
+void PhysicsSrc::update(ModelContext* context, PhysicsHair* ctx)
+{
     int idx = context->getParamIndex(&Id::getID(paramId));
-    if (idx < 0) return;
+    if (idx < 0)
+        return;
     float scaledValue = scale * context->getParamFloat(idx);
     auto& p1 = ctx->getP1();
 
@@ -25,9 +28,11 @@ void PhysicsSrc::update(ModelContext* context, PhysicsHair* ctx) {
 }
 
 // ---- PhysicsTarget ----
-void PhysicsTarget::update(ModelContext* context, PhysicsHair* ctx) {
+void PhysicsTarget::update(ModelContext* context, PhysicsHair* ctx)
+{
     int idx = context->getParamIndex(&Id::getID(paramId));
-    if (idx < 0) return;
+    if (idx < 0)
+        return;
     if (type == TARGET_FROM_ANGLE)
         context->setParamFloat(idx, scale * ctx->getLastAngle());
     else if (type == TARGET_FROM_ANGLE_V)
@@ -35,9 +40,13 @@ void PhysicsTarget::update(ModelContext* context, PhysicsHair* ctx) {
 }
 
 // ---- PhysicsHair ----
-PhysicsHair::PhysicsHair() { setup(0.3f, 0.5f, 0.1f); }
+PhysicsHair::PhysicsHair()
+{
+    setup(0.3f, 0.5f, 0.1f);
+}
 
-void PhysicsHair::setup(float l, float stiff, float mass) {
+void PhysicsHair::setup(float l, float stiff, float mass)
+{
     currentAngle = calcAngle();
     p2.setupLast();
     length = l;
@@ -47,18 +56,23 @@ void PhysicsHair::setup(float l, float stiff, float mass) {
     p2.y = l;
 }
 
-float PhysicsHair::calcAngle() const {
+float PhysicsHair::calcAngle() const
+{
     return -180.0f * std::atan2(p1.x - p2.x, -(p1.y - p2.y)) / 3.14159265f;
 }
 
-void PhysicsHair::addSrcParam(PhysicsSrcType t, const std::string& id, float scale, float weight) {
+void PhysicsHair::addSrcParam(PhysicsSrcType t, const std::string& id, float scale, float weight)
+{
     sourceParams.push_back({t, id, scale, weight});
 }
-void PhysicsHair::addTargetParam(PhysicsTargetType t, const std::string& id, float scale, float weight) {
+void PhysicsHair::addTargetParam(PhysicsTargetType t, const std::string& id, float scale,
+                                 float weight)
+{
     targetParams.push_back({t, id, scale, weight});
 }
 
-void PhysicsHair::update(ModelContext* context, long long timeMs) {
+void PhysicsHair::update(ModelContext* context, long long timeMs)
+{
     if (lastTime == 0) {
         lastTime = currentTime = timeMs;
         float dx = p1.x - p2.x, dy = p1.y - p2.y;
@@ -67,18 +81,22 @@ void PhysicsHair::update(ModelContext* context, long long timeMs) {
     }
     float deltaSec = (float)(timeMs - currentTime) / 1000.0f;
     if (deltaSec != 0) {
-        for (auto& s : sourceParams) s.update(context, this);
+        for (auto& s : sourceParams)
+            s.update(context, this);
         updatePhysics(context, deltaSec);
         lastAngle = calcAngle();
         angleVelocity = (lastAngle - currentAngle) / deltaSec;
         currentAngle = lastAngle;
     }
-    for (auto& t : targetParams) t.update(context, this);
+    for (auto& t : targetParams)
+        t.update(context, this);
     currentTime = timeMs;
 }
 
-void PhysicsHair::updatePhysics(ModelContext*, float deltaSec) {
-    if (deltaSec < 0.033f) deltaSec = 0.033f;
+void PhysicsHair::updatePhysics(ModelContext*, float deltaSec)
+{
+    if (deltaSec < 0.033f)
+        deltaSec = 0.033f;
     float inv = 1.0f / deltaSec;
 
     p1.vx = (p1.x - p1.lastX) * inv;
@@ -119,4 +137,5 @@ void PhysicsHair::updatePhysics(ModelContext*, float deltaSec) {
     p2.setupLast();
 }
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

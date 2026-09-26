@@ -3,7 +3,7 @@
 #include <string>
 
 #define __ADDITIONAL_PROPERTIES__ \
-    std::string group; \
+    std::string group;            \
     int no;
 
-#endif // HACKPROPERTIES_H
+#endif   // HACKPROPERTIES_H

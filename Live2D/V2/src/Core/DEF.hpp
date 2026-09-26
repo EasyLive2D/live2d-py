@@ -1,6 +1,7 @@
 #pragma once
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 // Vertex format constants
 constexpr int VERTEX_TYPE_OFFSET0_STEP2 = 1;
@@ -24,4 +25,5 @@ constexpr int LIVE2D_FORMAT_VERSION_AVAILABLE = LIVE2D_FORMAT_VERSION_V2_11_SDK2
 // Binary format constants
 constexpr int OBJECT_REF = 33;
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

@@ -45,7 +45,9 @@ def main():
     elif live2d.LIVE2D_VARIANT == "v2cpp":
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"),
                             create_renderer=False)  # Load model without creating renderer
+        print("load json")
         model.CreateRenderer()
+        print("create renderer")
 
     model.Resize(*display)
 
@@ -58,16 +60,16 @@ def main():
     audioPlayed = False
 
     def on_start_motion_callback(group, no):
-        log.Info("start motion: [%s_%d]" % (group, no))
+        log.LOGI("start motion: [%s_%d]" % (group, no))
 
     def on_finish_motion_callback(group, no):
-        log.Info("motion finished")
+        log.LOGI("motion finished")
 
     # Print all parameters
     print(f"Parameter Count: {model.GetParameterCount()}")
     for i in range(model.GetParameterCount()):
         param = model.GetParameter(i)
-        log.Debug(param.id, param.type, param.value, param.max, param.min, param.default)
+        log.LOGD(param.id, param.type, param.value, param.max, param.min, param.default)
 
     # Print part IDs
     partIds = model.GetPartIds()

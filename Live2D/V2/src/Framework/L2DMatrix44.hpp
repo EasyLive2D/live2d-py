@@ -2,9 +2,11 @@
 
 #include <array>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
-class L2DMatrix44 {
+class L2DMatrix44
+{
 public:
     L2DMatrix44();
 
@@ -20,4 +22,5 @@ private:
     std::array<float, 16> mMatrix;
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

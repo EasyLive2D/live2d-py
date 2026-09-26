@@ -2,13 +2,17 @@
 
 #include <array>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 class PartsData;
 
-class PartsDataContext {
+class PartsDataContext
+{
 public:
-    explicit PartsDataContext(PartsData* parts) : mPartsData(parts) {}
+    explicit PartsDataContext(PartsData* parts)
+        : mPartsData(parts)
+    {}
 
     float getPartsOpacity() const { return mPartsOpacity; }
     void setPartsOpacity(float value) { mPartsOpacity = value; }
@@ -24,4 +28,5 @@ private:
     float mPartsOpacity = 1.0f;
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

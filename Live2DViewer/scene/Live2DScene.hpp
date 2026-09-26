@@ -12,6 +12,7 @@ struct ParamValue
     float value;
 };
 
+using namespace Live2D::V3;
 
 class Live2DScene : public QOpenGLWidget, protected QOpenGLFunctions
 {

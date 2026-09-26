@@ -1,14 +1,16 @@
 #pragma once
 
-#include <vector>
-#include <string>
 #include <array>
+#include <string>
+#include <vector>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 class ModelContext;
 
-class ClipContext {
+class ClipContext
+{
 public:
     ClipContext(ModelContext* mc, const std::vector<std::string>& clipIDs);
 
@@ -25,4 +27,5 @@ public:
     std::array<float, 16> mMatrixForDraw{};
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

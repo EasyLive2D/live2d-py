@@ -1,28 +1,52 @@
 #pragma once
 #include <string>
 #include <vector>
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 class ModelContext;
 
-enum PhysicsSrcType { SRC_TO_X = 0, SRC_TO_Y, SRC_TO_G_ANGLE };
-enum PhysicsTargetType { TARGET_FROM_ANGLE = 0, TARGET_FROM_ANGLE_V };
+enum PhysicsSrcType
+{
+    SRC_TO_X = 0,
+    SRC_TO_Y,
+    SRC_TO_G_ANGLE
+};
+enum PhysicsTargetType
+{
+    TARGET_FROM_ANGLE = 0,
+    TARGET_FROM_ANGLE_V
+};
 
-struct PhysicsPoint {
+struct PhysicsPoint
+{
     float mass = 1, x = 0, y = 0, vx = 0, vy = 0, ax = 0, ay = 0, fx = 0, fy = 0;
     float lastX = 0, lastY = 0, lastVX = 0, lastVY = 0;
-    void setupLast() { lastX = x; lastY = y; lastVX = vx; lastVY = vy; }
+    void setupLast()
+    {
+        lastX = x;
+        lastY = y;
+        lastVX = vx;
+        lastVY = vy;
+    }
 };
 
-struct PhysicsSrc {
-    PhysicsSrcType type; std::string paramId; float scale = 1, weight = 1;
+struct PhysicsSrc
+{
+    PhysicsSrcType type;
+    std::string paramId;
+    float scale = 1, weight = 1;
     void update(ModelContext* context, class PhysicsHair* ctx);
 };
-struct PhysicsTarget {
-    PhysicsTargetType type; std::string paramId; float scale = 1, weight = 1;
+struct PhysicsTarget
+{
+    PhysicsTargetType type;
+    std::string paramId;
+    float scale = 1, weight = 1;
     void update(ModelContext* context, class PhysicsHair* ctx);
 };
 
-class PhysicsHair {
+class PhysicsHair
+{
 public:
     PhysicsHair();
     void setup(float length, float stiffness, float mass);
@@ -48,4 +72,5 @@ private:
     std::vector<PhysicsSrc> sourceParams;
     std::vector<PhysicsTarget> targetParams;
 };
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

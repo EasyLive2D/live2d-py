@@ -3,13 +3,15 @@
 #include "IDrawData.hpp"
 #include <vector>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 class PivotManager;
 class MeshContext;
 class GLRenderer;
 
-class Mesh final : public IDrawData {
+class Mesh final : public IDrawData
+{
 public:
     static constexpr int MASK_COLOR_COMPOSITION = 30;
     static constexpr int COLOR_COMPOSITION_NORMAL = 0;
@@ -47,4 +49,5 @@ private:
     int mInstanceNo = 0;
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

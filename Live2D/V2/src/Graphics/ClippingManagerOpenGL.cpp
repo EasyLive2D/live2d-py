@@ -1,27 +1,30 @@
 #include "ClippingManagerOpenGL.hpp"
-#include "GLRenderer.hpp"
-#include "ClipContext.hpp"
-#include "../Model/ModelContext.hpp"
+#include "../Core/DEF.hpp"
+#include "../Core/ModelImpl.hpp"
+#include "../Draw/IDrawData.hpp"
 #include "../Draw/Mesh.hpp"
 #include "../Draw/MeshContext.hpp"
-#include "../Draw/IDrawData.hpp"
-#include "../Core/ModelImpl.hpp"
-#include "../Core/DEF.hpp"
+#include "../Model/ModelContext.hpp"
+#include "ClipContext.hpp"
+#include "GLRenderer.hpp"
 #ifdef __ANDROID__
 #include <GLES/gl.h>
 #else
 #include <GL/glew.h>
 #endif
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
-#include <algorithm>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 static constexpr int CHANNEL_COUNT = 4;
 static constexpr int CLIP_MASK_SIZE = 256;
 
-ClippingManagerOpenGL::ClippingManagerOpenGL(GLRenderer& renderer) : mRenderer(renderer) {
+ClippingManagerOpenGL::ClippingManagerOpenGL(GLRenderer& renderer)
+    : mRenderer(renderer)
+{
     // Init channel colors
     mChannelColors.resize(CHANNEL_COUNT);
     // Match v2 Python: ch0=Alpha, ch1=Red, ch2=Green, ch3=Blue
@@ -36,25 +39,33 @@ ClippingManagerOpenGL::ClippingManagerOpenGL(GLRenderer& renderer) : mRenderer(r
 ClippingManagerOpenGL::~ClippingManagerOpenGL() = default;
 
 static ClipContext* findSameClip(const std::vector<std::unique_ptr<ClipContext>>& list,
-                                  const std::vector<std::string>& ids) {
+                                 const std::vector<std::string>& ids)
+{
     for (auto& ctx : list) {
-        if (ctx->mClipIDList.size() != ids.size()) continue;
+        if (ctx->mClipIDList.size() != ids.size())
+            continue;
         int match = 0;
         for (auto& a : ctx->mClipIDList)
             for (auto& b : ids)
-                if (a == b) { match++; break; }
-        if (match == (int)ids.size()) return ctx.get();
+                if (a == b) {
+                    match++;
+                    break;
+                }
+        if (match == (int)ids.size())
+            return ctx.get();
     }
     return nullptr;
 }
 
 void ClippingManagerOpenGL::init(ModelContext* modelContext,
-                                  const std::vector<IDrawData*>& drawDataList,
-                                  const std::vector<MeshContext*>& drawContextList) {
+                                 const std::vector<IDrawData*>& drawDataList,
+                                 const std::vector<MeshContext*>& drawContextList)
+{
     int clipCount = 0;
     for (size_t i = 0; i < drawDataList.size(); i++) {
         auto& clipIDs = drawDataList[i]->getClipIDList();
-        if (clipIDs.empty()) continue;
+        if (clipIDs.empty())
+            continue;
         clipCount++;
 
         auto* clipCtx = findSameClip(mClipContextList, clipIDs);
@@ -72,8 +83,12 @@ void ClippingManagerOpenGL::init(ModelContext* modelContext,
             if (maskIdx >= 0) {
                 bool found = false;
                 for (int m : clipCtx->mClippingMaskDrawIndexList)
-                    if (m == maskIdx) { found = true; break; }
-                if (!found) clipCtx->mClippingMaskDrawIndexList.push_back(maskIdx);
+                    if (m == maskIdx) {
+                        found = true;
+                        break;
+                    }
+                if (!found)
+                    clipCtx->mClippingMaskDrawIndexList.push_back(maskIdx);
             }
         }
         // All drawables with this clip ID reference
@@ -82,7 +97,9 @@ void ClippingManagerOpenGL::init(ModelContext* modelContext,
     }
 }
 
-void ClippingManagerOpenGL::calcClippedDrawTotalBounds(ModelContext* modelContext, ClipContext* clip) {
+void ClippingManagerOpenGL::calcClippedDrawTotalBounds(ModelContext* modelContext,
+                                                       ClipContext* clip)
+{
     int canvasW = modelContext->getCanvasWidth();
     int canvasH = modelContext->getCanvasHeight();
     float maxDim = (float)std::max(canvasW, canvasH);
@@ -92,24 +109,35 @@ void ClippingManagerOpenGL::calcClippedDrawTotalBounds(ModelContext* modelContex
     int nAvail = 0, nVertOk = 0;
     for (int idx : clip->mClippedDrawIndexList) {
         auto* ctx = modelContext->getDrawContext(idx);
-        if (!ctx->mAvailable) continue;
+        if (!ctx->mAvailable)
+            continue;
         nAvail++;
 
-        auto& pts = ctx->mTransformedPoints.empty()
-                        ? ctx->mInterpolatedPoints
-                        : ctx->mTransformedPoints;
-        if (pts.size() < 2) continue;
+        auto& pts =
+            ctx->mTransformedPoints.empty() ? ctx->mInterpolatedPoints : ctx->mTransformedPoints;
+        if (pts.size() < 2)
+            continue;
         nVertOk++;
 
-        float dminX=1e9f,dmaxX=-1e9f,dminY=1e9f,dmaxY=-1e9f;
+        float dminX = 1e9f, dmaxX = -1e9f, dminY = 1e9f, dmaxY = -1e9f;
         for (size_t j = VERTEX_OFFSET; j < pts.size(); j += VERTEX_STEP) {
-            float x = pts[j], y = pts[j+1];
-            if (x<dminX)dminX=x; if(y<dminY)dminY=y;
-            if (x>dmaxX)dmaxX=x; if(y>dmaxY)dmaxY=y;
-            if (x < minX) minX = x;
-            if (y < minY) minY = y;
-            if (x > maxX) maxX = x;
-            if (y > maxY) maxY = y;
+            float x = pts[j], y = pts[j + 1];
+            if (x < dminX)
+                dminX = x;
+            if (y < dminY)
+                dminY = y;
+            if (x > dmaxX)
+                dmaxX = x;
+            if (y > dmaxY)
+                dmaxY = y;
+            if (x < minX)
+                minX = x;
+            if (y < minY)
+                minY = y;
+            if (x > maxX)
+                maxX = x;
+            if (y > maxY)
+                maxY = y;
         }
     }
 
@@ -124,7 +152,8 @@ void ClippingManagerOpenGL::calcClippedDrawTotalBounds(ModelContext* modelContex
     }
 }
 
-void ClippingManagerOpenGL::setupLayoutBounds(int count) {
+void ClippingManagerOpenGL::setupLayoutBounds(int count)
+{
     int rows = count / CHANNEL_COUNT;
     int remainder = count % CHANNEL_COUNT;
     int idx = 0;
@@ -134,8 +163,10 @@ void ClippingManagerOpenGL::setupLayoutBounds(int count) {
         if (n == 1) {
             auto& clip = mClipContextList[idx++];
             clip->mLayoutChannelNo = ch;
-            clip->mLayoutBounds[0] = 0; clip->mLayoutBounds[1] = 0;
-            clip->mLayoutBounds[2] = 1; clip->mLayoutBounds[3] = 1;
+            clip->mLayoutBounds[0] = 0;
+            clip->mLayoutBounds[1] = 0;
+            clip->mLayoutBounds[2] = 1;
+            clip->mLayoutBounds[3] = 1;
         } else if (n == 2) {
             for (int i = 0; i < n; i++) {
                 auto& clip = mClipContextList[idx++];
@@ -170,14 +201,18 @@ void ClippingManagerOpenGL::setupLayoutBounds(int count) {
 // Build clip matrix from ClipContext layout + bounds
 // forMask=true:  includes T(-1,-1)*S(2,2) NDC mapping (used as u_mvpMatrix in MASK path)
 // forMask=false: maps directly to [0,1] texture coords (used as u_clipMatrix in CLIP path)
-static void buildClipMatrix(std::array<float, 16>& out, ClipContext* clip, bool forMask) {
+static void buildClipMatrix(std::array<float, 16>& out, ClipContext* clip, bool forMask)
+{
     out.fill(0);
     float bx = clip->mLayoutBounds[0], by = clip->mLayoutBounds[1];
     float bw = clip->mLayoutBounds[2], bh = clip->mLayoutBounds[3];
     float cx = clip->mAllClippedDrawRect[0], cy = clip->mAllClippedDrawRect[1];
     float cw = clip->mAllClippedDrawRect[2], ch = clip->mAllClippedDrawRect[3];
 
-    if (cw <= 0 || ch <= 0) { out[0] = out[5] = out[10] = out[15] = 1; return; }
+    if (cw <= 0 || ch <= 0) {
+        out[0] = out[5] = out[10] = out[15] = 1;
+        return;
+    }
 
     float pad = 0.05f;
     float ex = cw * pad, ey = ch * pad;
@@ -204,13 +239,16 @@ static void buildClipMatrix(std::array<float, 16>& out, ClipContext* clip, bool 
     }
 }
 
-void ClippingManagerOpenGL::setupClip(ModelContext* modelContext) {
+void ClippingManagerOpenGL::setupClip(ModelContext* modelContext)
+{
     int activeCount = 0;
     for (auto& clip : mClipContextList) {
         calcClippedDrawTotalBounds(modelContext, clip.get());
-        if (clip->mIsUsing) activeCount++;
+        if (clip->mIsUsing)
+            activeCount++;
     }
-    if (activeCount == 0) return;
+    if (activeCount == 0)
+        return;
 
     // Save current viewport
     GLint savedViewport[4];
@@ -224,7 +262,8 @@ void ClippingManagerOpenGL::setupClip(ModelContext* modelContext) {
     setupLayoutBounds(activeCount);
 
     for (auto& clip : mClipContextList) {
-        if (!clip->mIsUsing) continue;
+        if (!clip->mIsUsing)
+            continue;
 
         buildClipMatrix(clip->mMatrixForMask, clip.get(), true);
         buildClipMatrix(clip->mMatrixForDraw, clip.get(), false);
@@ -251,4 +290,5 @@ void ClippingManagerOpenGL::setupClip(ModelContext* modelContext) {
     glViewport(savedViewport[0], savedViewport[1], savedViewport[2], savedViewport[3]);
 }
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

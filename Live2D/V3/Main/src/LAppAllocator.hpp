@@ -10,43 +10,50 @@
 #include <CubismFramework.hpp>
 #include <ICubismAllocator.hpp>
 
+namespace Live2D {
+namespace V3 {
+
+
+
 /**
-* @brief メモリアロケーションを実装するクラス。
-*
-* メモリ確保・解放処理のインターフェースの実装。
-* フレームワークから呼び出される。
-*
-*/
+ * @brief メモリアロケーションを実装するクラス。
+ *
+ * メモリ確保・解放処理のインターフェースの実装。
+ * フレームワークから呼び出される。
+ *
+ */
 class LAppAllocator : public Csm::ICubismAllocator
 {
     /**
-    * @brief  メモリ領域を割り当てる。
-    *
-    * @param[in]   size    割り当てたいサイズ。
-    * @return  指定したメモリ領域
-    */
+     * @brief  メモリ領域を割り当てる。
+     *
+     * @param[in]   size    割り当てたいサイズ。
+     * @return  指定したメモリ領域
+     */
     void* Allocate(const Csm::csmSizeType size);
 
     /**
-    * @brief   メモリ領域を解放する
-    *
-    * @param[in]   memory    解放するメモリ。
-    */
+     * @brief   メモリ領域を解放する
+     *
+     * @param[in]   memory    解放するメモリ。
+     */
     void Deallocate(void* memory);
 
     /**
-    * @brief
-    *
-    * @param[in]   size         割り当てたいサイズ。
-    * @param[in]   alignment    割り当てたいサイズ。
-    * @return  alignedAddress
-    */
+     * @brief
+     *
+     * @param[in]   size         割り当てたいサイズ。
+     * @param[in]   alignment    割り当てたいサイズ。
+     * @return  alignedAddress
+     */
     void* AllocateAligned(const Csm::csmSizeType size, const Csm::csmUint32 alignment);
 
     /**
-    * @brief
-    *
-    * @param[in]   alignedMemory    解放するメモリ。
-    */
+     * @brief
+     *
+     * @param[in]   alignedMemory    解放するメモリ。
+     */
     void DeallocateAligned(void* alignedMemory);
 };
+}   // namespace V3
+}   // namespace Live2D

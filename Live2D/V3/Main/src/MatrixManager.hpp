@@ -3,15 +3,16 @@
 #include <CubismFramework.hpp>
 
 #include "Math/CubismMatrix44.hpp"
-
+namespace Live2D {
+namespace V3 {
 class MatrixManager
 {
 public:
     MatrixManager();
     void SetModelWH(float mw, float mh);
     void UpdateScreenToScene(int ww, int wh);
-    void ScreenToScene(float *x, float *y);
-    Csm::CubismMatrix44 &GetMvp();
+    void ScreenToScene(float* x, float* y);
+    Csm::CubismMatrix44& GetMvp();
     void SetOffset(float x, float y);
     void SetScaleX(float sx);
     void SetScaleY(float sy);
@@ -19,6 +20,7 @@ public:
     void InvertTransform(float* x, float* y);
     const int GetWidth() const { return _ww; }
     const int GetHeight() const { return _wh; }
+
 private:
     Csm::CubismMatrix44 _screenToScene;
     Csm::CubismMatrix44 _p;
@@ -36,3 +38,5 @@ private:
     float _mw;
     float _mh;
 };
+}   // namespace V3
+}   // namespace Live2D

@@ -10,14 +10,14 @@
 
 namespace LAppDefine {
 
-    using namespace Csm;
+using namespace Csm;
 
-    // モーションの優先度定数
-    const csmInt32 PriorityNone = 0;
-    const csmInt32 PriorityIdle = 1;
-    const csmInt32 PriorityNormal = 2;
-    const csmInt32 PriorityForce = 3;
+// モーションの優先度定数
+const csmInt32 PriorityNone = 0;
+const csmInt32 PriorityIdle = 1;
+const csmInt32 PriorityNormal = 2;
+const csmInt32 PriorityForce = 3;
 
-    // MOC3の整合性検証オプション
-    const csmBool MocConsistencyValidationEnable = true;
-}
+// MOC3の整合性検証オプション
+const csmBool MocConsistencyValidationEnable = true;
+}   // namespace LAppDefine

@@ -1,11 +1,12 @@
 #pragma once
 #include <memory>
 
-#include <vector>
-#include <array>
 #include "ClipContext.hpp"
+#include <array>
+#include <vector>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 class ModelContext;
 class GLRenderer;
@@ -13,7 +14,8 @@ class IDrawData;
 class MeshContext;
 
 class ALive2DModel;
-class ClippingManagerOpenGL {
+class ClippingManagerOpenGL
+{
 public:
     explicit ClippingManagerOpenGL(GLRenderer& renderer);
     ~ClippingManagerOpenGL();
@@ -30,4 +32,5 @@ private:
     std::vector<std::array<float, 4>> mChannelColors;
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

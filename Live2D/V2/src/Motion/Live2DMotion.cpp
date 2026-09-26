@@ -1,17 +1,20 @@
 #include "Live2DMotion.hpp"
-#include "../Model/ModelContext.hpp"
 #include "../Core/Id.hpp"
+#include "../Model/ModelContext.hpp"
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <sstream>
-#include <cmath>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 Live2DMotion::Live2DMotion() = default;
 
-void Live2DMotion::updateParam(ModelContext* context, float timeSec, float weight) {
-    if (mDurationMs <= 0 || mMotions.empty()) return;
+void Live2DMotion::updateParam(ModelContext* context, float timeSec, float weight)
+{
+    if (mDurationMs <= 0 || mMotions.empty())
+        return;
     float timeMs = timeSec * 1000.0f;
 
     if (mLoop) {
@@ -29,7 +32,8 @@ void Live2DMotion::updateParam(ModelContext* context, float timeSec, float weigh
 
     for (auto& m : mMotions) {
         int sz = (int)m.mValues.size();
-        if (sz == 0) continue;
+        if (sz == 0)
+            continue;
         float v0, v1, val;
         if (idx0 >= sz) {
             // Past end of curve: use last value (should be 0 for hand params)
@@ -58,35 +62,48 @@ void Live2DMotion::updateParam(ModelContext* context, float timeSec, float weigh
     }
 }
 
-float Live2DMotion::getDurationSec() const { return mDurationMs / 1000.0f; }
-bool Live2DMotion::isLoop() const { return mLoop; }
+float Live2DMotion::getDurationSec() const
+{
+    return mDurationMs / 1000.0f;
+}
+bool Live2DMotion::isLoop() const
+{
+    return mLoop;
+}
 
-Live2DMotion* Live2DMotion::load(const std::vector<uint8_t>& data) {
+Live2DMotion* Live2DMotion::load(const std::vector<uint8_t>& data)
+{
     auto* m = new Live2DMotion();
     std::string content((const char*)data.data(), data.size());
     std::istringstream ss(content);
     std::string line;
 
-while (std::getline(ss, line)) {
-        if (line.empty() || line[0] == '#') continue;
+    while (std::getline(ss, line)) {
+        if (line.empty() || line[0] == '#')
+            continue;
         while (!line.empty() && (line.back() == '\r' || line.back() == ' '))
             line.pop_back();
 
         auto eq = line.find('=');
-        if (eq == std::string::npos) continue;
+        if (eq == std::string::npos)
+            continue;
         std::string key = line.substr(0, eq);
         std::string val = line.substr(eq + 1);
         // Strip leading '$' from key (MTN format: $fps=30)
-        if (!key.empty() && key[0] == '$') key = key.substr(1);
+        if (!key.empty() && key[0] == '$')
+            key = key.substr(1);
 
         if (key == "fps") {
             m->mFps = (float)std::strtof(val.c_str(), nullptr);
-        }
-        else if (key == "FADEIN") { m->mFadeInSec = (float)std::atoi(val.c_str()) / 1000.0f; }
-        else if (key == "FADEOUT") { m->mFadeOutSec = (float)std::atoi(val.c_str()) / 1000.0f; }
-        else if (key == "LOOP") { m->mLoop = (val == "1" || val == "true"); }
-        else if (key == "LOOPFADEIN") { m->mLoopFadeIn = (val == "1" || val == "true"); }
-        else {
+        } else if (key == "FADEIN") {
+            m->mFadeInSec = (float)std::atoi(val.c_str()) / 1000.0f;
+        } else if (key == "FADEOUT") {
+            m->mFadeOutSec = (float)std::atoi(val.c_str()) / 1000.0f;
+        } else if (key == "LOOP") {
+            m->mLoop = (val == "1" || val == "true");
+        } else if (key == "LOOPFADEIN") {
+            m->mLoopFadeIn = (val == "1" || val == "true");
+        } else {
             Motion motion;
             if (key.find("VISIBLE:") == 0) {
                 motion.mParamId = "VISIBLE";
@@ -100,8 +117,10 @@ while (std::getline(ss, line)) {
             std::istringstream vs(val);
             std::string token;
             while (std::getline(vs, token, ','))
-                if (!token.empty()) motion.mValues.push_back((float)std::atof(token.c_str()));
-            if (!motion.mValues.empty()) m->mMotions.push_back(motion);
+                if (!token.empty())
+                    motion.mValues.push_back((float)std::atof(token.c_str()));
+            if (!motion.mValues.empty())
+                m->mMotions.push_back(motion);
         }
     }
 
@@ -113,4 +132,5 @@ while (std::getline(ss, line)) {
     return m;
 }
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

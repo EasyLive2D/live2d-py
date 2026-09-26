@@ -1,23 +1,32 @@
 #pragma once
 
-#include "DEF.hpp"
 #include "../Common/Log.hpp"
+#include "DEF.hpp"
 
-#include <vector>
 #include <cstdint>
-#include <string>
 #include <cstring>
-#include <type_traits>
 #include <functional>
+#include <string>
+#include <type_traits>
+#include <vector>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
+
+using namespace Live2D::Common::Log;
 
 class ISerializable;
 
-class BinaryReader {
+class BinaryReader
+{
 public:
     explicit BinaryReader(std::vector<uint8_t> buf)
-        : mBuf(std::move(buf)), mOffset(0), mFormatVersion(0), mOffset8Bit(0), mCurrent8Bit(0) {}
+        : mBuf(std::move(buf))
+        , mOffset(0)
+        , mFormatVersion(0)
+        , mOffset8Bit(0)
+        , mCurrent8Bit(0)
+    {}
     ~BinaryReader();
 
     // -- Basic types (big-endian binary format) --
@@ -66,8 +75,12 @@ private:
     std::vector<std::function<void()>> mDeleters;
 
     // Trait to detect std::vector specializations
-    template<typename T> struct is_vector : std::false_type {};
-    template<typename U, typename A> struct is_vector<std::vector<U, A>> : std::true_type {};
+    template<typename T>
+    struct is_vector : std::false_type
+    {};
+    template<typename U, typename A>
+    struct is_vector<std::vector<U, A>> : std::true_type
+    {};
 
     // Tag-dispatched implementations
     template<typename T>
@@ -86,42 +99,50 @@ private:
 // -- Tag dispatch --
 
 template<typename T>
-inline T BinaryReader::readObject(int type) {
+inline T BinaryReader::readObject(int type)
+{
     return readObjectDispatch<T>(is_vector<T>{}, type);
 }
 
 template<typename T>
-inline T BinaryReader::readObjectDispatch(std::true_type /*is_vector*/, int type) {
+inline T BinaryReader::readObjectDispatch(std::true_type /*is_vector*/, int type)
+{
     return readObjectVector<T>(type);
 }
 
 template<typename T>
-inline T BinaryReader::readObjectDispatch(std::false_type /*is_vector*/, int type) {
+inline T BinaryReader::readObjectDispatch(std::false_type /*is_vector*/, int type)
+{
     return readObjectPtr<T>(type);
 }
 
 // Helper: reads a primitive-typed array directly (type code already consumed)
 template<typename ElemType>
-inline std::vector<ElemType> readPrimitiveArray(BinaryReader* /*br*/) {
-    Error("Unsupported primitive array type");
+inline std::vector<ElemType> readPrimitiveArray(BinaryReader* /*br*/)
+{
+    LOGE("Unsupported primitive array type");
     return {};
 }
 
 template<>
-inline std::vector<float> readPrimitiveArray<float>(BinaryReader* br) {
+inline std::vector<float> readPrimitiveArray<float>(BinaryReader* br)
+{
     return br->readFloat32Array();
 }
 template<>
-inline std::vector<int32_t> readPrimitiveArray<int32_t>(BinaryReader* br) {
+inline std::vector<int32_t> readPrimitiveArray<int32_t>(BinaryReader* br)
+{
     return br->readInt32Array();
 }
 template<>
-inline std::vector<double> readPrimitiveArray<double>(BinaryReader* br) {
+inline std::vector<double> readPrimitiveArray<double>(BinaryReader* br)
+{
     return br->readFloat64Array();
 }
 
 template<typename T>
-inline T BinaryReader::readObjectVector(int type) {
+inline T BinaryReader::readObjectVector(int type)
+{
     using ElemType = typename T::value_type;
     checkBits();
     int actualType = (type < 0) ? readType() : type;
@@ -136,7 +157,7 @@ inline T BinaryReader::readObjectVector(int type) {
         if (actualType == OBJECT_REF) {
             int index = readInt32();
             if (index < 0 || index >= static_cast<int>(mObjects.size())) {
-                Error("Invalid object ref index in vector: %d", index);
+                LOGE("Invalid object ref index in vector: %d", index);
                 return T{};
             }
             auto* storedVec = static_cast<T*>(mObjects[index]);
@@ -144,7 +165,7 @@ inline T BinaryReader::readObjectVector(int type) {
         }
 
         if (actualType != 15) {
-            Error("Expected array type (15), got %d", actualType);
+            LOGE("Expected array type (15), got %d", actualType);
             return T{};
         }
 
@@ -155,20 +176,20 @@ inline T BinaryReader::readObjectVector(int type) {
         for (int i = 0; i < count; i++) {
             resultPtr->push_back(readObject<ElemType>());
         }
-        mObjects.push_back(resultPtr); // store for OBJECT_REF
+        mObjects.push_back(resultPtr);   // store for OBJECT_REF
         return *resultPtr;
     } else if constexpr (is_vector<ElemType>::value) {
         // Nested vector (e.g. vector<vector<float>>) — stored as type 15
         if (actualType == OBJECT_REF) {
             int index = readInt32();
             if (index < 0 || index >= static_cast<int>(mObjects.size())) {
-                Error("OBJECT_REF invalid for nested vec at %d", index);
+                LOGE("OBJECT_REF invalid for nested vec at %d", index);
                 return T{};
             }
             return *static_cast<T*>(mObjects[index]);
         }
         if (actualType != 15) {
-            Error("Expected array type (15) for nested vec, got %d", actualType);
+            LOGE("Expected array type (15) for nested vec, got %d", actualType);
             return T{};
         }
         int count = readType();
@@ -185,7 +206,7 @@ inline T BinaryReader::readObjectVector(int type) {
         if (actualType == OBJECT_REF) {
             int index = readInt32();
             if (index < 0 || index >= static_cast<int>(mObjects.size())) {
-                Error("Invalid object ref index for primitive: %d", index);
+                LOGE("Invalid object ref index for primitive: %d", index);
                 return T{};
             }
             return *static_cast<T*>(mObjects[index]);
@@ -197,19 +218,20 @@ inline T BinaryReader::readObjectVector(int type) {
 }
 
 template<typename T>
-inline T BinaryReader::readObjectPtr(int type) {
+inline T BinaryReader::readObjectPtr(int type)
+{
     checkBits();
     int actualType = (type < 0) ? readType() : type;
 
     if (actualType == 0) {
-        mObjects.push_back(nullptr); // Python stores None for OBJECT_REF alignment
+        mObjects.push_back(nullptr);   // Python stores None for OBJECT_REF alignment
         return nullptr;
     }
 
     if (actualType == OBJECT_REF) {
         int index = readInt32();
         if (index < 0 || index >= static_cast<int>(mObjects.size())) {
-            Error("Invalid object reference index: %d size=%zu", index, mObjects.size());
+            LOGE("Invalid object reference index: %d size=%zu", index, mObjects.size());
             return nullptr;
         }
         return static_cast<T>(mObjects[index]);
@@ -220,4 +242,5 @@ inline T BinaryReader::readObjectPtr(int type) {
     return static_cast<T>(obj);
 }
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

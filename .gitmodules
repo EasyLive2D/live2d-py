@@ -1,3 +1,6 @@
 [submodule "tests/v2/glfw"]
 	path = tests/v2/glfw
 	url = https://github.com/glfw/glfw.git
+[submodule "Live2D/Common/backward"]
+	path = Live2D/Common/backward
+	url = https://github.com/bombela/backward-cpp.git

@@ -1,12 +1,14 @@
 #include "UtSystem.hpp"
 #include <chrono>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
-double UtSystem::getUserTimeMSec() {
+double UtSystem::getUserTimeMSec()
+{
     auto now = std::chrono::steady_clock::now();
-    return std::chrono::duration<double, std::milli>(
-               now.time_since_epoch()).count();
+    return std::chrono::duration<double, std::milli>(now.time_since_epoch()).count();
 }
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

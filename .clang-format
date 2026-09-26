@@ -45,7 +45,7 @@ AllowAllParametersOfDeclarationOnNextLine: true
  
  
 # 允许短的块放在同一行(Always 总是将短块合并成一行，Empty 只合并空块)
-AllowShortBlocksOnASingleLine: Empty
+AllowShortBlocksOnASingleLine: Never
  
 # 允许短的case标签放在同一行
 AllowShortCaseLabelsOnASingleLine: false
@@ -54,10 +54,10 @@ AllowShortCaseLabelsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: Inline
  
 # 允许短的if语句保持在同一行
-AllowShortIfStatementsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: Never
  
 # 允许短的循环保持在同一行
-AllowShortLoopsOnASingleLine: true
+AllowShortLoopsOnASingleLine: false
  
 # 总是在定义返回类型后换行(deprecated)
 AlwaysBreakAfterDefinitionReturnType: None
@@ -72,7 +72,7 @@ AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: false
  
 # 总是在template声明后换行
-AlwaysBreakTemplateDeclarations: false
+AlwaysBreakTemplateDeclarations: Yes
  
 # false表示函数实参要么都在同一行，要么都各自一行
 BinPackArguments: false
@@ -182,10 +182,10 @@ IncludeCategories:
     Priority:   1
  
 # 缩进case标签
-IndentCaseLabels: false
+IndentCaseLabels: true
  
 # 要使用的预处理器指令缩进样式
-IndentPPDirectives: AfterHash
+IndentPPDirectives: None
  
 # 缩进宽度
 IndentWidth: 4

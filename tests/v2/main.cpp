@@ -12,17 +12,17 @@
  * Default model: Resources/v2/kasumi2/kasumi2.model.json
  */
 
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
-#include <string>
 #include <filesystem>
+#include <string>
 #include <thread>
-#include <chrono>
 
 // GLFW_INCLUDE_NONE — glad (GL/glew.h) provides all GL symbols
 #define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
 #include <GL/glew.h>   // glad OpenGL 4.6 core loader
+#include <GLFW/glfw3.h>
 
 #include "LAppModel.hpp"
 #include "Log.hpp"
@@ -31,11 +31,13 @@
 // Helpers
 // ============================================================================
 
-static void glfwErrorCallback(int /*code*/, const char* msg) {
+static void glfwErrorCallback(int /*code*/, const char* msg)
+{
     fprintf(stderr, "[GLFW ERROR] %s\n", msg);
 }
 
-static void keyCallback(GLFWwindow* window, int key, int /*scancode*/, int action, int /*mods*/) {
+static void keyCallback(GLFWwindow* window, int key, int /*scancode*/, int action, int /*mods*/)
+{
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
@@ -44,7 +46,8 @@ static void keyCallback(GLFWwindow* window, int key, int /*scancode*/, int actio
 // Entry point
 // ============================================================================
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
     // --- Resolve model path --------------------------------------------------
     std::string modelPath;
     if (argc > 1) {
@@ -57,9 +60,11 @@ int main(int argc, char* argv[]) {
         fs::path candidate;
         while (true) {
             candidate = cwd / "Resources" / "v2" / "kasumi2" / "kasumi2.model.json";
-            if (fs::exists(candidate)) break;
+            if (fs::exists(candidate))
+                break;
             candidate = cwd / ".." / "Resources" / "v2" / "kasumi2" / "kasumi2.model.json";
-            if (fs::exists(candidate)) break;
+            if (fs::exists(candidate))
+                break;
             if (!cwd.has_parent_path() || cwd == cwd.parent_path()) {
                 fprintf(stderr, "ERROR: Cannot find kasumi2.model.json\n");
                 fprintf(stderr, "Usage: %s [path/to/model.json]\n", argv[0]);
@@ -102,8 +107,8 @@ int main(int argc, char* argv[]) {
         glfwTerminate();
         return 1;
     }
-    printf("OpenGL %s, GLSL %s\n",
-           glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
+    printf(
+        "OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
 
     using namespace std::chrono_literals;
     // --- Baseline (idle, no model) -------------------------------------------
@@ -114,7 +119,7 @@ int main(int argc, char* argv[]) {
     SetLive2DLogLevel(LV_INFO);
 
     {
-        live2d::LAppModel model;
+        Live2D::LAppModel model;
         model.loadModelJson(modelPath);
 
         printf("Model loaded successfully!\n");
@@ -127,13 +132,15 @@ int main(int argc, char* argv[]) {
         printf("  First %d parameters:\n", showParams);
         for (int i = 0; i < showParams; i++) {
             printf("    [%d] %-31s  val=%.3f  min=%.2f  max=%.2f  def=%.2f\n",
-                   i, model.getParameterId(i).c_str(),
+                   i,
+                   model.getParameterId(i).c_str(),
                    model.getParameterValue(i),
                    model.getParameterMin(i),
                    model.getParameterMax(i),
                    model.getParameterDefault(i));
         }
-        if (nParams > 15) printf("    ... (%d more)\n", nParams - 15);
+        if (nParams > 15)
+            printf("    ... (%d more)\n", nParams - 15);
 
         int nParts = model.getPartCount();
         printf("  Parts:\n");
@@ -165,7 +172,7 @@ int main(int argc, char* argv[]) {
         printf("Frames rendered: %d\n", frameCount);
 
         // std::this_thread::sleep_for(1s);  // render ended, before destruction
-    } // model destroyed — GL context still alive for glDeleteTextures
+    }   // model destroyed — GL context still alive for glDeleteTextures
     // std::this_thread::sleep_for(1s);       // after destruction baseline
 
     // --- Cleanup -------------------------------------------------------------

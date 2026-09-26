@@ -16,7 +16,8 @@
 #include <cstdio>
 #include <cstdlib>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 ModelContext::ModelContext()
 {
@@ -105,7 +106,6 @@ void ModelContext::init(ModelImpl* modelImpl)
                 p->getParamID(), p->getDefaultValue(), p->getMaxValue(), p->getMinValue());
         }
     }
-
 }
 
 void ModelContext::update()
@@ -140,7 +140,8 @@ void ModelContext::update()
     }
     if (static_cast<int>(mNextListDrawIndex.size()) < nDraw)
         mNextListDrawIndex.resize(nDraw);
-    for (int i = 0; i < nDraw; i++) mNextListDrawIndex[i] = NO_NEXT;
+    for (int i = 0; i < nDraw; i++)
+        mNextListDrawIndex[i] = NO_NEXT;
 
     for (int i = 0; i < nDef; i++) {
         mDeformerList[i]->setupInterpolate(this, mDeformerContextList[i].get());
@@ -248,13 +249,15 @@ bool ModelContext::isParamUpdated(int index) const
 
 void ModelContext::loadParam()
 {
-    for (size_t i = 0; i < mSavedParamValues.size(); i++) mParamValues[i] = mSavedParamValues[i];
+    for (size_t i = 0; i < mSavedParamValues.size(); i++)
+        mParamValues[i] = mSavedParamValues[i];
 }
 void ModelContext::saveParam()
 {
     if (mSavedParamValues.size() < mParamValues.size())
         mSavedParamValues.resize(mParamValues.size());
-    for (size_t i = 0; i < mParamValues.size(); i++) mSavedParamValues[i] = mParamValues[i];
+    for (size_t i = 0; i < mParamValues.size(); i++)
+        mSavedParamValues[i] = mParamValues[i];
 }
 
 IDrawData* ModelContext::getDrawData(int index) const
@@ -304,4 +307,5 @@ void ModelContext::setPartScreenColor(int i, float r, float g, float b, float a)
     mPartsContextList[i]->setPartScreenColor(r, g, b, a);
 }
 
-}   // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

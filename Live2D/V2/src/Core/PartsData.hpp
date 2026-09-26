@@ -1,17 +1,19 @@
 #pragma once
 #include <memory>
 
+#include "../Deformer/Deformer.hpp"
+#include "../Draw/IDrawData.hpp"
 #include "ISerializable.hpp"
 #include "Id.hpp"
 #include <vector>
-#include "../Draw/IDrawData.hpp"
-#include "../Deformer/Deformer.hpp"
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 class PartsDataContext;
 
-class PartsData final : public ISerializable {
+class PartsData final : public ISerializable
+{
 public:
     PartsData() = default;
     ~PartsData() override;
@@ -25,8 +27,14 @@ public:
     void setVisible(bool v) { mVisible = v; }
     void setLocked(bool v) { mLocked = v; }
 
-    void setDeformer(std::vector<std::unique_ptr<Deformer>>&& list) { mDeformerList = std::move(list); }
-    void setDrawData(std::vector<std::unique_ptr<IDrawData>>&& list) { mDrawDataList = std::move(list); }
+    void setDeformer(std::vector<std::unique_ptr<Deformer>>&& list)
+    {
+        mDeformerList = std::move(list);
+    }
+    void setDrawData(std::vector<std::unique_ptr<IDrawData>>&& list)
+    {
+        mDrawDataList = std::move(list);
+    }
 
     std::vector<std::unique_ptr<Deformer>>& getDeformer() { return mDeformerList; }
     std::vector<std::unique_ptr<IDrawData>>& getDrawData() { return mDrawDataList; }
@@ -40,5 +48,5 @@ private:
     std::vector<std::unique_ptr<Deformer>> mDeformerList;
     std::vector<std::unique_ptr<IDrawData>> mDrawDataList;
 };
-
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

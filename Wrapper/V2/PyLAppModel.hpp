@@ -1,10 +1,10 @@
 #pragma once
-#include "Python.hpp"
 #include "LAppModel.hpp"
+#include "Python.hpp"
 
-struct PyLAppModelObject {
-    PyObject_HEAD
-    live2d::LAppModel* model;
+struct PyLAppModelObject
+{
+    PyObject_HEAD Live2D::V2::LAppModel* model;
 };
 
 extern PyType_Spec PyLAppModel_spec;

@@ -1,12 +1,13 @@
 #pragma once
 
-#include <cstdint>
+namespace Live2D {
+namespace V2 {
 
-namespace live2d {
-
-class UtSystem {
+class UtSystem
+{
 public:
     static double getUserTimeMSec();
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D

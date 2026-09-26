@@ -5,14 +5,15 @@
 #include "../Model/ModelContext.hpp"
 #include "../Motion/AMotion.hpp"
 #include "../Motion/Live2DMotion.hpp"
+#include "Graphics/GLRenderer.hpp"
 #include "L2DExpressionMotion.hpp"
 #include "L2DEyeBlink.hpp"
 #include "L2DMotionManager.hpp"
 #include "L2DPhysics.hpp"
 #include "L2DPose.hpp"
-#include "Graphics/GLRenderer.hpp"
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 
 L2DBaseModel::L2DBaseModel()
     : mModelImpl(nullptr)
@@ -38,8 +39,8 @@ void L2DBaseModel::loadModelData(const std::vector<uint8_t>& data, int version)
     mModelImpl.reset(impl);
     mModelContext = std::make_unique<ModelContext>();
     mModelContext->init(mModelImpl.get());
-    mModelMatrix = L2DModelMatrix((float)mModelImpl->getCanvasWidth(),
-                                  (float)mModelImpl->getCanvasHeight());
+    mModelMatrix =
+        L2DModelMatrix((float)mModelImpl->getCanvasWidth(), (float)mModelImpl->getCanvasHeight());
     mModelMatrix.setWidth(2);
     mModelMatrix.setCenterPosition(0, 0);
 }
@@ -99,5 +100,5 @@ bool L2DBaseModel::hitTestSimple(const std::string& drawID, float x, float y)
     return left <= tx && tx <= right && top <= ty && ty <= bottom;
 }
 
-}   // namespace live2d
-
+}   // namespace V2
+}   // namespace Live2D

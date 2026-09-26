@@ -1,10 +1,12 @@
 #pragma once
 #include <array>
 
-namespace live2d {
+namespace Live2D {
+namespace V2 {
 class L2DModelMatrix;
 
-class MatrixManager {
+class MatrixManager
+{
 public:
     MatrixManager();
 
@@ -22,4 +24,5 @@ private:
     float mScale = 1.0f, mOffsetX = 0, mOffsetY = 0, mRotation = 0;
 };
 
-} // namespace live2d
+}   // namespace V2
+}   // namespace Live2D
