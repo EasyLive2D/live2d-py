@@ -20,6 +20,8 @@ public:
     static constexpr int DEFORMER_INDEX_NOT_INIT = -2;
     static constexpr int DEFAULT_ORDER = 500;
     static constexpr int TYPE_MESH = 2;
+    static int sTotalMinOrder;
+    static int sTotalMaxOrder;
 
     IDrawData() = default;
     ~IDrawData() override;
@@ -39,8 +41,11 @@ public:
     static int getDrawOrder(MeshContext* ctx);
     virtual int getType() const = 0;
 
+    static void setDrawOrders(const std::vector<int>& orders);
+    static int getTotalMinOrder() { return sTotalMinOrder; }
+    static int getTotalMaxOrder() { return sTotalMaxOrder; }
+
     const std::vector<std::string>& getClipIDList() const { return mClipIDList; }
-    int getAverageDrawOrder() const { return mAverageDrawOrder; }
 
 
 protected:
