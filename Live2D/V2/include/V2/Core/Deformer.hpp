@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../Core/ISerializable.hpp"
-#include "../Core/Id.hpp"
+#include "ISerializable.hpp"
+#include "Id.hpp"
 #include <vector>
 
 namespace Live2D {
@@ -11,8 +11,7 @@ class DeformerContext;
 class ModelContext;
 class PivotManager;
 
-class Deformer : public ISerializable
-{
+class Deformer : public ISerializable {
 public:
     static constexpr int DEFORMER_INDEX_NOT_INIT = -2;
     static constexpr int TYPE_ROTATION = 1;

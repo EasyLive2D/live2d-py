@@ -7,8 +7,7 @@ namespace V2 {
 
 Avatar::~Avatar() = default;
 
-void Avatar::read(BinaryReader& br)
-{
+void Avatar::read(BinaryReader& br) {
     mId = br.readObject<const Id*>();
     auto rawDraw = br.readObject<std::vector<IDrawData*>>();
     mDrawDataList.reserve(rawDraw.size());
@@ -20,8 +19,7 @@ void Avatar::read(BinaryReader& br)
         mDeformerList.emplace_back(d);
 }
 
-void Avatar::replacePartsData(PartsData* parts)
-{
+void Avatar::replacePartsData(PartsData* parts) {
     parts->setDeformer(std::move(mDeformerList));
     parts->setDrawData(std::move(mDrawDataList));
 }

@@ -4,13 +4,11 @@ namespace Live2D {
 namespace V2 {
 
 ClipContext::ClipContext(ModelContext* mc, const std::vector<std::string>& clipIDs)
-    : mClipIDList(clipIDs)
-{
+    : mClipIDList(clipIDs) {
     (void)mc;
 }
 
-void ClipContext::addClippedDrawData(const std::string& drawId, int drawIdx)
-{
+void ClipContext::addClippedDrawData(const std::string& drawId, int drawIdx) {
     (void)drawId;
     mClippedDrawIndexList.push_back(drawIdx);
 }

@@ -5,8 +5,7 @@
 namespace Live2D {
 namespace V2 {
 
-void AffineEnt::read(BinaryReader& br)
-{
+void AffineEnt::read(BinaryReader& br) {
     mOriginX = br.readFloat32();
     mOriginY = br.readFloat32();
     mScaleX = br.readFloat32();

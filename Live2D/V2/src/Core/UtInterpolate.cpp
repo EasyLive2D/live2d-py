@@ -7,15 +7,13 @@
 namespace Live2D {
 namespace V2 {
 
-static void arraycopy(const float* src, int srcOff, float* dst, int dstOff, int count)
-{
+static void arraycopy(const float* src, int srcOff, float* dst, int dstOff, int count) {
     for (int i = 0; i < count; i++)
         dst[dstOff + i] = src[srcOff + i];
 }
 
 float UtInterpolate::interpolateFloat(ModelContext* mdc, PivotManager* pivotMgr, bool& ret,
-                                      const std::vector<float>& pivotValue)
-{
+                                      const std::vector<float>& pivotValue) {
     int interpCount = pivotMgr->calcPivotValues(mdc, ret);
     auto& indices = mdc->getTempPivotTableIndices();
     auto& tVals = mdc->getTempT();
@@ -50,8 +48,7 @@ float UtInterpolate::interpolateFloat(ModelContext* mdc, PivotManager* pivotMgr,
 }
 
 int UtInterpolate::interpolateInt(ModelContext* mdc, PivotManager* pivotMgr, bool& ret,
-                                  const std::vector<int>& pivotValue)
-{
+                                  const std::vector<int>& pivotValue) {
     int interpCount = pivotMgr->calcPivotValues(mdc, ret);
     auto& indices = mdc->getTempPivotTableIndices();
     auto& tVals = mdc->getTempT();
@@ -82,8 +79,7 @@ int UtInterpolate::interpolateInt(ModelContext* mdc, PivotManager* pivotMgr, boo
 void UtInterpolate::interpolatePoints(ModelContext* mdc, PivotManager* pivotMgr, bool& ret,
                                       int pointCount,
                                       const std::vector<std::vector<float>>& pivotPoints,
-                                      std::vector<float>& dstPoints, int ptOffset, int ptStep)
-{
+                                      std::vector<float>& dstPoints, int ptOffset, int ptStep) {
     int interpCount = pivotMgr->calcPivotValues(mdc, ret);
     auto& indices = mdc->getTempPivotTableIndices();
     auto& tVals = mdc->getTempT();

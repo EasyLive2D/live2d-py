@@ -15,8 +15,7 @@ using json = nlohmann::json;
 
 L2DPose::L2DPose() = default;
 
-void PartData::initIndex(ModelContext* context)
-{
+void PartData::initIndex(ModelContext* context) {
     std::string paramId = "VISIBLE:" + id;
     paramIndex = context->getParamIndex(&Id::getID(paramId));
     partsIndex = context->getPartsDataIndex(&Id::getID(id));
@@ -24,8 +23,7 @@ void PartData::initIndex(ModelContext* context)
         l.initIndex(context);
 }
 
-static void normalizeGroup(ModelContext* context, PosePartGroup& group, float deltaSec)
-{
+static void normalizeGroup(ModelContext* context, PosePartGroup& group, float deltaSec) {
     int visibleIdx = -1;
     float visibleOpacity = 1.0f;
     float clearSec = 0.5f;
@@ -78,8 +76,7 @@ static void normalizeGroup(ModelContext* context, PosePartGroup& group, float de
     }
 }
 
-static void copyOpacityOtherParts(ModelContext* context, PosePartGroup& group)
-{
+static void copyOpacityOtherParts(ModelContext* context, PosePartGroup& group) {
     for (auto& p : group.parts) {
         if (p.partsIndex < 0)
             continue;
@@ -92,8 +89,7 @@ static void copyOpacityOtherParts(ModelContext* context, PosePartGroup& group)
     }
 }
 
-void L2DPose::initParam(ModelContext* context)
-{
+void L2DPose::initParam(ModelContext* context) {
     // Python: initParam runs once per model instance (l2d_pose.py:27-42),
     // not per frame — the per-frame opacity hard-set was wiping the fade.
     for (auto& g : mMGroups) {
@@ -108,8 +104,7 @@ void L2DPose::initParam(ModelContext* context)
     }
 }
 
-void L2DPose::updateParam(ModelContext* context)
-{
+void L2DPose::updateParam(ModelContext* context) {
     float now = (float)UtSystem::getUserTimeMSec();
     float dt = (mLastTime > 0) ? (now - mLastTime) / 1000.0f : 0;
     if (dt < 0)
@@ -122,8 +117,7 @@ void L2DPose::updateParam(ModelContext* context)
     }
 }
 
-L2DPose* L2DPose::load(const std::vector<uint8_t>& data)
-{
+L2DPose* L2DPose::load(const std::vector<uint8_t>& data) {
     auto* pose = new L2DPose();
     if (data.empty())
         return pose;

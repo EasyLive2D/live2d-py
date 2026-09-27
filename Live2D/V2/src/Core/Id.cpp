@@ -5,13 +5,11 @@ namespace V2 {
 
 std::unordered_map<std::string, std::unique_ptr<Id>> Id::sInstances;
 
-const Id& Id::DST_BASE_ID()
-{
+const Id& Id::DST_BASE_ID() {
     return Id::getID("DST_BASE");
 }
 
-const Id& Id::getID(const std::string& idStr)
-{
+const Id& Id::getID(const std::string& idStr) {
     auto it = sInstances.find(idStr);
     if (it != sInstances.end()) {
         return *it->second;
@@ -22,8 +20,7 @@ const Id& Id::getID(const std::string& idStr)
     return ref;
 }
 
-void Id::releaseStored()
-{
+void Id::releaseStored() {
     sInstances.clear();
 }
 

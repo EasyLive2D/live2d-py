@@ -20,15 +20,13 @@ namespace V2 {
 static int sInstanceCount = 0;
 
 Mesh::Mesh()
-    : IDrawData()
-{
+    : IDrawData() {
     mInstanceNo = sInstanceCount++;
 }
 
 Mesh::~Mesh() {}
 
-void Mesh::read(BinaryReader& br)
-{
+void Mesh::read(BinaryReader& br) {
     IDrawData::read(br);
     mTextureNo = br.readInt32();
     mPointCount = br.readInt32();
@@ -65,8 +63,7 @@ void Mesh::read(BinaryReader& br)
     }
 }
 
-MeshContext* Mesh::init(ModelContext* modelContext)
-{
+MeshContext* Mesh::init(ModelContext* modelContext) {
     auto* ctx = new MeshContext(this);
     int vertexCount = mPointCount * VERTEX_STEP;
     bool needXform = needTransform();
@@ -100,8 +97,7 @@ MeshContext* Mesh::init(ModelContext* modelContext)
     return ctx;
 }
 
-void Mesh::setupInterpolate(ModelContext* modelContext, MeshContext* meshContext)
-{
+void Mesh::setupInterpolate(ModelContext* modelContext, MeshContext* meshContext) {
     if (!mPivotMgr->checkParamUpdated(modelContext))
         return;
     IDrawData::setupInterpolate(modelContext, meshContext);
@@ -121,8 +117,7 @@ void Mesh::setupInterpolate(ModelContext* modelContext, MeshContext* meshContext
         meshContext->mParamOutside = true;
 }
 
-void Mesh::setupTransform(ModelContext* mc, IDrawContext* dc)
-{
+void Mesh::setupTransform(ModelContext* mc, IDrawContext* dc) {
     auto* ctx = static_cast<MeshContext*>(dc);
     if (ctx->mParamOutside)
         return;
@@ -156,8 +151,7 @@ void Mesh::setupTransform(ModelContext* mc, IDrawContext* dc)
 }
 
 int sDrawCounts[3] = {0, 0, 0};
-void Mesh::draw(GLRenderer* renderer, ModelContext* mctx, MeshContext* dctx)
-{
+void Mesh::draw(GLRenderer* renderer, ModelContext* mctx, MeshContext* dctx) {
     if (dctx->mParamOutside)
         return;
     if (mColorCompositionType >= 0 && mColorCompositionType < 3)

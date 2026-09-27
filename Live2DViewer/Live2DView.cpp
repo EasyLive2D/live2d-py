@@ -14,27 +14,27 @@ using namespace Live2D::V3;
 
 Live2DView::Live2DView(const QString& filePath, QWidget* parent)
     : QWidget(parent)
-    , holer(ui.scene->GetModel())
+    , holder(nullptr)
     , hasCdi(false)
     , syncTimer(this)
-    , selectedPartIndex(-1)
-{
+    , selectedPartIndex(-1) {
     ui.setupUi(this);
 
     ui.splitter->setStretchFactor(0, 0);
     ui.splitter->setStretchFactor(1, 1);
 
     ui.scene->LoadModel(filePath);
+    holder = &ui.scene->GetModel();
 
-    if (holer.version == Version::V3) {
-        initExpressions(holer.model3);
-        initMotions(holer.model3);
+    if (holder->version == Version::V3) {
+        initExpressions(holder->model3);
+        initMotions(holder->model3);
 
-        initCdi(holer.model3);
+        initCdi(holder->model3);
 
-        initParameters(holer.model3);
-        initParts(holer.model3);
-        initDrawables(holer.model3);
+        initParameters(holder->model3);
+        initParts(holder->model3);
+        initDrawables(holder->model3);
     }
 
     connect(
@@ -64,8 +64,7 @@ Live2DView::Live2DView(const QString& filePath, QWidget* parent)
 
 Live2DView::~Live2DView() {}
 
-void Live2DView::initExpressions(Model* model)
-{
+void Live2DView::initExpressions(Model* model) {
     QTreeWidgetItem* item = new QTreeWidgetItem(ui.treeWidget);
     item->setText(0, "Expressions");
 
@@ -78,8 +77,7 @@ void Live2DView::initExpressions(Model* model)
     });
 }
 
-void Live2DView::initMotions(Model* model)
-{
+void Live2DView::initMotions(Model* model) {
     QTreeWidgetItem* item = new QTreeWidgetItem(ui.treeWidget);
     item->setText(0, "Motions");
     ui.treeWidget->addTopLevelItem(item);
@@ -106,10 +104,9 @@ void Live2DView::initMotions(Model* model)
         });
 }
 
-void Live2DView::onTreeItemDoubleClicked(QTreeWidgetItem* item, int column)
-{
-    if (holer.version == Version::V3) {
-        auto model = holer.model3;
+void Live2DView::onTreeItemDoubleClicked(QTreeWidgetItem* item, int column) {
+    if (holder->version == Version::V3) {
+        auto model = holder->model3;
         if (item->parent() == nullptr) {
             model->ResetExpression();
             return;
@@ -125,8 +122,7 @@ void Live2DView::onTreeItemDoubleClicked(QTreeWidgetItem* item, int column)
     }
 }
 
-void Live2DView::initCdi(Model* model)
-{
+void Live2DView::initCdi(Model* model) {
     QDir dir(model->GetModelHomeDir());
     QStringList files = dir.entryList(QStringList() << "*.cdi3.json", QDir::Files);
     if (files.size() > 0) {
@@ -141,8 +137,7 @@ void Live2DView::initCdi(Model* model)
     }
 }
 
-void Live2DView::initParameters(Model* model)
-{
+void Live2DView::initParameters(Model* model) {
     void* ptrs[4] = {ui.paramTable, nullptr, model};
     QJsonArray parameters;
     if (hasCdi) {
@@ -187,8 +182,7 @@ void Live2DView::initParameters(Model* model)
     });
 }
 
-void Live2DView::initParts(Model* model)
-{
+void Live2DView::initParts(Model* model) {
     void* ptrs[2] = {ui.partTable, nullptr};
     QJsonArray parts;
     if (hasCdi) {
@@ -213,18 +207,16 @@ void Live2DView::initParts(Model* model)
     });
 }
 
-void Live2DView::initDrawables(Model* model)
-{
+void Live2DView::initDrawables(Model* model) {
     model->GetDrawableIds(ui.drawableList, [](void* collector, const char* id) {
         QListWidget* list = (QListWidget*)collector;
         list->addItem(id);
     });
 }
 
-void Live2DView::onParamValuesUpdated()
-{
-    if (holer.version == Version::V3) {
-        auto model = holer.model3;
+void Live2DView::onParamValuesUpdated() {
+    if (holder->version == Version::V3) {
+        auto model = holder->model3;
         for (int i = 0; i < ui.paramTable->rowCount(); i++) {
             QSlider* slider = (QSlider*)ui.paramTable->cellWidget(i, 2);
             if (slider->isSliderDown()) {
@@ -237,10 +229,9 @@ void Live2DView::onParamValuesUpdated()
     }
 }
 
-void Live2DView::onPartTableItemClicked(QTableWidgetItem* item)
-{
-    if (holer.version == Version::V3) {
-        auto model = holer.model3;
+void Live2DView::onPartTableItemClicked(QTableWidgetItem* item) {
+    if (holder->version == Version::V3) {
+        auto model = holder->model3;
         if (selectedPartIndex != -1) {
             model->SetPartMultiplyColor(selectedPartIndex, 1.0f, 1.0f, 1.0f, 1.0f);
         }
@@ -250,20 +241,18 @@ void Live2DView::onPartTableItemClicked(QTableWidgetItem* item)
     }
 }
 
-void Live2DView::onDrawableListItemClicked(QListWidgetItem* item)
-{
-    if (holer.version == Version::V3) {
-        auto model = holer.model3;
+void Live2DView::onDrawableListItemClicked(QListWidgetItem* item) {
+    if (holder->version == Version::V3) {
+        auto model = holder->model3;
         const int index = ui.drawableList->row(item);
 
         ui.scene->selectDrawable(index);
     }
 }
 
-void Live2DView::onClearSelection()
-{
-    if (holer.version == Version::V3) {
-        auto model = holer.model3;
+void Live2DView::onClearSelection() {
+    if (holder->version == Version::V3) {
+        auto model = holder->model3;
         if (selectedPartIndex != -1) {
             model->SetPartMultiplyColor(selectedPartIndex, 1.0f, 1.0f, 1.0f, 1.0f);
         }

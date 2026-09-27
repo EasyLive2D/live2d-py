@@ -3,13 +3,11 @@
 namespace Live2D {
 namespace V2 {
 
-class L2DTargetPoint
-{
+class L2DTargetPoint {
 public:
     L2DTargetPoint() = default;
 
-    void set(float x, float y)
-    {
+    void set(float x, float y) {
         mTargetX = x;
         mTargetY = y;
     }

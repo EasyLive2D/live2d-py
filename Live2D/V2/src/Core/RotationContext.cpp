@@ -8,8 +8,7 @@ namespace V2 {
 RotationContext::RotationContext(RotationDeformer* deformer)
     : DeformerContext(deformer)
     , mRotationDeformer(deformer)
-    , mInterpolatedAffine(std::make_unique<AffineEnt>())
-{
+    , mInterpolatedAffine(std::make_unique<AffineEnt>()) {
     if (deformer->needTransform()) {
         mTransformedAffine = std::make_unique<AffineEnt>();
     }

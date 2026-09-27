@@ -14,8 +14,7 @@ namespace V2 {
 
 WarpDeformer::~WarpDeformer() = default;
 
-void WarpDeformer::read(BinaryReader& br)
-{
+void WarpDeformer::read(BinaryReader& br) {
     Deformer::read(br);
     mCol = br.readInt32();
     mRow = br.readInt32();
@@ -24,14 +23,12 @@ void WarpDeformer::read(BinaryReader& br)
     Deformer::readOpacity(br);
 }
 
-DeformerContext* WarpDeformer::init(ModelContext* mc)
-{
+DeformerContext* WarpDeformer::init(ModelContext* mc) {
     (void)mc;
     return new WarpContext(this);
 }
 
-void WarpDeformer::setupInterpolate(ModelContext* mc, DeformerContext* dc)
-{
+void WarpDeformer::setupInterpolate(ModelContext* mc, DeformerContext* dc) {
     auto* wctx = static_cast<WarpContext*>(dc);
     if (!mPivotMgr->checkParamUpdated(mc))
         return;
@@ -44,8 +41,7 @@ void WarpDeformer::setupInterpolate(ModelContext* mc, DeformerContext* dc)
     interpolateOpacity(mc, mPivotMgr.get(), wctx, success);
 }
 
-bool WarpDeformer::setupTransform(ModelContext* mc, DeformerContext* dc)
-{
+bool WarpDeformer::setupTransform(ModelContext* mc, DeformerContext* dc) {
     auto* wctx = static_cast<WarpContext*>(dc);
     wctx->setAvailable(true);
 
@@ -86,8 +82,7 @@ bool WarpDeformer::setupTransform(ModelContext* mc, DeformerContext* dc)
 void WarpDeformer::transformPoints(ModelContext* mc, DeformerContext* dc,
                                    const std::vector<float>& srcPoints,
                                    std::vector<float>& dstPoints, int numPoint, int ptOffset,
-                                   int ptStep)
-{
+                                   int ptStep) {
     auto* wctx = static_cast<WarpContext*>(dc);
     auto& pivot =
         !wctx->mTransformedPoints.empty() ? wctx->mTransformedPoints : wctx->mInterpolatedPoints;
@@ -97,8 +92,7 @@ void WarpDeformer::transformPoints(ModelContext* mc, DeformerContext* dc,
 // Static grid-based vertex transform (ported 1:1 from Python WarpDeformer)
 void WarpDeformer::transformPoints_sdk2(const std::vector<float>& src, std::vector<float>& dst,
                                         int pointCount, int srcOffset, int srcStep,
-                                        const std::vector<float>& grid, int row, int col)
-{
+                                        const std::vector<float>& grid, int row, int col) {
 
     int total = pointCount * srcStep;
     float aT = 0, aS = 0;

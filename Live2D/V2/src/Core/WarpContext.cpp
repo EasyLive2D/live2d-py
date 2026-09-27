@@ -6,8 +6,7 @@ namespace V2 {
 
 WarpContext::WarpContext(WarpDeformer* deformer)
     : DeformerContext(deformer)
-    , mWarpDeformer(deformer)
-{
+    , mWarpDeformer(deformer) {
     int pointCount = deformer->getPointCount();
     mInterpolatedPoints.resize(pointCount * 2);
 

@@ -4,8 +4,7 @@
 namespace Live2D {
 namespace V2 {
 class ModelContext;
-class AMotion
-{
+class AMotion {
 public:
     virtual ~AMotion() = default;
     virtual void updateParam(ModelContext* context, float timeSec, float weight) = 0;

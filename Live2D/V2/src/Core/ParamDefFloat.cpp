@@ -4,8 +4,7 @@
 namespace Live2D {
 namespace V2 {
 
-void ParamDefFloat::read(BinaryReader& br)
-{
+void ParamDefFloat::read(BinaryReader& br) {
     mMinValue = br.readFloat32();
     mMaxValue = br.readFloat32();
     mDefaultValue = br.readFloat32();

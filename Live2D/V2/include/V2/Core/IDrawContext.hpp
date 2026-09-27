@@ -3,8 +3,7 @@
 namespace Live2D {
 namespace V2 {
 
-class IDrawContext
-{
+class IDrawContext {
 public:
     virtual ~IDrawContext() = default;
 };

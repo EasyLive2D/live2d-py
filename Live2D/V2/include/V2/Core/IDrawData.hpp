@@ -1,8 +1,8 @@
 #pragma once
 #include <memory>
 
-#include "../Core/ISerializable.hpp"
-#include "../Core/Id.hpp"
+#include "ISerializable.hpp"
+#include "Id.hpp"
 #include <string>
 #include <vector>
 
@@ -14,8 +14,7 @@ class MeshContext;
 class ModelContext;
 class IDrawContext;
 
-class IDrawData : public ISerializable
-{
+class IDrawData : public ISerializable {
 public:
     static constexpr int DEFORMER_INDEX_NOT_INIT = -2;
     static constexpr int DEFAULT_ORDER = 500;

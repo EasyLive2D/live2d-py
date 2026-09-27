@@ -14,8 +14,8 @@ using namespace Live2D::Common::Log;
 
 #ifdef DEBUG_ENABLE_CALLSTACK
 static void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
-                                       GLsizei length, const GLchar* message, const void* userParam)
-{
+                                       GLsizei length, const GLchar* message,
+                                       const void* userParam) {
     // 过滤掉通知级别的消息，只关注错误和警告
     if (severity == GL_DEBUG_SEVERITY_NOTIFICATION)
         return;
@@ -36,12 +36,10 @@ static void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GL
 #endif
 
 
-static PyObject* v2cpp_init(PyObject*, PyObject*)
-{
+static PyObject* v2cpp_init(PyObject*, PyObject*) {
     Py_RETURN_NONE;
 }
-static PyObject* v2cpp_glInit(PyObject*, PyObject*)
-{
+static PyObject* v2cpp_glInit(PyObject*, PyObject*) {
     if (!gladLoadGL()) {
         PyErr_SetString(PyExc_RuntimeError, "Failed to initialize OpenGL");
         return nullptr;
@@ -60,16 +58,13 @@ static PyObject* v2cpp_glInit(PyObject*, PyObject*)
 #endif
     Py_RETURN_NONE;
 }
-static PyObject* v2cpp_glRelease(PyObject*, PyObject*)
-{
+static PyObject* v2cpp_glRelease(PyObject*, PyObject*) {
     Py_RETURN_NONE;
 }
-static PyObject* v2cpp_dispose(PyObject*, PyObject*)
-{
+static PyObject* v2cpp_dispose(PyObject*, PyObject*) {
     Py_RETURN_NONE;
 }
-static PyObject* v2cpp_clearBuffer(PyObject*, PyObject* args)
-{
+static PyObject* v2cpp_clearBuffer(PyObject*, PyObject* args) {
     float r = 0, g = 0, b = 0, a = 0;
     if (!PyArg_ParseTuple(args, "|ffff", &r, &g, &b, &a))
         return nullptr;
@@ -78,30 +73,26 @@ static PyObject* v2cpp_clearBuffer(PyObject*, PyObject* args)
     glClearDepth(1.0);
     Py_RETURN_NONE;
 }
-static PyObject* v2cpp_enableLog(PyObject*, PyObject* args)
-{
+static PyObject* v2cpp_enableLog(PyObject*, PyObject* args) {
     bool e;
     PyArg_ParseTuple(args, "b", &e);
     EnableLive2DLog(e);
     Py_RETURN_NONE;
 }
-static PyObject* v2cpp_isLogEnabled(PyObject*, PyObject*)
-{
+static PyObject* v2cpp_isLogEnabled(PyObject*, PyObject*) {
     if (IsLive2DLogEnabled()) {
         Py_RETURN_TRUE;
     } else {
         Py_RETURN_FALSE;
     }
 }
-static PyObject* v2cpp_setLogLevel(PyObject*, PyObject* args)
-{
+static PyObject* v2cpp_setLogLevel(PyObject*, PyObject* args) {
     int l;
     PyArg_ParseTuple(args, "i", &l);
     SetLive2DLogLevel(l);
     Py_RETURN_NONE;
 }
-static PyObject* v2cpp_getLogLevel(PyObject*, PyObject*)
-{
+static PyObject* v2cpp_getLogLevel(PyObject*, PyObject*) {
     return PyLong_FromLong(GetLive2DLogLevel());
 }
 
@@ -119,8 +110,7 @@ static PyMethodDef v2cpp_methods[] = {{"init", v2cpp_init, METH_VARARGS, ""},
 static PyModuleDef v2cpp_module = {
     PyModuleDef_HEAD_INIT, "_v2cpp", "Live2D Cubism v2 C++ port", -1, v2cpp_methods};
 
-PyMODINIT_FUNC PyInit__v2cpp(void)
-{
+PyMODINIT_FUNC PyInit__v2cpp(void) {
 #ifdef DEBUG_ENABLE_CALLSTACK
     InstallCrashHandler();
 #endif

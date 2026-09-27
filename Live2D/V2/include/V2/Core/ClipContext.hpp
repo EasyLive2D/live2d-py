@@ -9,8 +9,7 @@ namespace V2 {
 
 class ModelContext;
 
-class ClipContext
-{
+class ClipContext {
 public:
     ClipContext(ModelContext* mc, const std::vector<std::string>& clipIDs);
 

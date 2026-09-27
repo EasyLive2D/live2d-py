@@ -37,7 +37,7 @@ private:
     bool hasCdi;
     QJsonObject cdi;
 
-    const ModelHolder& holer;
+    ModelHolder* holder;
     int selectedPartIndex;
 
     QTimer syncTimer;

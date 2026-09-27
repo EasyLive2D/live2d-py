@@ -7,8 +7,7 @@
 namespace Live2D {
 namespace V2 {
 
-class ParamPivots final : public ISerializable
-{
+class ParamPivots final : public ISerializable {
 public:
     static constexpr int PARAM_INDEX_NOT_INIT = -2;
 
@@ -17,8 +16,7 @@ public:
     void read(class BinaryReader& br) override;
 
     int getParamIndex(int initVersion);
-    void setParamIndex(int index, int initVersion)
-    {
+    void setParamIndex(int index, int initVersion) {
         mParamIndex = index;
         mInitVersion = initVersion;
     }

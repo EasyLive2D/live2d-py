@@ -7,12 +7,10 @@
 namespace Live2D {
 namespace V2 {
 
-class Id
-{
+class Id {
 public:
     explicit Id(const std::string& idStr)
-        : mId(idStr)
-    {}
+        : mId(idStr) {}
 
     const std::string& str() const { return mId; }
 
@@ -35,8 +33,7 @@ private:
 
 namespace std {
 template<>
-struct hash<Live2D::V2::Id>
-{
+struct hash<Live2D::V2::Id> {
     size_t operator()(const Live2D::V2::Id& id) const noexcept { return hash<string>()(id.str()); }
 };
 }   // namespace std

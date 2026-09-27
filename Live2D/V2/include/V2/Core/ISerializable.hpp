@@ -5,8 +5,7 @@ namespace V2 {
 
 class BinaryReader;
 
-class ISerializable
-{
+class ISerializable {
 public:
     virtual ~ISerializable() = default;
     virtual void read(BinaryReader& br) = 0;

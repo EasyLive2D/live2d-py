@@ -16,13 +16,12 @@ namespace Live2D {
 namespace V3 {
 LAppTextureManager::LAppTextureManager() {}
 
-LAppTextureManager::~LAppTextureManager()
-{
+LAppTextureManager::~LAppTextureManager() {
     ReleaseTextures();
 }
 
-LAppTextureManager::TextureInfo* LAppTextureManager::CreateTextureFromPngFile(std::string fileName)
-{
+LAppTextureManager::TextureInfo* LAppTextureManager::CreateTextureFromPngFile(
+    std::string fileName) {
     // search loaded texture already.
     for (Csm::csmUint32 i = 0; i < mTextures.GetSize(); i++) {
         if (mTextures[i]->fileName == fileName) {
@@ -78,8 +77,7 @@ LAppTextureManager::TextureInfo* LAppTextureManager::CreateTextureFromPngFile(st
     return textureInfo;
 }
 
-void LAppTextureManager::ReleaseTextures()
-{
+void LAppTextureManager::ReleaseTextures() {
     for (Csm::csmUint32 i = 0; i < mTextures.GetSize(); i++) {
         glDeleteTextures(1, &(mTextures[i]->id));
         delete mTextures[i];
@@ -88,8 +86,7 @@ void LAppTextureManager::ReleaseTextures()
     mTextures.Clear();
 }
 
-void LAppTextureManager::ReleaseTexture(Csm::csmUint32 textureId)
-{
+void LAppTextureManager::ReleaseTexture(Csm::csmUint32 textureId) {
     for (Csm::csmUint32 i = 0; i < mTextures.GetSize(); i++) {
         if (mTextures[i]->id != textureId) {
             continue;
@@ -101,8 +98,7 @@ void LAppTextureManager::ReleaseTexture(Csm::csmUint32 textureId)
     }
 }
 
-void LAppTextureManager::ReleaseTexture(std::string fileName)
-{
+void LAppTextureManager::ReleaseTexture(std::string fileName) {
     for (Csm::csmUint32 i = 0; i < mTextures.GetSize(); i++) {
         if (mTextures[i]->fileName == fileName) {
             glDeleteTextures(1, &(mTextures[i]->id));
@@ -113,8 +109,7 @@ void LAppTextureManager::ReleaseTexture(std::string fileName)
     }
 }
 
-LAppTextureManager::TextureInfo* LAppTextureManager::GetTextureInfoById(GLuint textureId) const
-{
+LAppTextureManager::TextureInfo* LAppTextureManager::GetTextureInfoById(GLuint textureId) const {
     for (Csm::csmUint32 i = 0; i < mTextures.GetSize(); i++) {
         if (mTextures[i]->id == textureId) {
             return mTextures[i];

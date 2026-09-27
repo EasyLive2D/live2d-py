@@ -6,8 +6,7 @@
 
 using namespace Live2D::V3;
 
-struct PyModelObject
-{
+struct PyModelObject {
     PyObject_HEAD Model* model;
 };
 

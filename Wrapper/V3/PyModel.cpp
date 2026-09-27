@@ -3,8 +3,7 @@
 #include <Log.hpp>
 using namespace Live2D::Common::Log;
 
-static void MotionStartCallback(ACubismMotion* motion)
-{
+static void MotionStartCallback(ACubismMotion* motion) {
     void* callee = motion->GetBeganMotionCustomData();
     if (callee == nullptr) {
         return;
@@ -18,8 +17,7 @@ static void MotionStartCallback(ACubismMotion* motion)
     PyGILState_Release(state);
 }
 
-static void MotionFinishCallback(ACubismMotion* motion)
-{
+static void MotionFinishCallback(ACubismMotion* motion) {
     void* callee = motion->GetFinishedMotionCustomData();
     if (callee == nullptr) {
         return;
@@ -34,8 +32,7 @@ static void MotionFinishCallback(ACubismMotion* motion)
 }
 
 
-static PyObject* MakeCallee(PyObject* callback)
-{
+static PyObject* MakeCallee(PyObject* callback) {
     if (callback == nullptr)
         return nullptr;
 
@@ -53,21 +50,18 @@ static PyObject* MakeCallee(PyObject* callback)
     return callback;
 }
 
-static PyObject* PyModel_Init(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_Init(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     self->model = new Model();
     LOGI("allocate: cpp Model(at=%p)", self->model);
     return 0;
 }
-static void PyModel_Dealloc(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static void PyModel_Dealloc(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     LOGI("deallocate: cpp Model(at=%p)", self->model);
     delete self->model;
     LOGI("deallocate: PyModelObject(at=%p)", self);
     PyObject_Free(self);
 }
-static PyObject* PyModel_LoadModelJson(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_LoadModelJson(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     const char* modelJsonPath;
     if (!PyArg_ParseTuple(args, "s", &modelJsonPath)) {
         PyErr_SetString(PyExc_TypeError, "argument 1 must be str");
@@ -77,13 +71,11 @@ static PyObject* PyModel_LoadModelJson(PyModelObject* self, PyObject* args, PyOb
     self->model->LoadModelJson(modelJsonPath);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_GetModelHomeDir(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_GetModelHomeDir(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     return Py_BuildValue("s", self->model->GetModelHomeDir());
 }
 
-static PyObject* PyModel_Update(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_Update(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     float deltaTimeSeconds;
     if (!PyArg_ParseTuple(args, "f", &deltaTimeSeconds)) {
         PyErr_SetString(PyExc_TypeError, "argument 1 must be float");
@@ -92,8 +84,7 @@ static PyObject* PyModel_Update(PyModelObject* self, PyObject* args, PyObject* k
     self->model->Update(deltaTimeSeconds);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_UpdateMotion(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_UpdateMotion(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     float deltaTimeSeconds;
     if (!PyArg_ParseTuple(args, "f", &deltaTimeSeconds)) {
         PyErr_SetString(PyExc_TypeError, "argument 1 must be float");
@@ -102,8 +93,7 @@ static PyObject* PyModel_UpdateMotion(PyModelObject* self, PyObject* args, PyObj
     self->model->UpdateMotion(deltaTimeSeconds);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_UpdateDrag(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_UpdateDrag(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     float deltaTimeSeconds;
     if (!PyArg_ParseTuple(args, "f", &deltaTimeSeconds)) {
         PyErr_SetString(PyExc_TypeError, "argument 1 must be float");
@@ -112,8 +102,7 @@ static PyObject* PyModel_UpdateDrag(PyModelObject* self, PyObject* args, PyObjec
     self->model->UpdateDrag(deltaTimeSeconds);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_UpdateBreath(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_UpdateBreath(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     float deltaTimeSeconds;
     if (!PyArg_ParseTuple(args, "f", &deltaTimeSeconds)) {
         PyErr_SetString(PyExc_TypeError, "argument 1 must be float");
@@ -122,8 +111,7 @@ static PyObject* PyModel_UpdateBreath(PyModelObject* self, PyObject* args, PyObj
     self->model->UpdateBreath(deltaTimeSeconds);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_UpdateBlink(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_UpdateBlink(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     float deltaTimeSeconds;
     if (!PyArg_ParseTuple(args, "f", &deltaTimeSeconds)) {
         PyErr_SetString(PyExc_TypeError, "argument 1 must be float");
@@ -132,8 +120,7 @@ static PyObject* PyModel_UpdateBlink(PyModelObject* self, PyObject* args, PyObje
     self->model->UpdateBlink(deltaTimeSeconds);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_UpdateExpression(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_UpdateExpression(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     float deltaTimeSeconds;
     if (!PyArg_ParseTuple(args, "f", &deltaTimeSeconds)) {
         PyErr_SetString(PyExc_TypeError, "argument 1 must be float");
@@ -142,8 +129,7 @@ static PyObject* PyModel_UpdateExpression(PyModelObject* self, PyObject* args, P
     self->model->UpdateExpression(deltaTimeSeconds);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_UpdatePhysics(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_UpdatePhysics(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     float deltaTimeSeconds;
     if (!PyArg_ParseTuple(args, "f", &deltaTimeSeconds)) {
         PyErr_SetString(PyExc_TypeError, "argument 1 must be float");
@@ -152,8 +138,7 @@ static PyObject* PyModel_UpdatePhysics(PyModelObject* self, PyObject* args, PyOb
     self->model->UpdatePhysics(deltaTimeSeconds);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_UpdatePose(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_UpdatePose(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     float deltaTimeSeconds;
     if (!PyArg_ParseTuple(args, "f", &deltaTimeSeconds)) {
         PyErr_SetString(PyExc_TypeError, "argument 1 must be float");
@@ -162,8 +147,7 @@ static PyObject* PyModel_UpdatePose(PyModelObject* self, PyObject* args, PyObjec
     self->model->UpdatePose(deltaTimeSeconds);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_GetParameterIds(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_GetParameterIds(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     const int count = self->model->GetParameterCount();
     PyObject* list = PyList_New(count);
     int index = 0;
@@ -175,12 +159,10 @@ static PyObject* PyModel_GetParameterIds(PyModelObject* self, PyObject* args, Py
     });
     return list;
 }
-static PyObject* PyModel_GetParameterCount(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_GetParameterCount(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     return Py_BuildValue("i", self->model->GetParameterCount());
 }
-static PyObject* PyModel_GetParameterValue(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_GetParameterValue(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     int index;
     if (!PyArg_ParseTuple(args, "i", &index)) {
         PyErr_SetString(PyExc_TypeError, "argument 1 must be int");
@@ -189,8 +171,7 @@ static PyObject* PyModel_GetParameterValue(PyModelObject* self, PyObject* args, 
     return PyFloat_FromDouble(self->model->GetParameterValue(index));
 }
 static PyObject* PyModel_GetParameterMaximumValue(PyModelObject* self, PyObject* args,
-                                                  PyObject* kwargs)
-{
+                                                  PyObject* kwargs) {
     int index;
     if (!PyArg_ParseTuple(args, "i", &index)) {
         PyErr_SetString(PyExc_TypeError, "argument 1 must be int");
@@ -199,8 +180,7 @@ static PyObject* PyModel_GetParameterMaximumValue(PyModelObject* self, PyObject*
     return PyFloat_FromDouble(self->model->GetParameterMaximumValue(index));
 }
 static PyObject* PyModel_GetParameterMinimumValue(PyModelObject* self, PyObject* args,
-                                                  PyObject* kwargs)
-{
+                                                  PyObject* kwargs) {
     int index;
     if (!PyArg_ParseTuple(args, "i", &index)) {
         PyErr_SetString(PyExc_TypeError, "argument 1 must be int");
@@ -209,8 +189,7 @@ static PyObject* PyModel_GetParameterMinimumValue(PyModelObject* self, PyObject*
     return PyFloat_FromDouble(self->model->GetParameterMinimumValue(index));
 }
 static PyObject* PyModel_GetParameterDefaultValue(PyModelObject* self, PyObject* args,
-                                                  PyObject* kwargs)
-{
+                                                  PyObject* kwargs) {
     int index;
     if (!PyArg_ParseTuple(args, "i", &index)) {
         PyErr_SetString(PyExc_TypeError, "argument 1 must be int");
@@ -218,8 +197,7 @@ static PyObject* PyModel_GetParameterDefaultValue(PyModelObject* self, PyObject*
     }
     return PyFloat_FromDouble(self->model->GetParameterDefaultValue(index));
 }
-static PyObject* PyModel_SetParameterValue(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_SetParameterValue(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     int index;
     float value;
     float weight = 1.0f;
@@ -231,8 +209,7 @@ static PyObject* PyModel_SetParameterValue(PyModelObject* self, PyObject* args, 
     Py_RETURN_NONE;
 }
 static PyObject* PyModel_SetParameterValueById(PyModelObject* self, PyObject* args,
-                                               PyObject* kwargs)
-{
+                                               PyObject* kwargs) {
     const char* id;
     float value, weight = 1.0f;
     if (!PyArg_ParseTuple(args, "sf|f", &id, &value, &weight)) {
@@ -242,8 +219,7 @@ static PyObject* PyModel_SetParameterValueById(PyModelObject* self, PyObject* ar
     self->model->SetParameterValue(id, value, weight);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_AddParameterValue(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_AddParameterValue(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     int index;
     float value;
     if (!PyArg_ParseTuple(args, "if", &index, &value)) {
@@ -255,8 +231,7 @@ static PyObject* PyModel_AddParameterValue(PyModelObject* self, PyObject* args, 
     Py_RETURN_NONE;
 }
 static PyObject* PyModel_AddParameterValueById(PyModelObject* self, PyObject* args,
-                                               PyObject* kwargs)
-{
+                                               PyObject* kwargs) {
     const char* id;
     float value;
     if (!PyArg_ParseTuple(args, "sf", &id, &value)) {
@@ -267,8 +242,7 @@ static PyObject* PyModel_AddParameterValueById(PyModelObject* self, PyObject* ar
     Py_RETURN_NONE;
 }
 static PyObject* PyModel_SetAndSaveParameterValue(PyModelObject* self, PyObject* args,
-                                                  PyObject* kwargs)
-{
+                                                  PyObject* kwargs) {
     int index;
     float value;
     float weight = 1.0f;
@@ -280,8 +254,7 @@ static PyObject* PyModel_SetAndSaveParameterValue(PyModelObject* self, PyObject*
     Py_RETURN_NONE;
 }
 static PyObject* PyModel_SetAndSaveParameterValueById(PyModelObject* self, PyObject* args,
-                                                      PyObject* kwargs)
-{
+                                                      PyObject* kwargs) {
     const char* id;
     float value, weight = 1.0f;
     if (!PyArg_ParseTuple(args, "sf|f", &id, &value, &weight)) {
@@ -292,8 +265,7 @@ static PyObject* PyModel_SetAndSaveParameterValueById(PyModelObject* self, PyObj
     Py_RETURN_NONE;
 }
 static PyObject* PyModel_AddAndSaveParameterValue(PyModelObject* self, PyObject* args,
-                                                  PyObject* kwargs)
-{
+                                                  PyObject* kwargs) {
     int index;
     float value;
     if (!PyArg_ParseTuple(args, "if", &index, &value)) {
@@ -305,8 +277,7 @@ static PyObject* PyModel_AddAndSaveParameterValue(PyModelObject* self, PyObject*
     Py_RETURN_NONE;
 }
 static PyObject* PyModel_AddAndSaveParameterValueById(PyModelObject* self, PyObject* args,
-                                                      PyObject* kwargs)
-{
+                                                      PyObject* kwargs) {
     const char* id;
     float value;
     if (!PyArg_ParseTuple(args, "sf", &id, &value)) {
@@ -317,18 +288,15 @@ static PyObject* PyModel_AddAndSaveParameterValueById(PyModelObject* self, PyObj
     Py_RETURN_NONE;
 }
 
-static PyObject* PyModel_LoadParameters(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_LoadParameters(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     self->model->LoadParameters();
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_SaveParameters(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_SaveParameters(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     self->model->SaveParameters();
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_Resize(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_Resize(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     int width, height;
     if (!PyArg_ParseTuple(args, "ii", &width, &height)) {
         PyErr_SetString(PyExc_TypeError, "arguments must be (int, int)");
@@ -337,8 +305,7 @@ static PyObject* PyModel_Resize(PyModelObject* self, PyObject* args, PyObject* k
     self->model->Resize(width, height);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_SetOffset(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_SetOffset(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     float x, y;
     if (!PyArg_ParseTuple(args, "ff", &x, &y)) {
         PyErr_SetString(PyExc_TypeError, "arguments must be (float, float)");
@@ -347,8 +314,7 @@ static PyObject* PyModel_SetOffset(PyModelObject* self, PyObject* args, PyObject
     self->model->SetOffset(x, y);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_Rotate(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_Rotate(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     float degrees;
     if (!PyArg_ParseTuple(args, "f", &degrees)) {
         PyErr_SetString(PyExc_TypeError, "argument must be float");
@@ -357,8 +323,7 @@ static PyObject* PyModel_Rotate(PyModelObject* self, PyObject* args, PyObject* k
     self->model->Rotate(degrees);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_SetScale(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_SetScale(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     float scale;
     if (!PyArg_ParseTuple(args, "f", &scale)) {
         PyErr_SetString(PyExc_TypeError, "argument must be float");
@@ -367,8 +332,7 @@ static PyObject* PyModel_SetScale(PyModelObject* self, PyObject* args, PyObject*
     self->model->SetScale(scale);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_SetScaleX(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_SetScaleX(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     float scale;
     if (!PyArg_ParseTuple(args, "f", &scale)) {
         PyErr_SetString(PyExc_TypeError, "argument must be float");
@@ -377,8 +341,7 @@ static PyObject* PyModel_SetScaleX(PyModelObject* self, PyObject* args, PyObject
     self->model->SetScaleX(scale);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_SetScaleY(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_SetScaleY(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     float scale;
     if (!PyArg_ParseTuple(args, "f", &scale)) {
         PyErr_SetString(PyExc_TypeError, "argument must be float");
@@ -387,8 +350,7 @@ static PyObject* PyModel_SetScaleY(PyModelObject* self, PyObject* args, PyObject
     self->model->SetScaleY(scale);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_GetMvp(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_GetMvp(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     PyObject* mvp = PyTuple_New(16);
     const float* mvpArray = self->model->GetMvp();
     for (int i = 0; i < 16; i++) {
@@ -396,8 +358,7 @@ static PyObject* PyModel_GetMvp(PyModelObject* self, PyObject* args, PyObject* k
     }
     return mvp;
 }
-static PyObject* PyModel_StartMotion(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_StartMotion(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     const char* group;
     int no, priority = 3;
     PyObject* onStartHandler = nullptr;
@@ -425,8 +386,7 @@ static PyObject* PyModel_StartMotion(PyModelObject* self, PyObject* args, PyObje
                              MotionFinishCallback);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_StartRandomMotion(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_StartRandomMotion(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     const char* group = nullptr;
     int priority = 3;
 
@@ -454,16 +414,14 @@ static PyObject* PyModel_StartRandomMotion(PyModelObject* self, PyObject* args, 
                                    MotionFinishCallback);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_IsMotionFinished(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_IsMotionFinished(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     if (self->model->IsMotionFinished()) {
         Py_RETURN_TRUE;
     } else {
         Py_RETURN_FALSE;
     }
 }
-static PyObject* PyModel_LoadExtraMotion(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_LoadExtraMotion(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     const char *group, *motionJsonPath;
     if (!PyArg_ParseTuple(args, "ss", &group, &motionJsonPath)) {
         PyErr_SetString(PyExc_TypeError, "arguments must be (str, str)");
@@ -473,8 +431,7 @@ static PyObject* PyModel_LoadExtraMotion(PyModelObject* self, PyObject* args, Py
     const int no = self->model->LoadExtraMotion(group, motionJsonPath);
     return Py_BuildValue("i", no);
 }
-static PyObject* PyModel_GetMotions(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_GetMotions(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     PyObject* motions = PyDict_New();
     int* counts = new int[self->model->GetMotionGroupCount()];
     self->model->GetMotions(
@@ -495,8 +452,7 @@ static PyObject* PyModel_GetMotions(PyModelObject* self, PyObject* args, PyObjec
         });
     return motions;
 }
-static PyObject* PyModel_HitPart(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_HitPart(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     float x, y;
     bool topOnly = false;
     if (!PyArg_ParseTuple(args, "ff|b", &x, &y, &topOnly)) {
@@ -514,8 +470,7 @@ static PyObject* PyModel_HitPart(PyModelObject* self, PyObject* args, PyObject* 
         topOnly);
     return list;
 }
-static PyObject* PyModel_HitDrawable(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_HitDrawable(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     float x, y;
     bool topOnly = false;
     if (!PyArg_ParseTuple(args, "ff|b", &x, &y, &topOnly)) {
@@ -533,8 +488,7 @@ static PyObject* PyModel_HitDrawable(PyModelObject* self, PyObject* args, PyObje
         topOnly);
     return list;
 }
-static PyObject* PyModel_Drag(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_Drag(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     float x, y;
     if (!PyArg_ParseTuple(args, "ff", &x, &y)) {
         PyErr_SetString(PyExc_TypeError, "arguments must be (float, float)");
@@ -544,8 +498,7 @@ static PyObject* PyModel_Drag(PyModelObject* self, PyObject* args, PyObject* kwa
     self->model->Drag(x, y);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_IsAreaHit(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_IsAreaHit(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     const char* areaName;
     float x, y;
     if (!PyArg_ParseTuple(args, "sff", &areaName, &x, &y)) {
@@ -559,8 +512,7 @@ static PyObject* PyModel_IsAreaHit(PyModelObject* self, PyObject* args, PyObject
         Py_RETURN_FALSE;
     }
 }
-static PyObject* PyModel_IsPartHit(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_IsPartHit(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     int index;
     float x, y;
     if (!PyArg_ParseTuple(args, "iff", &index, &x, &y)) {
@@ -573,8 +525,7 @@ static PyObject* PyModel_IsPartHit(PyModelObject* self, PyObject* args, PyObject
         Py_RETURN_FALSE;
     }
 }
-static PyObject* PyModel_IsDrawableHit(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_IsDrawableHit(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     int index;
     float x, y;
     if (!PyArg_ParseTuple(args, "iff", &index, &x, &y)) {
@@ -588,8 +539,7 @@ static PyObject* PyModel_IsDrawableHit(PyModelObject* self, PyObject* args, PyOb
         Py_RETURN_FALSE;
     }
 }
-static PyObject* PyModel_CreateRenderer(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_CreateRenderer(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     int maskBufferCount = 2;
     if (!PyArg_ParseTuple(args, "|i", &maskBufferCount)) {
         PyErr_SetString(PyExc_TypeError, "arguments must be (int)");
@@ -598,18 +548,15 @@ static PyObject* PyModel_CreateRenderer(PyModelObject* self, PyObject* args, PyO
     self->model->CreateRenderer(maskBufferCount);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_DestroyRenderer(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_DestroyRenderer(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     self->model->DestroyRenderer();
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_Draw(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_Draw(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     self->model->Draw();
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_GetPartIds(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_GetPartIds(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     const int count = self->model->GetPartCount();
     PyObject* list = PyList_New(count);
     int index = 0;
@@ -622,8 +569,7 @@ static PyObject* PyModel_GetPartIds(PyModelObject* self, PyObject* args, PyObjec
     });
     return list;
 }
-static PyObject* PyModel_SetPartOpacity(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_SetPartOpacity(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     int index;
     float value;
     if (!PyArg_ParseTuple(args, "if", &index, &value)) {
@@ -633,8 +579,7 @@ static PyObject* PyModel_SetPartOpacity(PyModelObject* self, PyObject* args, PyO
     self->model->SetPartOpacity(index, value);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_SetPartScreenColor(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_SetPartScreenColor(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     int index;
     float r, g, b, a;
     if (!PyArg_ParseTuple(args, "iffff", &index, &r, &g, &b, &a)) {
@@ -644,8 +589,8 @@ static PyObject* PyModel_SetPartScreenColor(PyModelObject* self, PyObject* args,
     self->model->SetPartScreenColor(index, r, g, b, a);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_SetPartMultiplyColor(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_SetPartMultiplyColor(PyModelObject* self, PyObject* args,
+                                              PyObject* kwargs) {
     int index;
     float r, g, b, a;
     if (!PyArg_ParseTuple(args, "iffff", &index, &r, &g, &b, &a)) {
@@ -655,8 +600,7 @@ static PyObject* PyModel_SetPartMultiplyColor(PyModelObject* self, PyObject* arg
     self->model->SetPartMultiplyColor(index, r, g, b, a);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_GetDrawableIds(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_GetDrawableIds(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     const int count = self->model->GetDrawableCount();
     PyObject* list = PyList_New(count);
     int index = 0;
@@ -670,8 +614,7 @@ static PyObject* PyModel_GetDrawableIds(PyModelObject* self, PyObject* args, PyO
     return list;
 }
 static PyObject* PyModel_SetDrawableMultiplyColor(PyModelObject* self, PyObject* args,
-                                                  PyObject* kwargs)
-{
+                                                  PyObject* kwargs) {
     int index;
     float r, g, b, a;
     if (!PyArg_ParseTuple(args, "iffff", &index, &r, &g, &b, &a)) {
@@ -682,8 +625,7 @@ static PyObject* PyModel_SetDrawableMultiplyColor(PyModelObject* self, PyObject*
     Py_RETURN_NONE;
 }
 static PyObject* PyModel_SetDrawableScreenColor(PyModelObject* self, PyObject* args,
-                                                PyObject* kwargs)
-{
+                                                PyObject* kwargs) {
     int index;
     float r, g, b, a;
     if (!PyArg_ParseTuple(args, "iffff", &index, &r, &g, &b, &a)) {
@@ -693,8 +635,7 @@ static PyObject* PyModel_SetDrawableScreenColor(PyModelObject* self, PyObject* a
     self->model->SetDrawableScreenColor(index, r, g, b, a);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_AddExpression(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_AddExpression(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     const char* expressionId;
     if (!PyArg_ParseTuple(args, "s", &expressionId)) {
         PyErr_SetString(PyExc_TypeError, "arguments must be (str)");
@@ -703,8 +644,7 @@ static PyObject* PyModel_AddExpression(PyModelObject* self, PyObject* args, PyOb
     self->model->AddExpression(expressionId);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_RemoveExpression(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_RemoveExpression(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     const char* expressionId;
     if (!PyArg_ParseTuple(args, "s", &expressionId)) {
         PyErr_SetString(PyExc_TypeError, "arguments must be (str)");
@@ -713,8 +653,7 @@ static PyObject* PyModel_RemoveExpression(PyModelObject* self, PyObject* args, P
     self->model->RemoveExpression(expressionId);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_SetExpression(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_SetExpression(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     const char* expressionId;
     if (!PyArg_ParseTuple(args, "s", &expressionId)) {
         PyErr_SetString(PyExc_TypeError, "arguments must be (str)");
@@ -724,8 +663,8 @@ static PyObject* PyModel_SetExpression(PyModelObject* self, PyObject* args, PyOb
     Py_RETURN_NONE;
 }
 
-static PyObject* PyModel_SetRandomExpression(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_SetRandomExpression(PyModelObject* self, PyObject* args,
+                                             PyObject* kwargs) {
     const char* expId = self->model->SetRandomExpression();
     if (expId != nullptr) {
         return Py_BuildValue("s", expId);
@@ -734,18 +673,16 @@ static PyObject* PyModel_SetRandomExpression(PyModelObject* self, PyObject* args
     }
 }
 
-static PyObject* PyModel_ResetExpression(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_ResetExpression(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     self->model->ResetExpression();
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_ResetExpressions(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_ResetExpressions(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     self->model->ResetExpressions();
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_LoadExtraExpression(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_LoadExtraExpression(PyModelObject* self, PyObject* args,
+                                             PyObject* kwargs) {
     const char* expressionId;
     const char* filePath;
     if (!PyArg_ParseTuple(args, "ss", &expressionId, &filePath)) {
@@ -755,8 +692,7 @@ static PyObject* PyModel_LoadExtraExpression(PyModelObject* self, PyObject* args
     self->model->LoadExtraExpression(expressionId, filePath);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_GetExpressions(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_GetExpressions(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     const int count = self->model->GetExpressionCount();
     PyObject* list = PyList_New(count);
     int index = 0;
@@ -769,43 +705,36 @@ static PyObject* PyModel_GetExpressions(PyModelObject* self, PyObject* args, PyO
     });
     return list;
 }
-static PyObject* PyModel_StopAllMotions(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_StopAllMotions(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     self->model->StopAllMotions();
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_ResetAllParameters(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_ResetAllParameters(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     self->model->ResetAllParameters();
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_ResetPose(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_ResetPose(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     self->model->ResetPose();
     Py_RETURN_NONE;
 }
 
-static PyObject* PyModel_GetCanvasSize(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_GetCanvasSize(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     float w, h;
     self->model->GetCanvasSize(w, h);
     return Py_BuildValue("ff", w, h);
 }
 
-static PyObject* PyModel_GetCanvasSizePixel(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_GetCanvasSizePixel(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     float w, h;
     self->model->GetCanvasSizePixel(w, h);
     return Py_BuildValue("ff", w, h);
 }
 
-static PyObject* PyModel_GetPixelsPerUnit(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_GetPixelsPerUnit(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     return Py_BuildValue("f", self->model->GetPixelsPerUnit());
 }
 
-static PyObject* PyModel_SetAutoBreath(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_SetAutoBreath(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     bool on;
     if (!PyArg_ParseTuple(args, "b", &on)) {
         PyErr_SetString(PyExc_TypeError, "arguments must be (bool)");
@@ -817,8 +746,7 @@ static PyObject* PyModel_SetAutoBreath(PyModelObject* self, PyObject* args, PyOb
     Py_RETURN_NONE;
 }
 
-static PyObject* PyModel_SetAutoBlink(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_SetAutoBlink(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     bool on;
     if (!PyArg_ParseTuple(args, "b", &on)) {
         PyErr_SetString(PyExc_TypeError, "arguments must be (bool)");
@@ -830,8 +758,8 @@ static PyObject* PyModel_SetAutoBlink(PyModelObject* self, PyObject* args, PyObj
     Py_RETURN_NONE;
 }
 
-static PyObject* PyModel_GetPartMultiplyColor(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_GetPartMultiplyColor(PyModelObject* self, PyObject* args,
+                                              PyObject* kwargs) {
     int index;
     if (!PyArg_ParseTuple(args, "i", &index)) {
         PyErr_SetString(PyExc_TypeError, "arguments must be (int)");
@@ -841,8 +769,7 @@ static PyObject* PyModel_GetPartMultiplyColor(PyModelObject* self, PyObject* arg
     self->model->GetPartMultiplyColor(index, r, g, b, a);
     return Py_BuildValue("ffff", r, g, b, a);
 }
-static PyObject* PyModel_GetPartScreenColor(PyModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_GetPartScreenColor(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     int index;
     if (!PyArg_ParseTuple(args, "i", &index)) {
         PyErr_SetString(PyExc_TypeError, "arguments must be (int)");
@@ -853,8 +780,7 @@ static PyObject* PyModel_GetPartScreenColor(PyModelObject* self, PyObject* args,
     return Py_BuildValue("ffff", r, g, b, a);
 }
 
-static PyObject* PyModel_HasMocConsistencyFromFile(PyModelObject* self, PyObject* args)
-{
+static PyObject* PyModel_HasMocConsistencyFromFile(PyModelObject* self, PyObject* args) {
     const char* mocFileName;
     if (!PyArg_ParseTuple(args, "s", &mocFileName)) {
         PyErr_SetString(PyExc_TypeError, "argument must be (str)");
@@ -1048,8 +974,7 @@ static PyMethodDef PyModel_Methods[] = {
     {"HasMocConsistencyFromFile", (PyCFunction)PyModel_HasMocConsistencyFromFile, METH_VARARGS, ""},
 
     {NULL}};
-static PyObject* PyModel_New(PyTypeObject* type, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyModel_New(PyTypeObject* type, PyObject* args, PyObject* kwargs) {
     PyObject* self = (PyObject*)PyObject_Malloc(sizeof(PyModelObject));
     PyObject_Init(self, type);
     return self;

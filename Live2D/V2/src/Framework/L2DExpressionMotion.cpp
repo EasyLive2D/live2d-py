@@ -12,8 +12,7 @@ using json = nlohmann::json;
 
 L2DExpressionMotion::L2DExpressionMotion() = default;
 
-void L2DExpressionMotion::updateParam(ModelContext* context, float timeSec, float weight)
-{
+void L2DExpressionMotion::updateParam(ModelContext* context, float timeSec, float weight) {
     (void)timeSec;
     if (mParams.empty())
         return;
@@ -42,8 +41,7 @@ void L2DExpressionMotion::updateParam(ModelContext* context, float timeSec, floa
     }
 }
 
-L2DExpressionMotion* L2DExpressionMotion::load(const std::vector<uint8_t>& data)
-{
+L2DExpressionMotion* L2DExpressionMotion::load(const std::vector<uint8_t>& data) {
     auto* exp = new L2DExpressionMotion();
     if (data.empty())
         return exp;

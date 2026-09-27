@@ -16,8 +16,7 @@ int IDrawData::sTotalMaxOrder = IDrawData::DEFAULT_ORDER;
 
 IDrawData::~IDrawData() = default;
 
-void IDrawData::setDrawOrders(const std::vector<int>& orders)
-{
+void IDrawData::setDrawOrders(const std::vector<int>& orders) {
     for (int order : orders) {
         if (order < sTotalMinOrder)
             sTotalMinOrder = order;
@@ -26,8 +25,7 @@ void IDrawData::setDrawOrders(const std::vector<int>& orders)
     }
 }
 
-void IDrawData::read(BinaryReader& br)
-{
+void IDrawData::read(BinaryReader& br) {
     mId = br.readObject<const Id*>();
     mTargetId = br.readObject<const Id*>();
     mPivotMgr.reset(br.readObject<PivotManager*>());
@@ -50,8 +48,7 @@ void IDrawData::read(BinaryReader& br)
     }
 }
 
-void IDrawData::setupInterpolate(ModelContext* mc, MeshContext* ctx)
-{
+void IDrawData::setupInterpolate(ModelContext* mc, MeshContext* ctx) {
     ctx->mParamOutside = false;
     ctx->mInterpolatedDrawOrder =
         UtInterpolate::interpolateInt(mc, mPivotMgr.get(), ctx->mParamOutside, mPivotDrawOrders);
@@ -62,13 +59,11 @@ void IDrawData::setupInterpolate(ModelContext* mc, MeshContext* ctx)
         UtInterpolate::interpolateFloat(mc, mPivotMgr.get(), ctx->mParamOutside, mPivotOpacities);
 }
 
-float IDrawData::getOpacity(MeshContext* ctx)
-{
+float IDrawData::getOpacity(MeshContext* ctx) {
     return ctx->mInterpolatedOpacity;
 }
 
-int IDrawData::getDrawOrder(MeshContext* ctx)
-{
+int IDrawData::getDrawOrder(MeshContext* ctx) {
     return ctx->mInterpolatedDrawOrder;
 }
 

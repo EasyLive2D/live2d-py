@@ -2,8 +2,7 @@
 #include "V2/Model.hpp"
 #include "Python.hpp"
 
-struct PyLAppModelObject
-{
+struct PyLAppModelObject {
     PyObject_HEAD Live2D::V2::Model* model;
 };
 

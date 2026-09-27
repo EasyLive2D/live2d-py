@@ -17,28 +17,23 @@ namespace Log {
 std::atomic<bool> sLive2DLogEnable(true);
 std::atomic<int> sLive2DLogLevel(LV_INFO);
 
-void EnableLive2DLog(bool on)
-{
+void EnableLive2DLog(bool on) {
     sLive2DLogEnable.store(on);
 }
 
-bool IsLive2DLogEnabled()
-{
+bool IsLive2DLogEnabled() {
     return sLive2DLogEnable.load();
 }
 
-void SetLive2DLogLevel(int level)
-{
+void SetLive2DLogLevel(int level) {
     sLive2DLogLevel.store(level);
 }
 
-int GetLive2DLogLevel()
-{
+int GetLive2DLogLevel() {
     return sLive2DLogLevel.load();
 }
 
-void live2d_log_print(const char* tag, Levels level, const char* fmt, ...)
-{
+void live2d_log_print(const char* tag, Levels level, const char* fmt, ...) {
     if (sLive2DLogEnable.load() && level >= sLive2DLogLevel.load()) {
         char levelTag;
         switch (level) {

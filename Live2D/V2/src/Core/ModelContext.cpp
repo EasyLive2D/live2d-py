@@ -19,19 +19,16 @@
 namespace Live2D {
 namespace V2 {
 
-ModelContext::ModelContext()
-{
+ModelContext::ModelContext() {
     mTmpPivotTableIndices.resize(PIVOT_TABLE_SIZE);
     mTempTArray.resize(MAX_INTERPOLATION);
 }
 
-ModelContext::~ModelContext()
-{
+ModelContext::~ModelContext() {
     release();
 }
 
-void ModelContext::release()
-{
+void ModelContext::release() {
     mDeformerList.clear();
     mDrawDataList.clear();
     mPartsDataList.clear();
@@ -40,8 +37,7 @@ void ModelContext::release()
     mPartsContextList.clear();
 }
 
-void ModelContext::init(ModelImpl* modelImpl)
-{
+void ModelContext::init(ModelImpl* modelImpl) {
     mInitVersion++;
     if (!mPartsDataList.empty())
         release();
@@ -108,8 +104,7 @@ void ModelContext::init(ModelImpl* modelImpl)
     }
 }
 
-void ModelContext::update()
-{
+void ModelContext::update() {
     for (size_t i = 0; i < mParamValues.size(); i++) {
         if (mParamValues[i] != mLastParamValues[i]) {
             mUpdatedParamFlags[i] = PARAM_UPDATED;
@@ -162,8 +157,7 @@ void ModelContext::update()
         mUpdatedParamFlags[i] = false;
 }
 
-int ModelContext::getParamIndex(const Id* paramId)
-{
+int ModelContext::getParamIndex(const Id* paramId) {
     auto it = mParamIndexCache.find(paramId);
     if (it != mParamIndexCache.end())
         return it->second;
@@ -177,16 +171,14 @@ int ModelContext::getParamIndex(const Id* paramId)
     return idx;
 }
 
-int ModelContext::getDeformerIndex(const Id* id)
-{
+int ModelContext::getDeformerIndex(const Id* id) {
     for (int i = static_cast<int>(mDeformerList.size()) - 1; i >= 0; i--)
         if (mDeformerList[i] && mDeformerList[i]->getId() == id)
             return i;
     return -1;
 }
 
-int ModelContext::extendAndAddParam(const Id* paramId, float dv, float maxV, float minV)
-{
+int ModelContext::extendAndAddParam(const Id* paramId, float dv, float maxV, float minV) {
     mParamIdList.push_back(paramId);
     mParamValues.push_back(dv);
     mLastParamValues.push_back(dv);
@@ -197,8 +189,7 @@ int ModelContext::extendAndAddParam(const Id* paramId, float dv, float maxV, flo
     return mNextParamPos++;
 }
 
-void ModelContext::setParamFloat(int index, float value)
-{
+void ModelContext::setParamFloat(int index, float value) {
     if (value < mParamMinValues[index])
         value = mParamMinValues[index];
     if (value > mParamMaxValues[index])
@@ -206,8 +197,7 @@ void ModelContext::setParamFloat(int index, float value)
     mParamValues[index] = value;
 }
 
-void ModelContext::setParamFloat(int index, float value, float weight)
-{
+void ModelContext::setParamFloat(int index, float value, float weight) {
     if (weight <= 0)
         return;
     if (weight >= 1) {
@@ -218,47 +208,38 @@ void ModelContext::setParamFloat(int index, float value, float weight)
     setParamFloat(index, v);
 }
 
-float ModelContext::getParamFloat(int index) const
-{
+float ModelContext::getParamFloat(int index) const {
     return (index >= 0 && index < (int)mParamValues.size()) ? mParamValues[index] : 0;
 }
 
-float ModelContext::getParamMax(int index) const
-{
+float ModelContext::getParamMax(int index) const {
     return mParamMaxValues[index];
 }
-float ModelContext::getParamMin(int index) const
-{
+float ModelContext::getParamMin(int index) const {
     return mParamMinValues[index];
 }
-float ModelContext::getParamDefault(int index) const
-{
+float ModelContext::getParamDefault(int index) const {
     return mParamDefaultValues[index];
 }
-bool ModelContext::isParamUpdated(int index) const
-{
+bool ModelContext::isParamUpdated(int index) const {
     return mUpdatedParamFlags[index];
 }
 
-void ModelContext::loadParam()
-{
+void ModelContext::loadParam() {
     for (size_t i = 0; i < mSavedParamValues.size(); i++)
         mParamValues[i] = mSavedParamValues[i];
 }
-void ModelContext::saveParam()
-{
+void ModelContext::saveParam() {
     if (mSavedParamValues.size() < mParamValues.size())
         mSavedParamValues.resize(mParamValues.size());
     for (size_t i = 0; i < mParamValues.size(); i++)
         mSavedParamValues[i] = mParamValues[i];
 }
 
-IDrawData* ModelContext::getDrawData(int index) const
-{
+IDrawData* ModelContext::getDrawData(int index) const {
     return (index >= 0 && index < (int)mDrawDataList.size()) ? mDrawDataList[index] : nullptr;
 }
-int ModelContext::getDrawDataIndex(const Id* drawDataId) const
-{
+int ModelContext::getDrawDataIndex(const Id* drawDataId) const {
     auto it = mDrawDataIndexCache.find(drawDataId);
     if (it != mDrawDataIndexCache.end())
         return it->second;
@@ -270,8 +251,7 @@ int ModelContext::getDrawDataIndex(const Id* drawDataId) const
     mDrawDataIndexCache.emplace(drawDataId, -1);
     return -1;
 }
-int ModelContext::getPartsDataIndex(const Id* id) const
-{
+int ModelContext::getPartsDataIndex(const Id* id) const {
     auto it = mPartsDataIndexCache.find(id);
     if (it != mPartsDataIndexCache.end())
         return it->second;
@@ -283,20 +263,16 @@ int ModelContext::getPartsDataIndex(const Id* id) const
     mPartsDataIndexCache.emplace(id, -1);
     return -1;
 }
-void ModelContext::setPartsOpacity(int i, float op)
-{
+void ModelContext::setPartsOpacity(int i, float op) {
     mPartsContextList[i]->setPartsOpacity(op);
 }
-float ModelContext::getPartsOpacity(int i) const
-{
+float ModelContext::getPartsOpacity(int i) const {
     return mPartsContextList[i]->getPartsOpacity();
 }
-void ModelContext::setPartMultiplyColor(int i, float r, float g, float b, float a)
-{
+void ModelContext::setPartMultiplyColor(int i, float r, float g, float b, float a) {
     mPartsContextList[i]->setPartMultiplyColor(r, g, b, a);
 }
-void ModelContext::setPartScreenColor(int i, float r, float g, float b, float a)
-{
+void ModelContext::setPartScreenColor(int i, float r, float g, float b, float a) {
     mPartsContextList[i]->setPartScreenColor(r, g, b, a);
 }
 

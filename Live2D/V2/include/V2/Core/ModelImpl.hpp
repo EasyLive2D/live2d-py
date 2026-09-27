@@ -10,8 +10,7 @@
 namespace Live2D {
 namespace V2 {
 
-class ModelImpl final : public ISerializable
-{
+class ModelImpl final : public ISerializable {
 public:
     ModelImpl() = default;
     ~ModelImpl() override;

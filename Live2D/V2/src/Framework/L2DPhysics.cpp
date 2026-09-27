@@ -9,20 +9,17 @@ namespace V2 {
 
 using json = nlohmann::json;
 
-L2DPhysics::L2DPhysics()
-{
+L2DPhysics::L2DPhysics() {
     mStartTimeMs = (long long)UtSystem::getUserTimeMSec();
 }
 
-void L2DPhysics::updateParam(ModelContext* context)
-{
+void L2DPhysics::updateParam(ModelContext* context) {
     long long t = (long long)UtSystem::getUserTimeMSec() - mStartTimeMs;
     for (auto& ph : mPhysicsList)
         ph->update(context, t);
 }
 
-L2DPhysics* L2DPhysics::load(const std::vector<uint8_t>& data)
-{
+L2DPhysics* L2DPhysics::load(const std::vector<uint8_t>& data) {
     auto* ret = new L2DPhysics();
     if (data.empty())
         return ret;

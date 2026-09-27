@@ -3,8 +3,7 @@
 #include <vector>
 namespace Live2D {
 namespace V2 {
-struct L2DPartsParam
-{
+struct L2DPartsParam {
     std::string mId;
     int mLinkCount = 0;
     std::vector<std::string> mLinkIds;

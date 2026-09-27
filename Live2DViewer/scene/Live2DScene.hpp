@@ -1,36 +1,36 @@
 #pragma once
 #include <V2/Model.hpp>
 #include <V3/Model.hpp>
-#include <QOpenGLWidget>
+
+#include <QMenu>
 #include <QOpenGLFunctions>
 #include <QOpenGLShaderProgram>
-#include <QMenu>
+#include <QOpenGLWidget>
 #include <optional>
+
+
 
 
 using namespace Live2D;
 
 
-struct ParamValue
-{
+struct ParamValue {
     int index;
     float value;
 };
 
-enum Version {
-    V2 = 2,
-    V3 = 3
-};
+enum Version { V2 = 2, V3 = 3 };
 
-union ModelHolder {
+struct ModelHolder {
     Version version;
-    V2::Model* model2;
-    V3::Model* model3;
+    union {
+        V2::Model* model2;
+        V3::Model* model3;
+    };
 };
 
 
-class Live2DScene : public QOpenGLWidget, protected QOpenGLFunctions
-{
+class Live2DScene : public QOpenGLWidget, protected QOpenGLFunctions {
     Q_OBJECT
 
 signals:
@@ -43,18 +43,19 @@ public slots:
     void setAutoPhysics(bool value);
 
 protected:
-    void timerEvent(QTimerEvent *event) override;
+    void timerEvent(QTimerEvent* event) override;
     void initializeGL() override;
     void paintGL() override;
     void resizeGL(int w, int h) override;
 
-    void mouseMoveEvent(QMouseEvent *event) override;
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
 
-    void keyPressEvent(QKeyEvent *event) override;
+    void keyPressEvent(QKeyEvent* event) override;
+
 public:
-    Live2DScene(QWidget *parent = nullptr);
+    Live2DScene(QWidget* parent = nullptr);
     ~Live2DScene();
 
     void LoadModel(const QString& filePath);
@@ -76,7 +77,7 @@ private:
     bool autoBreath;
     bool autoPhysics;
 
-    QOpenGLShaderProgram *program;
+    QOpenGLShaderProgram* program;
     GLuint vbo;
     int selectedDrawableIndex;
 

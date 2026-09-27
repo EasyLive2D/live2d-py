@@ -8,8 +8,7 @@
 using namespace Live2D::Common::Log;
 
 // ---- Callback helpers (Python → C++ conversion, no live2d dependency) ----
-static auto MakeMotionCallback(PyObject* cb) -> std::function<void(const std::string&, int)>
-{
+static auto MakeMotionCallback(PyObject* cb) -> std::function<void(const std::string&, int)> {
     if (!cb || Py_IsNone(cb) || !PyCallable_Check(cb))
         return nullptr;
     Py_INCREF(cb);
@@ -25,8 +24,7 @@ static auto MakeMotionCallback(PyObject* cb) -> std::function<void(const std::st
     };
 }
 
-PyObject* PyLAppModel_new(PyTypeObject* type, PyObject*, PyObject*)
-{
+PyObject* PyLAppModel_new(PyTypeObject* type, PyObject*, PyObject*) {
     auto* self = (PyLAppModelObject*)PyObject_Malloc(sizeof(PyLAppModelObject));
     if (!self)
         return nullptr;
@@ -34,14 +32,12 @@ PyObject* PyLAppModel_new(PyTypeObject* type, PyObject*, PyObject*)
     return (PyObject*)self;
 }
 
-int PyLAppModel_init(PyLAppModelObject* self, PyObject*, PyObject*)
-{
+int PyLAppModel_init(PyLAppModelObject* self, PyObject*, PyObject*) {
     self->model = new Live2D::V2::Model();
     return 0;
 }
 
-void PyLAppModel_dealloc(PyLAppModelObject* self)
-{
+void PyLAppModel_dealloc(PyLAppModelObject* self) {
     LOGI("deallocate: cpp LAppModel(at=%p)", self->model);
     delete self->model;
     LOGI("deallocate: PyLAppModelObject(at=%p)", self);
@@ -50,8 +46,7 @@ void PyLAppModel_dealloc(PyLAppModelObject* self)
 }
 
 static PyObject* PyLAppModel_LoadModelJson(PyLAppModelObject* self, PyObject* args,
-                                           PyObject* kwargs)
-{
+                                           PyObject* kwargs) {
     const char* path;
     static const char* kwlist[] = {"path", "create_renderer", nullptr};
     bool createRenderer = true;
@@ -63,8 +58,7 @@ static PyObject* PyLAppModel_LoadModelJson(PyLAppModelObject* self, PyObject* ar
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_Resize(PyLAppModelObject* self, PyObject* args)
-{
+static PyObject* PyLAppModel_Resize(PyLAppModelObject* self, PyObject* args) {
     int w, h;
     if (!PyArg_ParseTuple(args, "ii", &w, &h))
         return nullptr;
@@ -72,8 +66,7 @@ static PyObject* PyLAppModel_Resize(PyLAppModelObject* self, PyObject* args)
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_Drag(PyLAppModelObject* self, PyObject* args)
-{
+static PyObject* PyLAppModel_Drag(PyLAppModelObject* self, PyObject* args) {
     float x, y;
     if (!PyArg_ParseTuple(args, "ff", &x, &y))
         return nullptr;
@@ -81,13 +74,11 @@ static PyObject* PyLAppModel_Drag(PyLAppModelObject* self, PyObject* args)
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_IsMotionFinished(PyLAppModelObject* self, PyObject*)
-{
+static PyObject* PyLAppModel_IsMotionFinished(PyLAppModelObject* self, PyObject*) {
     return PyBool_FromLong(self->model->isMotionFinished() ? 1 : 0);
 }
 
-static PyObject* PyLAppModel_SetOffset(PyLAppModelObject* self, PyObject* args)
-{
+static PyObject* PyLAppModel_SetOffset(PyLAppModelObject* self, PyObject* args) {
     float dx, dy;
     if (!PyArg_ParseTuple(args, "ff", &dx, &dy))
         return nullptr;
@@ -95,8 +86,7 @@ static PyObject* PyLAppModel_SetOffset(PyLAppModelObject* self, PyObject* args)
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_SetScale(PyLAppModelObject* self, PyObject* args)
-{
+static PyObject* PyLAppModel_SetScale(PyLAppModelObject* self, PyObject* args) {
     float s;
     if (!PyArg_ParseTuple(args, "f", &s))
         return nullptr;
@@ -104,8 +94,7 @@ static PyObject* PyLAppModel_SetScale(PyLAppModelObject* self, PyObject* args)
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_SetParameterValue(PyLAppModelObject* self, PyObject* args)
-{
+static PyObject* PyLAppModel_SetParameterValue(PyLAppModelObject* self, PyObject* args) {
     const char* id;
     float val, weight = 1.0f;
     if (!PyArg_ParseTuple(args, "sf|f", &id, &val, &weight))
@@ -114,8 +103,7 @@ static PyObject* PyLAppModel_SetParameterValue(PyLAppModelObject* self, PyObject
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_AddParameterValue(PyLAppModelObject* self, PyObject* args)
-{
+static PyObject* PyLAppModel_AddParameterValue(PyLAppModelObject* self, PyObject* args) {
     const char* id;
     float val, weight = 1.0f;
     if (!PyArg_ParseTuple(args, "sf|f", &id, &val, &weight))
@@ -124,8 +112,7 @@ static PyObject* PyLAppModel_AddParameterValue(PyLAppModelObject* self, PyObject
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_SetAutoBreathEnable(PyLAppModelObject* self, PyObject* args)
-{
+static PyObject* PyLAppModel_SetAutoBreathEnable(PyLAppModelObject* self, PyObject* args) {
     int v;
     if (!PyArg_ParseTuple(args, "p", &v))
         return nullptr;
@@ -133,8 +120,7 @@ static PyObject* PyLAppModel_SetAutoBreathEnable(PyLAppModelObject* self, PyObje
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_SetAutoBlinkEnable(PyLAppModelObject* self, PyObject* args)
-{
+static PyObject* PyLAppModel_SetAutoBlinkEnable(PyLAppModelObject* self, PyObject* args) {
     int v;
     if (!PyArg_ParseTuple(args, "p", &v))
         return nullptr;
@@ -142,26 +128,22 @@ static PyObject* PyLAppModel_SetAutoBlinkEnable(PyLAppModelObject* self, PyObjec
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_GetParameterCount(PyLAppModelObject* self, PyObject*)
-{
+static PyObject* PyLAppModel_GetParameterCount(PyLAppModelObject* self, PyObject*) {
     return PyLong_FromLong(self->model->getParameterCount());
 }
 
-static PyObject* PyLAppModel_GetPartCount(PyLAppModelObject* self, PyObject*)
-{
+static PyObject* PyLAppModel_GetPartCount(PyLAppModelObject* self, PyObject*) {
     return PyLong_FromLong(self->model->getPartCount());
 }
 
-static PyObject* PyLAppModel_GetPartId(PyLAppModelObject* self, PyObject* args)
-{
+static PyObject* PyLAppModel_GetPartId(PyLAppModelObject* self, PyObject* args) {
     int idx;
     if (!PyArg_ParseTuple(args, "i", &idx))
         return nullptr;
     return PyUnicode_FromString(self->model->getPartId(idx).c_str());
 }
 
-static PyObject* PyLAppModel_GetPartIds(PyLAppModelObject* self, PyObject*)
-{
+static PyObject* PyLAppModel_GetPartIds(PyLAppModelObject* self, PyObject*) {
     int n = self->model->getPartCount();
     PyObject* lst = PyList_New(n);
     for (int i = 0; i < n; i++)
@@ -169,8 +151,7 @@ static PyObject* PyLAppModel_GetPartIds(PyLAppModelObject* self, PyObject*)
     return lst;
 }
 
-static PyObject* PyLAppModel_SetPartOpacity(PyLAppModelObject* self, PyObject* args)
-{
+static PyObject* PyLAppModel_SetPartOpacity(PyLAppModelObject* self, PyObject* args) {
     int idx;
     float val;
     if (!PyArg_ParseTuple(args, "if", &idx, &val))
@@ -179,20 +160,17 @@ static PyObject* PyLAppModel_SetPartOpacity(PyLAppModelObject* self, PyObject* a
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_Update(PyLAppModelObject* self, PyObject*)
-{
+static PyObject* PyLAppModel_Update(PyLAppModelObject* self, PyObject*) {
     self->model->update();
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_Draw(PyLAppModelObject* self, PyObject*)
-{
+static PyObject* PyLAppModel_Draw(PyLAppModelObject* self, PyObject*) {
     self->model->draw();
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_HitTest(PyLAppModelObject* self, PyObject* args)
-{
+static PyObject* PyLAppModel_HitTest(PyLAppModelObject* self, PyObject* args) {
     const char* area;
     float x, y;
     if (!PyArg_ParseTuple(args, "sff", &area, &x, &y))
@@ -203,8 +181,7 @@ static PyObject* PyLAppModel_HitTest(PyLAppModelObject* self, PyObject* args)
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_SetExpression(PyLAppModelObject* self, PyObject* args)
-{
+static PyObject* PyLAppModel_SetExpression(PyLAppModelObject* self, PyObject* args) {
     const char* name;
     if (!PyArg_ParseTuple(args, "s", &name))
         return nullptr;
@@ -212,14 +189,13 @@ static PyObject* PyLAppModel_SetExpression(PyLAppModelObject* self, PyObject* ar
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_SetRandomExpression(PyLAppModelObject* self, PyObject*)
-{
+static PyObject* PyLAppModel_SetRandomExpression(PyLAppModelObject* self, PyObject*) {
     self->model->setRandomExpression();
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_StartMotion(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
-{
+static PyObject* PyLAppModel_StartMotion(PyLAppModelObject* self, PyObject* args,
+                                         PyObject* kwargs) {
     const char* group;
     int no, priority;
     PyObject* onStart = nullptr;
@@ -243,8 +219,7 @@ static PyObject* PyLAppModel_StartMotion(PyLAppModelObject* self, PyObject* args
 }
 
 static PyObject* PyLAppModel_StartRandomMotion(PyLAppModelObject* self, PyObject* args,
-                                               PyObject* kwargs)
-{
+                                               PyObject* kwargs) {
     PyObject* nameObj = Py_None;
     PyObject* prioObj = Py_None;
     PyObject* onStart = nullptr;
@@ -286,46 +261,38 @@ static PyObject* PyLAppModel_StartRandomMotion(PyLAppModelObject* self, PyObject
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_GetCanvasWidth(PyLAppModelObject* self, PyObject*)
-{
+static PyObject* PyLAppModel_GetCanvasWidth(PyLAppModelObject* self, PyObject*) {
     return PyFloat_FromDouble(self->model->getCanvasWidth());
 }
 
-static PyObject* PyLAppModel_GetCanvasHeight(PyLAppModelObject* self, PyObject*)
-{
+static PyObject* PyLAppModel_GetCanvasHeight(PyLAppModelObject* self, PyObject*) {
     return PyFloat_FromDouble(self->model->getCanvasHeight());
 }
-static PyObject* PyLAppModel_GetCanvasSize(PyLAppModelObject* self, PyObject*)
-{
+static PyObject* PyLAppModel_GetCanvasSize(PyLAppModelObject* self, PyObject*) {
     return Py_BuildValue("(ff)", self->model->getCanvasWidth(), self->model->getCanvasHeight());
 }
 
-static PyObject* PyLAppModel_ClearMotions(PyLAppModelObject* self, PyObject*)
-{
+static PyObject* PyLAppModel_ClearMotions(PyLAppModelObject* self, PyObject*) {
     self->model->clearMotions();
     Py_RETURN_NONE;
 }
-static PyObject* PyLAppModel_StopAllMotions(PyLAppModelObject* self, PyObject*)
-{
+static PyObject* PyLAppModel_StopAllMotions(PyLAppModelObject* self, PyObject*) {
     self->model->stopAllMotions();
     Py_RETURN_NONE;
 }
-static PyObject* PyLAppModel_ResetPose(PyLAppModelObject* self, PyObject*)
-{
+static PyObject* PyLAppModel_ResetPose(PyLAppModelObject* self, PyObject*) {
     self->model->resetPose();
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_ResetExpression(PyLAppModelObject* self, PyObject*)
-{
+static PyObject* PyLAppModel_ResetExpression(PyLAppModelObject* self, PyObject*) {
     self->model->resetExpression();
     Py_RETURN_NONE;
 }
 // Global reference to Parameter class (imported from live2d.v2.params)
 static PyObject* sParamClass = nullptr;
 
-static void ensureParamClass()
-{
+static void ensureParamClass() {
     if (!sParamClass) {
         auto* mod = PyImport_ImportModule("live2d.v2.params");
         if (mod) {
@@ -335,8 +302,7 @@ static void ensureParamClass()
     }
 }
 
-static PyObject* PyLAppModel_GetParameter(PyLAppModelObject* self, PyObject* args)
-{
+static PyObject* PyLAppModel_GetParameter(PyLAppModelObject* self, PyObject* args) {
     int index;
     if (!PyArg_ParseTuple(args, "i", &index))
         return nullptr;
@@ -358,8 +324,7 @@ static PyObject* PyLAppModel_GetParameter(PyLAppModelObject* self, PyObject* arg
     return param;
 }
 
-static PyObject* PyLAppModel_HitPart(PyLAppModelObject* self, PyObject* args)
-{
+static PyObject* PyLAppModel_HitPart(PyLAppModelObject* self, PyObject* args) {
     float x, y;
     int topOnly = 0;
     if (!PyArg_ParseTuple(args, "ff|p", &x, &y, &topOnly))
@@ -371,8 +336,7 @@ static PyObject* PyLAppModel_HitPart(PyLAppModelObject* self, PyObject* args)
     return lst;
 }
 
-static PyObject* PyLAppModel_SetPartScreenColor(PyLAppModelObject* self, PyObject* args)
-{
+static PyObject* PyLAppModel_SetPartScreenColor(PyLAppModelObject* self, PyObject* args) {
     int idx;
     float r, g, b, a;
     if (!PyArg_ParseTuple(args, "iffff", &idx, &r, &g, &b, &a))
@@ -380,16 +344,14 @@ static PyObject* PyLAppModel_SetPartScreenColor(PyLAppModelObject* self, PyObjec
     self->model->setPartScreenColor(idx, r, g, b, a);
     Py_RETURN_NONE;
 }
-static PyObject* PyLAppModel_GetPartScreenColor(PyLAppModelObject* self, PyObject* args)
-{
+static PyObject* PyLAppModel_GetPartScreenColor(PyLAppModelObject* self, PyObject* args) {
     int idx;
     if (!PyArg_ParseTuple(args, "i", &idx))
         return nullptr;
     auto c = self->model->getPartScreenColor(idx);
     return Py_BuildValue("[ffff]", c[0], c[1], c[2], c[3]);
 }
-static PyObject* PyLAppModel_SetPartMultiplyColor(PyLAppModelObject* self, PyObject* args)
-{
+static PyObject* PyLAppModel_SetPartMultiplyColor(PyLAppModelObject* self, PyObject* args) {
     int idx;
     float r, g, b, a;
     if (!PyArg_ParseTuple(args, "iffff", &idx, &r, &g, &b, &a))
@@ -397,38 +359,32 @@ static PyObject* PyLAppModel_SetPartMultiplyColor(PyLAppModelObject* self, PyObj
     self->model->setPartMultiplyColor(idx, r, g, b, a);
     Py_RETURN_NONE;
 }
-static PyObject* PyLAppModel_GetPartMultiplyColor(PyLAppModelObject* self, PyObject* args)
-{
+static PyObject* PyLAppModel_GetPartMultiplyColor(PyLAppModelObject* self, PyObject* args) {
     int idx;
     if (!PyArg_ParseTuple(args, "i", &idx))
         return nullptr;
     auto c = self->model->getPartMultiplyColor(idx);
     return Py_BuildValue("[ffff]", c[0], c[1], c[2], c[3]);
 }
-static PyObject* PyLAppModel_Rotate(PyLAppModelObject* self, PyObject* args)
-{
+static PyObject* PyLAppModel_Rotate(PyLAppModelObject* self, PyObject* args) {
     float deg;
     if (!PyArg_ParseTuple(args, "f", &deg))
         return nullptr;
     self->model->rotate(deg);
     Py_RETURN_NONE;
 }
-static PyObject* PyLAppModel_GetPixelsPerUnit(PyLAppModelObject* self, PyObject*)
-{
+static PyObject* PyLAppModel_GetPixelsPerUnit(PyLAppModelObject* self, PyObject*) {
     return PyLong_FromLong(self->model->getPixelsPerUnit());
 }
-static PyObject* PyLAppModel_GetCanvasSizePixel(PyLAppModelObject* self, PyObject*)
-{
+static PyObject* PyLAppModel_GetCanvasSizePixel(PyLAppModelObject* self, PyObject*) {
     return Py_BuildValue("(ff)", self->model->getCanvasWidth(), self->model->getCanvasHeight());
 }
 
 // --- autoBreath property ---
-static PyObject* PyLAppModel_getAutoBreath(PyLAppModelObject* self, void*)
-{
+static PyObject* PyLAppModel_getAutoBreath(PyLAppModelObject* self, void*) {
     return PyBool_FromLong(self->model->autoBreathEnabled() ? 1 : 0);
 }
-static PyObject* PyLAppModel_setAutoBreath(PyLAppModelObject* self, PyObject* value, void*)
-{
+static PyObject* PyLAppModel_setAutoBreath(PyLAppModelObject* self, PyObject* value, void*) {
     if (!value) {
         PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
         Py_RETURN_NONE;
@@ -441,12 +397,10 @@ static PyObject* PyLAppModel_setAutoBreath(PyLAppModelObject* self, PyObject* va
 }
 
 // --- autoBlink property ---
-static PyObject* PyLAppModel_getAutoBlink(PyLAppModelObject* self, void*)
-{
+static PyObject* PyLAppModel_getAutoBlink(PyLAppModelObject* self, void*) {
     return PyBool_FromLong(self->model->autoBlinkEnabled() ? 1 : 0);
 }
-static PyObject* PyLAppModel_setAutoBlink(PyLAppModelObject* self, PyObject* value, void*)
-{
+static PyObject* PyLAppModel_setAutoBlink(PyLAppModelObject* self, PyObject* value, void*) {
     if (!value) {
         PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
         Py_RETURN_NONE;
@@ -458,14 +412,12 @@ static PyObject* PyLAppModel_setAutoBlink(PyLAppModelObject* self, PyObject* val
     Py_RETURN_TRUE;
 }
 
-static PyObject* PyLAppModel_CreateRenderer(PyLAppModelObject* self, PyObject*)
-{
+static PyObject* PyLAppModel_CreateRenderer(PyLAppModelObject* self, PyObject*) {
     self->model->CreateRenderer();
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_ReleaseRenderer(PyLAppModelObject* self, PyObject*)
-{
+static PyObject* PyLAppModel_ReleaseRenderer(PyLAppModelObject* self, PyObject*) {
     self->model->ReleaseRenderer();
     Py_RETURN_NONE;
 }

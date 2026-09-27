@@ -24,8 +24,7 @@ namespace Live2D {
 namespace V3 {
 std::string LAppPal::SHADER_DIR = "";
 
-csmByte* LAppPal::LoadFileAsBytes(const std::string filePath, csmSizeInt* outSize)
-{
+csmByte* LAppPal::LoadFileAsBytes(const std::string filePath, csmSizeInt* outSize) {
     // filePath;//
     std::string pathStr = filePath;
     interceptShaderLoading(pathStr);
@@ -61,31 +60,26 @@ csmByte* LAppPal::LoadFileAsBytes(const std::string filePath, csmSizeInt* outSiz
     return reinterpret_cast<csmByte*>(buf);
 }
 
-void LAppPal::ReleaseBytes(csmByte* byteData)
-{
+void LAppPal::ReleaseBytes(csmByte* byteData) {
     delete[] byteData;
 }
 
-void LAppPal::PrintLn(const Csm::csmChar* message)
-{
+void LAppPal::PrintLn(const Csm::csmChar* message) {
     LOGI(message);
 }
 
-double LAppPal::GetCurrentTimePoint()
-{
+double LAppPal::GetCurrentTimePoint() {
     return std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch())
         .count();
 }
 
-void LAppPal::InitShaderDir(const std::string& path)
-{
+void LAppPal::InitShaderDir(const std::string& path) {
     SHADER_DIR = path;
     SHADER_DIR += std::filesystem::path::preferred_separator;
     LOGI("[Pal] Init Shader Dir: %s", SHADER_DIR.c_str());
 }
 
-void LAppPal::FixMotionJson(std::string& jsonStr)
-{
+void LAppPal::FixMotionJson(std::string& jsonStr) {
     using namespace Live2D::Cubism::Framework::Utils;
     CubismJson* json = CubismJson::Create(reinterpret_cast<const csmByte*>(jsonStr.data()),
                                           static_cast<csmSizeInt>(jsonStr.size()));
@@ -103,13 +97,7 @@ void LAppPal::FixMotionJson(std::string& jsonStr)
     csmInt32 actualSegmentCount = 0;
     csmInt32 actualPointCount = 0;
 
-    enum
-    {
-        Linear = 0,
-        Bezier = 1,
-        Stepped = 2,
-        InverseStepped = 3
-    };
+    enum { Linear = 0, Bezier = 1, Stepped = 2, InverseStepped = 3 };
 
     Value& curves = root["Curves"];
     for (csmInt32 ci = 0; ci < actualCurveCount; ci++) {
@@ -167,8 +155,7 @@ void LAppPal::FixMotionJson(std::string& jsonStr)
     fixInt("\"TotalPointCount\"", actualPointCount);
 }
 
-void LAppPal::interceptShaderLoading(std::string& filePath)
-{
+void LAppPal::interceptShaderLoading(std::string& filePath) {
     if (filePath.substr(0, 17) == "FrameworkShaders/") {
         LOGD("[Pal] intercept for shader: %s", filePath.c_str());
         filePath = SHADER_DIR + (char)std::filesystem::path::preferred_separator + filePath;

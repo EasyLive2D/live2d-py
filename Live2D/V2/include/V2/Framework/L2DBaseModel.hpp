@@ -13,8 +13,7 @@ class L2DEyeBlink;
 class L2DPose;
 class L2DPhysics;
 class AMotion;
-class L2DBaseModel
-{
+class L2DBaseModel {
 public:
     L2DBaseModel();
     virtual ~L2DBaseModel();
@@ -29,14 +28,12 @@ public:
     L2DMotionManager* getExpressionManager() const { return mExpressionMgr.get(); }
     void setAlpha(float a) { mAlpha = (a < 0 ? 0 : (a > 1 ? 1 : a)); }
     float getAlpha() const { return mAlpha; }
-    void setAccel(float x, float y, float z)
-    {
+    void setAccel(float x, float y, float z) {
         mAccelX = x;
         mAccelY = y;
         mAccelZ = z;
     }
-    void setDrag(float x, float y)
-    {
+    void setDrag(float x, float y) {
         mDragX = x;
         mDragY = y;
     }

@@ -11,8 +11,7 @@ namespace Common {
 namespace Debug {
 
 
-void InstallCrashHandler()
-{
+void InstallCrashHandler() {
     static backward::SignalHandling sh;
     static std::once_flag flag;
     std::call_once(flag, []() { Log::LOGI("Crash Handler installed"); });

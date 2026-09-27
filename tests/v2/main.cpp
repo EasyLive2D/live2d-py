@@ -31,13 +31,11 @@
 // Helpers
 // ============================================================================
 
-static void glfwErrorCallback(int /*code*/, const char* msg)
-{
+static void glfwErrorCallback(int /*code*/, const char* msg) {
     fprintf(stderr, "[GLFW ERROR] %s\n", msg);
 }
 
-static void keyCallback(GLFWwindow* window, int key, int /*scancode*/, int action, int /*mods*/)
-{
+static void keyCallback(GLFWwindow* window, int key, int /*scancode*/, int action, int /*mods*/) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
@@ -46,8 +44,7 @@ static void keyCallback(GLFWwindow* window, int key, int /*scancode*/, int actio
 // Entry point
 // ============================================================================
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
     // --- Resolve model path --------------------------------------------------
     std::string modelPath;
     if (argc > 1) {

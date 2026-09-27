@@ -3,8 +3,7 @@
 namespace Live2D {
 namespace V2 {
 
-class UtSystem
-{
+class UtSystem {
 public:
     static double getUserTimeMSec();
 };

@@ -10,8 +10,7 @@ MatrixManagerV3::MatrixManagerV3()
     , _scaleX(1.0f)
     , _scaleY(1.0f)
     , _ww(800)
-    , _wh(600)
-{
+    , _wh(600) {
     // load identity
     for (int i = 0; i < 16; i++) {
         _rotation[i] = 0.0f;
@@ -19,15 +18,13 @@ MatrixManagerV3::MatrixManagerV3()
     _rotation[0] = _rotation[5] = _rotation[10] = _rotation[15] = 1.0f;
 }
 
-void MatrixManagerV3::SetModelWH(float mw, float mh)
-{
+void MatrixManagerV3::SetModelWH(float mw, float mh) {
     _mw = mw;
     _mh = mh;
 }
 
 // called when window is resized
-void MatrixManagerV3::UpdateScreenToScene(int width, int height)
-{
+void MatrixManagerV3::UpdateScreenToScene(int width, int height) {
     _ww = width;
     _wh = height;
 
@@ -48,14 +45,12 @@ void MatrixManagerV3::UpdateScreenToScene(int width, int height)
     _screenToScene.TranslateRelative(-width * 0.5f, -height * 0.5f);
 }
 
-void MatrixManagerV3::ScreenToScene(float* x, float* y)
-{
+void MatrixManagerV3::ScreenToScene(float* x, float* y) {
     *x = _screenToScene.TransformX(*x);
     *y = _screenToScene.TransformY(*y);
 }
 
-Csm::CubismMatrix44& MatrixManagerV3::GetMvp()
-{
+Csm::CubismMatrix44& MatrixManagerV3::GetMvp() {
     _p.LoadIdentity();
     _m.LoadIdentity();
 
@@ -82,24 +77,20 @@ Csm::CubismMatrix44& MatrixManagerV3::GetMvp()
     return _p;
 }
 
-void MatrixManagerV3::SetOffset(float x, float y)
-{
+void MatrixManagerV3::SetOffset(float x, float y) {
     _offsetX = x;
     _offsetY = y;
 }
 
-void MatrixManagerV3::SetScaleX(float sx)
-{
+void MatrixManagerV3::SetScaleX(float sx) {
     _scaleX = sx;
 }
 
-void MatrixManagerV3::SetScaleY(float sy)
-{
+void MatrixManagerV3::SetScaleY(float sy) {
     _scaleY = sy;
 }
 
-void MatrixManagerV3::Rotate(float deg)
-{
+void MatrixManagerV3::Rotate(float deg) {
     float r = deg / 180.0f * 3.1415926f;
     _rotation[0] = cosf(r);
     _rotation[1] = sinf(r);
@@ -107,8 +98,7 @@ void MatrixManagerV3::Rotate(float deg)
     _rotation[4] = -_rotation[1];
 }
 
-void MatrixManagerV3::InvertTransform(float* x, float* y)
-{
+void MatrixManagerV3::InvertTransform(float* x, float* y) {
     // 除 projection 以外的变换需要逆变换
 
     // 逆平移和缩放

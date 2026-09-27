@@ -8,8 +8,7 @@ namespace Live2D {
 namespace V2 {
 class BinaryReader;
 class ModelContext;
-class Live2DMotion : public AMotion
-{
+class Live2DMotion : public AMotion {
 public:
     Live2DMotion();
     void updateParam(ModelContext* context, float timeSec, float weight) override;

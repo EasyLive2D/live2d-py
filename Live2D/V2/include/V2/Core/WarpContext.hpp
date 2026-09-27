@@ -8,8 +8,7 @@ namespace V2 {
 
 class WarpDeformer;
 
-class WarpContext final : public DeformerContext
-{
+class WarpContext final : public DeformerContext {
 public:
     explicit WarpContext(WarpDeformer* deformer);
 

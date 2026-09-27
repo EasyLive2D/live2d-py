@@ -22,8 +22,7 @@ namespace V3 {
  * フレームワークから呼び出される。
  *
  */
-class LAppAllocator : public Csm::ICubismAllocator
-{
+class LAppAllocator : public Csm::ICubismAllocator {
     /**
      * @brief  メモリ領域を割り当てる。
      *

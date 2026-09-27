@@ -12,18 +12,15 @@ using namespace Csm;
 namespace Live2D {
 namespace V3 {
 
-void* LAppAllocator::Allocate(const csmSizeType size)
-{
+void* LAppAllocator::Allocate(const csmSizeType size) {
     return malloc(size);
 }
 
-void LAppAllocator::Deallocate(void* memory)
-{
+void LAppAllocator::Deallocate(void* memory) {
     free(memory);
 }
 
-void* LAppAllocator::AllocateAligned(const csmSizeType size, const csmUint32 alignment)
-{
+void* LAppAllocator::AllocateAligned(const csmSizeType size, const csmUint32 alignment) {
     size_t offset, shift, alignedAddress;
     void* allocation;
     void** preamble;
@@ -46,8 +43,7 @@ void* LAppAllocator::AllocateAligned(const csmSizeType size, const csmUint32 ali
     return reinterpret_cast<void*>(alignedAddress);
 }
 
-void LAppAllocator::DeallocateAligned(void* alignedMemory)
-{
+void LAppAllocator::DeallocateAligned(void* alignedMemory) {
     void** preamble;
 
     preamble = static_cast<void**>(alignedMemory);

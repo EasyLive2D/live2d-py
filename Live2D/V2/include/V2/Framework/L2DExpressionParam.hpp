@@ -2,8 +2,7 @@
 #include <string>
 namespace Live2D {
 namespace V2 {
-struct L2DExpressionParam
-{
+struct L2DExpressionParam {
     std::string mId;
     float mValue = 0;
     float mDefValue = 0;

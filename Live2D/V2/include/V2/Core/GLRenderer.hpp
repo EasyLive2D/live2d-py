@@ -16,8 +16,7 @@ namespace V2 {
 
 class ModelContext;
 
-class GLRenderer
-{
+class GLRenderer {
 public:
     static constexpr int NORMAL_SHADER = 0;
     static constexpr int MASK_SHADER = 1;
@@ -68,8 +67,7 @@ private:
     GLuint mShaderNormal = 0, mShaderMask = 0;
     // Uniform locations resolved once per program in initShaders()
     // (avoid per-draw glGetUniformLocation driver lookups)
-    struct UniformLocs
-    {
+    struct UniformLocs {
         GLint normMvp = -1, normMaskFlag = -1, normBaseColor = -1, normChannelFlag = -1,
               normScreenColor = -1, normMultiplyColor = -1, normTexture0 = -1;
         GLint maskMvp = -1, maskClipMatrix = -1, maskBaseColor = -1, maskChannelFlag = -1,

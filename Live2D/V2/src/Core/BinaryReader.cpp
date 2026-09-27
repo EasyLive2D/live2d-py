@@ -11,8 +11,7 @@ namespace V2 {
 // -- Helper for big-endian conversion --
 namespace {
 
-inline float readBigFloat(const uint8_t* buf, size_t offset)
-{
+inline float readBigFloat(const uint8_t* buf, size_t offset) {
     uint32_t raw;
     memcpy(&raw, buf + offset, 4);
     // Big-endian to native
@@ -23,23 +22,20 @@ inline float readBigFloat(const uint8_t* buf, size_t offset)
     return result;
 }
 
-inline int32_t readBigInt32(const uint8_t* buf, size_t offset)
-{
+inline int32_t readBigInt32(const uint8_t* buf, size_t offset) {
     uint32_t raw;
     memcpy(&raw, buf + offset, 4);
     return static_cast<int32_t>(((raw & 0x000000FFU) << 24) | ((raw & 0x0000FF00U) << 8) |
                                 ((raw & 0x00FF0000U) >> 8) | ((raw & 0xFF000000U) >> 24));
 }
 
-inline int16_t readBigShort(const uint8_t* buf, size_t offset)
-{
+inline int16_t readBigShort(const uint8_t* buf, size_t offset) {
     uint16_t raw;
     memcpy(&raw, buf + offset, 2);
     return static_cast<int16_t>(((raw & 0x00FFU) << 8) | ((raw & 0xFF00U) >> 8));
 }
 
-inline double readBigDouble(const uint8_t* buf, size_t offset)
-{
+inline double readBigDouble(const uint8_t* buf, size_t offset) {
     uint64_t raw;
     memcpy(&raw, buf + offset, 8);
     raw = ((raw & 0x00000000000000FFULL) << 56) | ((raw & 0x000000000000FF00ULL) << 40) |
@@ -55,14 +51,12 @@ inline double readBigDouble(const uint8_t* buf, size_t offset)
 
 // -- BinaryReader implementation --
 
-BinaryReader::~BinaryReader()
-{
+BinaryReader::~BinaryReader() {
     for (auto& del : mDeleters)
         del();
 }
 
-int BinaryReader::readNumber()
-{
+int BinaryReader::readNumber() {
     int b1 = readByte();
     if ((b1 & 128) == 0)
         return b1 & 255;
@@ -83,52 +77,45 @@ int BinaryReader::readNumber()
     return 0;
 }
 
-double BinaryReader::readDouble()
-{
+double BinaryReader::readDouble() {
     checkBits();
     double result = readBigDouble(mBuf.data(), mOffset);
     mOffset += 8;
     return result;
 }
 
-float BinaryReader::readFloat32()
-{
+float BinaryReader::readFloat32() {
     checkBits();
     float result = readBigFloat(mBuf.data(), mOffset);
     mOffset += 4;
     return result;
 }
 
-int32_t BinaryReader::readInt32()
-{
+int32_t BinaryReader::readInt32() {
     checkBits();
     int32_t result = readBigInt32(mBuf.data(), mOffset);
     mOffset += 4;
     return result;
 }
 
-uint8_t BinaryReader::readByte()
-{
+uint8_t BinaryReader::readByte() {
     checkBits();
     return mBuf[mOffset++];
 }
 
-int16_t BinaryReader::readUShort()
-{
+int16_t BinaryReader::readUShort() {
     checkBits();
     int16_t result = readBigShort(mBuf.data(), mOffset);
     mOffset += 2;
     return result;
 }
 
-bool BinaryReader::readBoolean()
-{
+bool BinaryReader::readBoolean() {
     checkBits();
     return mBuf[mOffset++] != 0;
 }
 
-std::string BinaryReader::readUTF8String()
-{
+std::string BinaryReader::readUTF8String() {
     checkBits();
     int length = readType();
     std::string result(reinterpret_cast<const char*>(&mBuf[mOffset]), length);
@@ -136,8 +123,7 @@ std::string BinaryReader::readUTF8String()
     return result;
 }
 
-std::vector<int32_t> BinaryReader::readInt32Array()
-{
+std::vector<int32_t> BinaryReader::readInt32Array() {
     checkBits();
     int count = readType();
     std::vector<int32_t> result(count);
@@ -147,8 +133,7 @@ std::vector<int32_t> BinaryReader::readInt32Array()
     return result;
 }
 
-std::vector<float> BinaryReader::readFloat32Array()
-{
+std::vector<float> BinaryReader::readFloat32Array() {
     checkBits();
     int count = readType();
     std::vector<float> result(count);
@@ -158,8 +143,7 @@ std::vector<float> BinaryReader::readFloat32Array()
     return result;
 }
 
-std::vector<double> BinaryReader::readFloat64Array()
-{
+std::vector<double> BinaryReader::readFloat64Array() {
     checkBits();
     int count = readType();
     std::vector<double> result(count);
@@ -169,8 +153,7 @@ std::vector<double> BinaryReader::readFloat64Array()
     return result;
 }
 
-bool BinaryReader::readBit()
-{
+bool BinaryReader::readBit() {
     if (mOffset8Bit == 0) {
         mCurrent8Bit = readByte();
     } else if (mOffset8Bit == 8) {
@@ -183,20 +166,17 @@ bool BinaryReader::readBit()
     return result;
 }
 
-void BinaryReader::checkBits()
-{
+void BinaryReader::checkBits() {
     if (mOffset8Bit != 0) {
         mOffset8Bit = 0;
     }
 }
 
-void* BinaryReader::readObjectRaw(int type)
-{
+void* BinaryReader::readObjectRaw(int type) {
     return readObjectUntyped(type);
 }
 
-void* BinaryReader::readObjectUntyped(int type)
-{
+void* BinaryReader::readObjectUntyped(int type) {
     checkBits();
     if (type < 0)
         type = readType();
@@ -220,8 +200,7 @@ void* BinaryReader::readObjectUntyped(int type)
     return obj;
 }
 
-void* BinaryReader::readKnownTypeObject(int type)
-{
+void* BinaryReader::readKnownTypeObject(int type) {
     if (type == 0) {
         return nullptr;
     }

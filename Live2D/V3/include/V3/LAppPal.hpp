@@ -18,8 +18,7 @@ namespace V3 {
  * ファイル読み込みや時刻取得等のプラットフォームに依存する関数をまとめる
  *
  */
-class LAppPal
-{
+class LAppPal {
     static std::string SHADER_DIR;
 
     static void interceptShaderLoading(std::string& filePath);

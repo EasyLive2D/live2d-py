@@ -10,8 +10,7 @@ class PivotManager;
 class MeshContext;
 class GLRenderer;
 
-class Mesh final : public IDrawData
-{
+class Mesh final : public IDrawData {
 public:
     static constexpr int MASK_COLOR_COMPOSITION = 30;
     static constexpr int COLOR_COMPOSITION_NORMAL = 0;

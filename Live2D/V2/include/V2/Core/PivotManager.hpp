@@ -11,8 +11,7 @@ namespace V2 {
 class ParamPivots;
 class ModelContext;
 
-class PivotManager final : public ISerializable
-{
+class PivotManager final : public ISerializable {
 public:
     PivotManager() = default;
     ~PivotManager() override;

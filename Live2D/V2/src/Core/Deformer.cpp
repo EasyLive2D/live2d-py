@@ -9,22 +9,19 @@
 namespace Live2D {
 namespace V2 {
 
-void Deformer::read(BinaryReader& br)
-{
+void Deformer::read(BinaryReader& br) {
     mId = br.readObject<const Id*>();
     mTargetId = br.readObject<const Id*>();
 }
 
-void Deformer::readOpacity(BinaryReader& br)
-{
+void Deformer::readOpacity(BinaryReader& br) {
     if (br.getFormatVersion() >= LIVE2D_FORMAT_VERSION_V2_10_SDK2) {
         mPivotOpacities = br.readFloat32Array();
     }
 }
 
 void Deformer::interpolateOpacity(ModelContext* mdc, PivotManager* pivotMgr, DeformerContext* bctx,
-                                  bool& ret)
-{
+                                  bool& ret) {
     if (mPivotOpacities.empty()) {
         bctx->setInterpolatedOpacity(1.0f);
     } else {
@@ -33,8 +30,7 @@ void Deformer::interpolateOpacity(ModelContext* mdc, PivotManager* pivotMgr, Def
     }
 }
 
-bool Deformer::needTransform() const
-{
+bool Deformer::needTransform() const {
     return mTargetId != nullptr && *mTargetId != Id::DST_BASE_ID();
 }
 

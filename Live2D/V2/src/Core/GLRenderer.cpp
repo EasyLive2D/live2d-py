@@ -117,14 +117,12 @@ GLRenderer::GLRenderer(ModelContext* modelContext, int textureCount)
     , mPosVBO(0)
     , mUVVBO(0)
     , mEBO(0)
-    , mCulling(false)
-{
+    , mCulling(false) {
     mTextures.resize(textureCount, 0);
     init(modelContext);
 }
 
-void GLRenderer::init(ModelContext* modelContext)
-{
+void GLRenderer::init(ModelContext* modelContext) {
     initShaders();
 
     mClipManager = std::make_unique<ClippingManagerOpenGL>(*this);
@@ -135,8 +133,7 @@ void GLRenderer::init(ModelContext* modelContext)
     mClipManager->init(modelContext, modelContext->mDrawDataList, rawDrawCtxs);
 }
 
-GLRenderer::~GLRenderer()
-{
+GLRenderer::~GLRenderer() {
     if (mShaderNormal)
         glDeleteProgram(mShaderNormal);
     if (mShaderMask)
@@ -156,8 +153,7 @@ GLRenderer::~GLRenderer()
             glDeleteTextures(1, &t);
 }
 
-GLuint GLRenderer::compileShader(GLenum type, const char* src)
-{
+GLuint GLRenderer::compileShader(GLenum type, const char* src) {
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &src, nullptr);
     glCompileShader(shader);
@@ -167,14 +163,13 @@ GLuint GLRenderer::compileShader(GLenum type, const char* src)
         char buf[512];
         glGetShaderInfoLog(shader, 512, nullptr, buf);
         LOGE("Shader compile error (%s): %s\n",
-              type == GL_VERTEX_SHADER ? "vertex" : "fragment",
-              buf);
+             type == GL_VERTEX_SHADER ? "vertex" : "fragment",
+             buf);
     }
     return shader;
 }
 
-void GLRenderer::initShaders()
-{
+void GLRenderer::initShaders() {
     // Normal program: aK vertex + aM fragment
     GLuint vsNorm = compileShader(GL_VERTEX_SHADER, sVertNormal);
     GLuint fsNorm = compileShader(GL_FRAGMENT_SHADER, sFragNormal);
@@ -234,8 +229,7 @@ void GLRenderer::initShaders()
     mUniforms.maskTexture1 = glGetUniformLocation(mShaderMask, "s_texture1");
 }
 
-GLuint GLRenderer::createVBO(const std::vector<float>& data, int loc, int size)
-{
+GLuint GLRenderer::createVBO(const std::vector<float>& data, int loc, int size) {
     GLuint vbo;
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -245,8 +239,7 @@ GLuint GLRenderer::createVBO(const std::vector<float>& data, int loc, int size)
     return vbo;
 }
 
-GLuint GLRenderer::createEBO(const std::vector<int16_t>& data)
-{
+GLuint GLRenderer::createEBO(const std::vector<int16_t>& data) {
     GLuint ebo;
     glGenBuffers(1, &ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
@@ -255,14 +248,12 @@ GLuint GLRenderer::createEBO(const std::vector<int16_t>& data)
     return ebo;
 }
 
-void GLRenderer::clearBuffer(float r, float g, float b, float a)
-{
+void GLRenderer::clearBuffer(float r, float g, float b, float a) {
     glClearColor(r, g, b, a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
-void GLRenderer::setupDraw(ModelContext* modelContext)
-{
+void GLRenderer::setupDraw(ModelContext* modelContext) {
     glGetIntegerv(GL_CURRENT_PROGRAM, reinterpret_cast<GLint*>(&mCurrentProgram));
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, reinterpret_cast<GLint*>(&mCurrentFBO));
     glDisable(GL_SCISSOR_TEST);
@@ -275,8 +266,7 @@ void GLRenderer::setupDraw(ModelContext* modelContext)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void GLRenderer::endDraw()
-{
+void GLRenderer::endDraw() {
     glBindFramebuffer(GL_FRAMEBUFFER, mCurrentFBO);
     // When changing model: v2cpp => v3,
     // v3 may get save the wrong program id to `lastProgramId`
@@ -286,18 +276,15 @@ void GLRenderer::endDraw()
     glUseProgram(mCurrentProgram);
 }
 
-void GLRenderer::setMatrix(const float m[16])
-{
+void GLRenderer::setMatrix(const float m[16]) {
     std::memcpy(mMatrix4x4.data(), m, 16 * sizeof(float));
 }
 
-void GLRenderer::setClipMatrix(const float m[16])
-{
+void GLRenderer::setClipMatrix(const float m[16]) {
     std::memcpy(mClipMatrix.data(), m, 16 * sizeof(float));
 }
 
-int GLRenderer::createFramebuffer()
-{
+int GLRenderer::createFramebuffer() {
     if (mFramebuffer == 0)
         glGenFramebuffers(1, &mFramebuffer);
     if (mFramebufferTexture == 0)
@@ -318,22 +305,19 @@ int GLRenderer::createFramebuffer()
     return (int)mFramebuffer;
 }
 
-void GLRenderer::bindFramebuffer(int fb)
-{
+void GLRenderer::bindFramebuffer(int fb) {
     if (fb == -1)
         fb = mFramebuffer;
     glBindFramebuffer(GL_FRAMEBUFFER, fb ? fb : mCurrentFBO);
 }
 
-void GLRenderer::setTexture(int no, GLuint texId)
-{
+void GLRenderer::setTexture(int no, GLuint texId) {
     if (no >= (int)mTextures.size())
         mTextures.resize(no + 1, 0);
     mTextures[no] = texId;
 }
 
-GLuint GLRenderer::getTexture(int no) const
-{
+GLuint GLRenderer::getTexture(int no) const {
     if (no >= 0 && no < (int)mTextures.size())
         return mTextures[no];
     return 0;
@@ -343,8 +327,7 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
                              const std::vector<int16_t>& indices,
                              const std::vector<float>& vertices, const std::vector<float>& uvs,
                              float opacity, int compositionType,
-                             const std::array<float, 4>& multiplyColor)
-{
+                             const std::array<float, 4>& multiplyColor) {
     if (opacity < 0.01f && !mClipMaskMode)
         return;
 
@@ -446,31 +429,31 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
         dstAlpha = GL_ONE_MINUS_SRC_ALPHA;
     } else {
         switch (compositionType) {
-        case COLOR_COMPOSITION_NORMAL:
-            srcRGB = GL_ONE;
-            dstRGB = GL_ONE_MINUS_SRC_ALPHA;
-            srcAlpha = GL_ONE;
-            dstAlpha = GL_ONE_MINUS_SRC_ALPHA;
-            break;
-        case COLOR_COMPOSITION_SCREEN:
-            srcRGB = GL_ONE;
-            dstRGB = GL_ONE;
-            srcAlpha = GL_ZERO;
-            dstAlpha = GL_ONE;
-            break;
-        case COLOR_COMPOSITION_MULTIPLY:
-            srcRGB = GL_DST_COLOR;
-            dstRGB = GL_ONE_MINUS_SRC_ALPHA;
-            srcAlpha = GL_ZERO;
-            dstAlpha = GL_ONE;
-            break;
-        default:
-            LOGE("Unsupported composition type: %d", compositionType);
-            srcRGB = GL_ONE;
-            dstRGB = GL_ONE_MINUS_SRC_ALPHA;
-            srcAlpha = GL_ONE;
-            dstAlpha = GL_ONE_MINUS_SRC_ALPHA;
-            break;
+            case COLOR_COMPOSITION_NORMAL:
+                srcRGB = GL_ONE;
+                dstRGB = GL_ONE_MINUS_SRC_ALPHA;
+                srcAlpha = GL_ONE;
+                dstAlpha = GL_ONE_MINUS_SRC_ALPHA;
+                break;
+            case COLOR_COMPOSITION_SCREEN:
+                srcRGB = GL_ONE;
+                dstRGB = GL_ONE;
+                srcAlpha = GL_ZERO;
+                dstAlpha = GL_ONE;
+                break;
+            case COLOR_COMPOSITION_MULTIPLY:
+                srcRGB = GL_DST_COLOR;
+                dstRGB = GL_ONE_MINUS_SRC_ALPHA;
+                srcAlpha = GL_ZERO;
+                dstAlpha = GL_ONE;
+                break;
+            default:
+                LOGE("Unsupported composition type: %d", compositionType);
+                srcRGB = GL_ONE;
+                dstRGB = GL_ONE_MINUS_SRC_ALPHA;
+                srcAlpha = GL_ONE;
+                dstAlpha = GL_ONE_MINUS_SRC_ALPHA;
+                break;
         }
     }
 
@@ -480,18 +463,18 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
     // Debug: print blend function
     auto blendName = [](GLenum e) -> const char* {
         switch (e) {
-        case GL_ONE:
-            return "ONE";
-        case GL_ZERO:
-            return "ZERO";
-        case GL_DST_COLOR:
-            return "DST_COLOR";
-        case GL_ONE_MINUS_SRC_ALPHA:
-            return "ONE_MINUS_SRC_ALPHA";
-        case GL_ONE_MINUS_SRC_COLOR:
-            return "ONE_MINUS_SRC_COLOR";
-        default:
-            return "?";
+            case GL_ONE:
+                return "ONE";
+            case GL_ZERO:
+                return "ZERO";
+            case GL_DST_COLOR:
+                return "DST_COLOR";
+            case GL_ONE_MINUS_SRC_ALPHA:
+                return "ONE_MINUS_SRC_ALPHA";
+            case GL_ONE_MINUS_SRC_COLOR:
+                return "ONE_MINUS_SRC_COLOR";
+            default:
+                return "?";
         }
     };
     // Position VBO (location 0)
@@ -528,22 +511,19 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
     glDisable(GL_CULL_FACE);
     glDisable(GL_BLEND);
 }
-void GLRenderer::resize(int w, int h)
-{
+void GLRenderer::resize(int w, int h) {
     (void)w;
     (void)h;
 }
 
-void GLRenderer::preDraw(ModelContext* context)
-{
+void GLRenderer::preDraw(ModelContext* context) {
     if (mClipManager) {
         setupDraw(context);
         mClipManager->setupClip(context);
     }
 }
 
-void GLRenderer::draw(ModelContext* context)
-{
+void GLRenderer::draw(ModelContext* context) {
     if (context->mOrderListFirstDrawIndex.empty())
         return;
     setupDraw(context);

@@ -15,8 +15,7 @@ namespace V2 {
 
 RotationDeformer::~RotationDeformer() = default;
 
-void RotationDeformer::read(BinaryReader& br)
-{
+void RotationDeformer::read(BinaryReader& br) {
     Deformer::read(br);
     mPivotManager.reset(br.readObject<PivotManager*>());
     auto rawAffines = br.readObject<std::vector<AffineEnt*>>();
@@ -26,14 +25,12 @@ void RotationDeformer::read(BinaryReader& br)
     Deformer::readOpacity(br);
 }
 
-DeformerContext* RotationDeformer::init(ModelContext* mc)
-{
+DeformerContext* RotationDeformer::init(ModelContext* mc) {
     (void)mc;
     return new RotationContext(this);
 }
 
-void RotationDeformer::setupInterpolate(ModelContext* mc, DeformerContext* dc)
-{
+void RotationDeformer::setupInterpolate(ModelContext* mc, DeformerContext* dc) {
     auto* rctx = static_cast<RotationContext*>(dc);
     if (!mPivotManager->checkParamUpdated(mc))
         return;
@@ -86,8 +83,7 @@ void RotationDeformer::setupInterpolate(ModelContext* mc, DeformerContext* dc)
 }
 
 static void getDirectionOnDst(ModelContext* mc, Deformer* targetDef, DeformerContext* tgtCtx,
-                              float ox, float oy, float dx, float dy, float retDir[2])
-{
+                              float ox, float oy, float dx, float dy, float retDir[2]) {
     std::vector<float> tpVec = {ox, oy};
     std::vector<float> toVec(2);
     targetDef->transformPoints(mc, tgtCtx, tpVec, toVec, 1, 0, 2);
@@ -117,8 +113,7 @@ static void getDirectionOnDst(ModelContext* mc, Deformer* targetDef, DeformerCon
     }
 }
 
-bool RotationDeformer::setupTransform(ModelContext* mc, DeformerContext* dc)
-{
+bool RotationDeformer::setupTransform(ModelContext* mc, DeformerContext* dc) {
     auto* rctx = static_cast<RotationContext*>(dc);
     rctx->setAvailable(true);
 
@@ -175,8 +170,7 @@ bool RotationDeformer::setupTransform(ModelContext* mc, DeformerContext* dc)
 
 void RotationDeformer::transformPoints(ModelContext*, DeformerContext* dc,
                                        const std::vector<float>& src, std::vector<float>& dst,
-                                       int numPoint, int ptOffset, int ptStep)
-{
+                                       int numPoint, int ptOffset, int ptStep) {
     auto* rctx = static_cast<RotationContext*>(dc);
     auto* af =
         rctx->mTransformedAffine ? rctx->mTransformedAffine.get() : rctx->mInterpolatedAffine.get();

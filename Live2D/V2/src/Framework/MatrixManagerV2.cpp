@@ -9,28 +9,23 @@ namespace V2 {
 
 MatrixManagerV2::MatrixManagerV2() = default;
 
-void MatrixManagerV2::onResize(int w, int h)
-{
+void MatrixManagerV2::onResize(int w, int h) {
     mWidth = w;
     mHeight = h;
 }
-void MatrixManagerV2::setScale(float s)
-{
+void MatrixManagerV2::setScale(float s) {
     mScale = s;
 }
-void MatrixManagerV2::setOffset(float dx, float dy)
-{
+void MatrixManagerV2::setOffset(float dx, float dy) {
     mOffsetX = dx;
     mOffsetY = dy;
 }
-void MatrixManagerV2::rotate(float deg)
-{
+void MatrixManagerV2::rotate(float deg) {
     mRotation = deg;
 }
 
 // 4x4 matrix multiply: r = a * b (column-major)
-static void mul(float r[16], const float a[16], const float b[16])
-{
+static void mul(float r[16], const float a[16], const float b[16]) {
     float t[16] = {};
     for (int i = 0; i < 4; i++)
         for (int j = 0; j < 4; j++)
@@ -39,8 +34,7 @@ static void mul(float r[16], const float a[16], const float b[16])
     std::memcpy(r, t, sizeof(t));
 }
 
-std::array<float, 16> MatrixManagerV2::getMvp(L2DModelMatrix* modelMatrix) const
-{
+std::array<float, 16> MatrixManagerV2::getMvp(L2DModelMatrix* modelMatrix) const {
     // Match Python v2 MatrixManagerV2.getMvp exactly
 
     // 1. Model matrix: copy and apply setWidth(2.0)

@@ -3,8 +3,7 @@
 namespace Live2D {
 namespace V2 {
 class ModelContext;
-class L2DEyeBlink
-{
+class L2DEyeBlink {
 public:
     L2DEyeBlink();
     void setInterval(int ms) { mBlinkIntervalMs = ms; }
@@ -13,14 +12,7 @@ public:
     float mBlinkIntervalMs = 5000;
 
 private:
-    enum State
-    {
-        FIRST,
-        INTERVAL,
-        CLOSING,
-        CLOSED,
-        OPENING
-    };
+    enum State { FIRST, INTERVAL, CLOSING, CLOSED, OPENING };
     State mState = FIRST;
     float mClosingMs = 150, mClosedMs = 80, mOpeningMs = 220;
     float mCurrentTime = 0, mNextBlinkTime = 0, mStateStartTime = 0;

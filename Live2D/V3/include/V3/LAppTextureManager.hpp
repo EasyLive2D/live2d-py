@@ -22,14 +22,12 @@ namespace V3 {
  *
  * 画像読み込み、管理を行うクラス。
  */
-class LAppTextureManager
-{
+class LAppTextureManager {
 public:
     /**
      * @brief 画像情報構造体
      */
-    struct TextureInfo
-    {
+    struct TextureInfo {
         GLuint id;              ///< テクスチャID
         int width;              ///< 横幅
         int height;             ///< 高さ
@@ -59,8 +57,7 @@ public:
      * @return プリマルチプライ処理後のカラー値
      */
     inline unsigned int Premultiply(unsigned char red, unsigned char green, unsigned char blue,
-                                    unsigned char alpha)
-    {
+                                    unsigned char alpha) {
         return static_cast<unsigned>((red * (alpha + 1) >> 8) | ((green * (alpha + 1) >> 8) << 8) |
                                      ((blue * (alpha + 1) >> 8) << 16) | (((alpha)) << 24));
     }

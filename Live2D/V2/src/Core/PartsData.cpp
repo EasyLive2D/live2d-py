@@ -9,8 +9,7 @@ namespace V2 {
 
 PartsData::~PartsData() = default;
 
-void PartsData::read(BinaryReader& br)
-{
+void PartsData::read(BinaryReader& br) {
     mLocked = br.readBit();
     mVisible = br.readBit();
     mId = br.readObject<const Id*>();
@@ -24,8 +23,7 @@ void PartsData::read(BinaryReader& br)
         mDrawDataList.emplace_back(d);
 }
 
-PartsDataContext* PartsData::init()
-{
+PartsDataContext* PartsData::init() {
     auto* ctx = new PartsDataContext(this);
     ctx->setPartsOpacity(isVisible() ? 1.0f : 0.0f);
     return ctx;

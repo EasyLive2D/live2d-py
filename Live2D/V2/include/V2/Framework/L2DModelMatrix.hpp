@@ -4,8 +4,7 @@
 namespace Live2D {
 namespace V2 {
 
-class L2DModelMatrix
-{
+class L2DModelMatrix {
 public:
     L2DModelMatrix() { identity(); }
     L2DModelMatrix(float w, float h);

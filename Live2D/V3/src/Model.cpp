@@ -31,20 +31,17 @@ using namespace Live2D::Common::Log;
 namespace Live2D {
 namespace V3 {
 namespace {
-class FakeMotion : public ACubismMotion
-{
+class FakeMotion : public ACubismMotion {
 protected:
     void DoUpdateParameters(CubismModel* model, csmFloat32 userTimeSeconds, csmFloat32 weight,
-                            CubismMotionQueueEntry* motionQueueEntry) override
-    {}
+                            CubismMotionQueueEntry* motionQueueEntry) override {}
 
 public:
     FakeMotion() = default;
 };
 
 void LoadAssets(const std::string& filePath,
-                const std::function<void(csmByte*, csmSizeInt)>& afterLoadCallback)
-{
+                const std::function<void(csmByte*, csmSizeInt)>& afterLoadCallback) {
     csmSizeInt bufferSize = 0;
     csmByte* buffer = nullptr;
 
@@ -69,8 +66,7 @@ Model::Model()
     , mParameterValues(nullptr)
     , mTmpOrderedDrawIndice(nullptr)
     , autoBlink(true)
-    , autoBreath(true)
-{
+    , autoBreath(true) {
     _mocConsistency = true;
 
     mIdParamAngleX = CubismFramework::GetIdManager()->GetId(ParamAngleX);
@@ -81,8 +77,7 @@ Model::Model()
     mIdParamEyeBallY = CubismFramework::GetIdManager()->GetId(ParamEyeBallY);
 }
 
-Model::~Model()
-{
+Model::~Model() {
     mTextureManager.ReleaseTextures();
 
     ReleaseMotions();
@@ -96,8 +91,7 @@ Model::~Model()
     delete mModelSetting;
 }
 
-void Model::LoadModelJson(const char* filePath)
-{
+void Model::LoadModelJson(const char* filePath) {
     std::filesystem::path p = std::filesystem::u8path(filePath);
     mModelHomeDir = p.parent_path().generic_u8string().c_str();
     mModelHomeDir += "/";
@@ -114,8 +108,7 @@ ACubismMotion* Model::LoadMotion(const csmByte* buffer, csmSizeInt size, const c
                                  ACubismMotion::FinishedMotionCallback onFinished,
                                  ACubismMotion::BeganMotionCallback onBegan,
                                  ICubismModelSetting* modelSetting, const csmChar* group,
-                                 csmInt32 index, csmBool shouldCheckMotionConsistency)
-{
+                                 csmInt32 index, csmBool shouldCheckMotionConsistency) {
     std::string fixed(reinterpret_cast<const char*>(buffer), size);
     LAppPal::FixMotionJson(fixed);
     return CubismUserModel::LoadMotion(reinterpret_cast<const csmByte*>(fixed.data()),
@@ -129,13 +122,11 @@ ACubismMotion* Model::LoadMotion(const csmByte* buffer, csmSizeInt size, const c
                                        shouldCheckMotionConsistency);
 }
 
-const char* Model::GetModelHomeDir()
-{
+const char* Model::GetModelHomeDir() {
     return mModelHomeDir.GetRawString();
 }
 
-void Model::Update(float deltaSecs)
-{
+void Model::Update(float deltaSecs) {
     _dragManager->Update(deltaSecs);
     mDragX = _dragManager->GetX();
     mDragY = _dragManager->GetY();
@@ -179,8 +170,7 @@ void Model::Update(float deltaSecs)
     }
 }
 
-void Model::SetupModel()
-{
+void Model::SetupModel() {
     // moc3
     if (strcmp(mModelSetting->GetModelFileName(), "") != 0) {
         csmString path = mModelSetting->GetModelFileName();
@@ -322,8 +312,7 @@ void Model::SetupModel()
     LOGD("Model setup complete");
 }
 
-bool Model::IsHit(CubismIdHandle drawableId, csmFloat32 pointX, csmFloat32 pointY)
-{
+bool Model::IsHit(CubismIdHandle drawableId, csmFloat32 pointX, csmFloat32 pointY) {
     const csmInt32 drawIndex = _model->GetDrawableIndex(drawableId);
 
     if (drawIndex < 0) {
@@ -362,14 +351,12 @@ bool Model::IsHit(CubismIdHandle drawableId, csmFloat32 pointX, csmFloat32 point
     return ((left <= pointX) && (pointX <= right) && (top <= pointY) && (pointY <= bottom));
 }
 
-bool Model::UpdateMotion(float deltaSecs)
-{
+bool Model::UpdateMotion(float deltaSecs) {
     _opacity = _model->GetModelOpacity();
     return !_motionManager->IsFinished() && _motionManager->UpdateMotion(_model, deltaSecs);
 }
 
-void Model::UpdateDrag(float deltaSecs)
-{
+void Model::UpdateDrag(float deltaSecs) {
     _dragManager->Update(deltaSecs);
     mDragX = _dragManager->GetX();
     mDragY = _dragManager->GetY();
@@ -384,24 +371,21 @@ void Model::UpdateDrag(float deltaSecs)
     _model->AddParameterValue(mParamEyeBallYi, mDragY);
 }
 
-void Model::UpdateBreath(float deltaSecs)
-{
+void Model::UpdateBreath(float deltaSecs) {
     if (_breath == nullptr) {
         return;
     }
     _breath->UpdateParameters(_model, deltaSecs);
 }
 
-void Model::UpdateBlink(float deltaSecs)
-{
+void Model::UpdateBlink(float deltaSecs) {
     if (_eyeBlink == nullptr) {
         return;
     }
     _eyeBlink->UpdateParameters(_model, deltaSecs);
 }
 
-void Model::UpdateExpression(float deltaSecs)
-{
+void Model::UpdateExpression(float deltaSecs) {
     if (_expressionManager->IsFinished()) {
         for (auto& pair : mExpManagers) {
             pair.second->UpdateMotion(_model, deltaSecs);
@@ -411,8 +395,7 @@ void Model::UpdateExpression(float deltaSecs)
     }
 }
 
-void Model::UpdatePhysics(float deltaSecs)
-{
+void Model::UpdatePhysics(float deltaSecs) {
     if (_physics == nullptr) {
         return;
     }
@@ -420,8 +403,7 @@ void Model::UpdatePhysics(float deltaSecs)
     _physics->Evaluate(_model, deltaSecs);
 }
 
-void Model::UpdatePose(float deltaSecs)
-{
+void Model::UpdatePose(float deltaSecs) {
     if (_pose == nullptr) {
         return;
     }
@@ -429,62 +411,51 @@ void Model::UpdatePose(float deltaSecs)
     _pose->UpdateParameters(_model, deltaSecs);
 }
 
-int Model::GetParameterCount()
-{
+int Model::GetParameterCount() {
     return _model->GetParameterCount();
 }
 
-void Model::GetParameterIds(void* collector, void (*collect)(void* collector, const char* id))
-{
+void Model::GetParameterIds(void* collector, void (*collect)(void* collector, const char* id)) {
     for (csmInt32 i = 0; i < mParameterCount; ++i) {
         collect(collector, _model->GetParameterId(i)->GetString().GetRawString());
     }
 }
 
-float Model::GetParameterValue(int index)
-{
+float Model::GetParameterValue(int index) {
     return _model->GetParameterValue(index);
 }
 
-float Model::GetParameterMaximumValue(int index)
-{
+float Model::GetParameterMaximumValue(int index) {
     return _model->GetParameterMaximumValue(index);
 }
 
-float Model::GetParameterMinimumValue(int index)
-{
+float Model::GetParameterMinimumValue(int index) {
     return _model->GetParameterMinimumValue(index);
 }
 
-float Model::GetParameterDefaultValue(int index)
-{
+float Model::GetParameterDefaultValue(int index) {
     return _model->GetParameterDefaultValue(index);
 }
 
-void Model::SetParameterValue(const char* id, float value, float weight)
-{
+void Model::SetParameterValue(const char* id, float value, float weight) {
     const CubismId* handle = CubismFramework::GetIdManager()->GetId(id);
     _model->SetParameterValue(handle, value, weight);
 }
 
-void Model::SetParameterValue(int index, float value, float weight)
-{
+void Model::SetParameterValue(int index, float value, float weight) {
     _model->SetParameterValue(index, value, weight);
 }
 
-void Model::AddParameterValue(const char* id, float value)
-{
+void Model::AddParameterValue(const char* id, float value) {
     const CubismId* handle = CubismFramework::GetIdManager()->GetId(id);
     _model->AddParameterValue(handle, value);
 }
 
-void Model::AddParameterValue(int index, float value)
-{
+void Model::AddParameterValue(int index, float value) {
     _model->AddParameterValue(index, value);
 }
 
-void Model::SetAndSaveParameterValue(const char* id, float value, float weight)
-{
+void Model::SetAndSaveParameterValue(const char* id, float value, float weight) {
     const CubismId* handle = CubismFramework::GetIdManager()->GetId(id);
     const int index = _model->GetParameterIndex(handle);
     _model->SetParameterValue(index, value, weight);
@@ -493,16 +464,14 @@ void Model::SetAndSaveParameterValue(const char* id, float value, float weight)
     }
 }
 
-void Model::SetAndSaveParameterValue(int index, float value, float weight)
-{
+void Model::SetAndSaveParameterValue(int index, float value, float weight) {
     _model->SetParameterValue(index, value, weight);
     if (index < mParameterCount) {
         mSavedParameterValues[index] = mParameterValues[index];
     }
 }
 
-void Model::AddAndSaveParameterValue(const char* id, float value)
-{
+void Model::AddAndSaveParameterValue(const char* id, float value) {
     const CubismId* handle = CubismFramework::GetIdManager()->GetId(id);
     const int index = _model->GetParameterIndex(handle);
     _model->AddParameterValue(index, value);
@@ -511,30 +480,26 @@ void Model::AddAndSaveParameterValue(const char* id, float value)
     }
 }
 
-void Model::AddAndSaveParameterValue(int index, float value)
-{
+void Model::AddAndSaveParameterValue(int index, float value) {
     _model->AddParameterValue(index, value);
     if (index < mParameterCount) {
         mSavedParameterValues[index] = mParameterValues[index];
     }
 }
 
-void Model::LoadParameters()
-{
+void Model::LoadParameters() {
     for (int i = 0; i < mParameterCount; ++i) {
         _model->SetParameterValue(i, mSavedParameterValues[i]);
     }
 }
 
-void Model::SaveParameters()
-{
+void Model::SaveParameters() {
     for (int i = 0; i < mParameterCount; ++i) {
         mSavedParameterValues[i] = mParameterValues[i];
     }
 }
 
-void Model::Resize(int width, int height)
-{
+void Model::Resize(int width, int height) {
     mMatrixManager.UpdateScreenToScene(width, height);
     auto renderer = GetRenderer<Rendering::CubismRenderer_OpenGLES2>();
     if (renderer) {
@@ -542,41 +507,34 @@ void Model::Resize(int width, int height)
     }
 }
 
-void Model::SetOffset(float x, float y)
-{
+void Model::SetOffset(float x, float y) {
     mMatrixManager.SetOffset(x, y);
 }
 
-void Model::Rotate(float angle)
-{
+void Model::Rotate(float angle) {
     mMatrixManager.Rotate(angle);
 }
 
-void Model::SetScale(float scale)
-{
+void Model::SetScale(float scale) {
     mMatrixManager.SetScaleX(scale);
     mMatrixManager.SetScaleY(scale);
 }
 
-void Model::SetScaleX(float scale)
-{
+void Model::SetScaleX(float scale) {
     mMatrixManager.SetScaleX(scale);
 }
 
-void Model::SetScaleY(float scale)
-{
+void Model::SetScaleY(float scale) {
     mMatrixManager.SetScaleY(scale);
 }
 
-const float* Model::GetMvp()
-{
+const float* Model::GetMvp() {
     return mMatrixManager.GetMvp().GetArray();
 }
 
 void Model::StartMotion(const char* group, int no, int priority, void* startCallee,
                         ACubismMotion::BeganMotionCallback onStartMotionHandler, void* finishCallee,
-                        ACubismMotion::FinishedMotionCallback onFinishMotionHandler)
-{
+                        ACubismMotion::FinishedMotionCallback onFinishMotionHandler) {
     if (priority == PriorityForce) {
         _motionManager->SetReservePriority(priority);
     } else if (!_motionManager->ReserveMotion(priority)) {
@@ -658,8 +616,7 @@ handler_label:
 void Model::StartRandomMotion(const char* group, int priority, void* startCallee,
                               ACubismMotion::BeganMotionCallback startCalleeHandler,
                               void* finishCallee,
-                              ACubismMotion::FinishedMotionCallback finishCalleeHandler)
-{
+                              ACubismMotion::FinishedMotionCallback finishCalleeHandler) {
     csmString g;
     int gindex = -1;
     if (group == nullptr) {
@@ -694,13 +651,11 @@ void Model::StartRandomMotion(const char* group, int priority, void* startCallee
                 finishCalleeHandler);
 }
 
-bool Model::IsMotionFinished()
-{
+bool Model::IsMotionFinished() {
     return _motionManager->IsFinished();
 }
 
-int Model::LoadExtraMotion(const char* group, const char* motionJsonPath)
-{
+int Model::LoadExtraMotion(const char* group, const char* motionJsonPath) {
     int no = -1;
     LoadAssets(motionJsonPath, [&](csmByte* buffer, csmSizeInt size) {
         int i = 0;
@@ -740,19 +695,16 @@ int Model::LoadExtraMotion(const char* group, const char* motionJsonPath)
     return no;
 }
 
-int Model::GetMotionGroupCount()
-{
+int Model::GetMotionGroupCount() {
     return mModelSetting->GetMotionGroupCount();
 }
 
-int Model::GetMotionCount(const char* group)
-{
+int Model::GetMotionCount(const char* group) {
     return mModelSetting->GetMotionCount(group);
 }
 
 void Model::GetMotions(void* collector, void (*collect)(void* collector, const char* group, int no,
-                                                        const char* file, const char* sound))
-{
+                                                        const char* file, const char* sound)) {
     const int count = mModelSetting->GetMotionGroupCount();
     for (int i = 0; i < count; i++) {
         const char* group = mModelSetting->GetMotionGroupName(i);
@@ -766,8 +718,7 @@ void Model::GetMotions(void* collector, void (*collect)(void* collector, const c
 }
 
 static bool isInTriangle(const csmVector2 p0, const csmVector2 p1, const csmVector2 p2,
-                         const csmVector2 p)
-{
+                         const csmVector2 p) {
     // https://github.com/Arkueid/live2d-py/issues/18
     // 情况1：
     //  要检测的三角形很多，说明模型很精细，那么一定程度上三角形的面积会很小，
@@ -806,8 +757,7 @@ static bool isInTriangle(const csmVector2 p0, const csmVector2 p1, const csmVect
 }
 
 void Model::HitPart(float x, float y, void* collector,
-                    void (*collect)(void* collector, const char* id), bool topOnly)
-{
+                    void (*collect)(void* collector, const char* id), bool topOnly) {
     mMatrixManager.ScreenToScene(&x, &y);
     mMatrixManager.InvertTransform(&x, &y);
     const csmInt32 drawableCount = _model->GetDrawableCount();
@@ -866,8 +816,7 @@ void Model::HitPart(float x, float y, void* collector,
 }
 
 void Model::HitDrawable(float x, float y, void* collector,
-                        void (*collect)(void* collector, const char* id), bool topOnly)
-{
+                        void (*collect)(void* collector, const char* id), bool topOnly) {
     mMatrixManager.ScreenToScene(&x, &y);
     mMatrixManager.InvertTransform(&x, &y);
 
@@ -912,8 +861,7 @@ void Model::HitDrawable(float x, float y, void* collector,
     }
 }
 
-bool Model::IsAreaHit(const char* areaName, float x, float y)
-{
+bool Model::IsAreaHit(const char* areaName, float x, float y) {
     mMatrixManager.ScreenToScene(&x, &y);
     mMatrixManager.InvertTransform(&x, &y);
 
@@ -930,8 +878,7 @@ bool Model::IsAreaHit(const char* areaName, float x, float y)
     return false;
 }
 
-bool Model::IsPartHit(int index, float x, float y)
-{
+bool Model::IsPartHit(int index, float x, float y) {
     mMatrixManager.ScreenToScene(&x, &y);
     mMatrixManager.InvertTransform(&x, &y);
 
@@ -979,8 +926,7 @@ bool Model::IsPartHit(int index, float x, float y)
     return false;
 }
 
-bool Model::IsDrawableHit(int index, float x, float y)
-{
+bool Model::IsDrawableHit(int index, float x, float y) {
     mMatrixManager.ScreenToScene(&x, &y);     // 屏幕到OpenGL坐标系
     mMatrixManager.InvertTransform(&x, &y);   // OpenGL坐标系到模型坐标系
 
@@ -1005,28 +951,24 @@ bool Model::IsDrawableHit(int index, float x, float y)
     return false;
 }
 
-void Model::Drag(float x, float y)
-{
+void Model::Drag(float x, float y) {
     mMatrixManager.ScreenToScene(&x, &y);
     SetDragging(x, y);
 }
 
-void Model::CreateRenderer(int maskBufferCount)
-{
+void Model::CreateRenderer(int maskBufferCount) {
     mTextureManager.ReleaseTextures();
     CubismUserModel::CreateRenderer(
         mMatrixManager.GetWidth(), mMatrixManager.GetHeight(), maskBufferCount);
     SetupTextures();
 }
 
-void Model::DestroyRenderer()
-{
+void Model::DestroyRenderer() {
     mTextureManager.ReleaseTextures();
     CubismUserModel::DeleteRenderer();
 }
 
-void Model::Draw()
-{
+void Model::Draw() {
     if (_model == nullptr) {
         return;
     }
@@ -1042,25 +984,21 @@ void Model::Draw()
     renderer->DrawModel();
 }
 
-const int Model::GetPartCount() const
-{
+const int Model::GetPartCount() const {
     return _model->GetPartCount();
 }
 
-void Model::GetPartIds(void* collector, void (*collect)(void* collector, const char* id)) const
-{
+void Model::GetPartIds(void* collector, void (*collect)(void* collector, const char* id)) const {
     for (csmInt32 i = 0; i < _model->GetPartCount(); i++) {
         collect(collector, _model->GetPartId(i)->GetString().GetRawString());
     }
 }
 
-void Model::SetPartOpacity(int index, float opacity)
-{
+void Model::SetPartOpacity(int index, float opacity) {
     _model->SetPartOpacity(index, opacity);
 }
 
-void Model::SetPartScreenColor(int index, float r, float g, float b, float a)
-{
+void Model::SetPartScreenColor(int index, float r, float g, float b, float a) {
     auto& overrideColors = _model->GetOverrideMultiplyAndScreenColor();
     overrideColors.SetPartScreenColor(index, r, g, b, a);
     if (!overrideColors.GetPartScreenColorEnabled(index)) {
@@ -1068,8 +1006,7 @@ void Model::SetPartScreenColor(int index, float r, float g, float b, float a)
     }
 }
 
-void Model::SetPartMultiplyColor(int index, float r, float g, float b, float a)
-{
+void Model::SetPartMultiplyColor(int index, float r, float g, float b, float a) {
     auto& overrideColors = _model->GetOverrideMultiplyAndScreenColor();
     overrideColors.SetPartMultiplyColor(index, r, g, b, a);
     if (!overrideColors.GetPartMultiplyColorEnabled(index)) {
@@ -1077,8 +1014,7 @@ void Model::SetPartMultiplyColor(int index, float r, float g, float b, float a)
     }
 }
 
-void Model::GetPartScreenColor(int index, float& r, float& g, float& b, float& a) const
-{
+void Model::GetPartScreenColor(int index, float& r, float& g, float& b, float& a) const {
     const auto& overrideColors = _model->GetOverrideMultiplyAndScreenColor();
     const auto c = overrideColors.GetPartScreenColor(index);
     r = c.R;
@@ -1087,8 +1023,7 @@ void Model::GetPartScreenColor(int index, float& r, float& g, float& b, float& a
     a = c.A;
 }
 
-void Model::GetPartMultiplyColor(int index, float& r, float& g, float& b, float& a) const
-{
+void Model::GetPartMultiplyColor(int index, float& r, float& g, float& b, float& a) const {
     const auto& overrideColors = _model->GetOverrideMultiplyAndScreenColor();
     const auto c = overrideColors.GetPartMultiplyColor(index);
     r = c.R;
@@ -1097,55 +1032,46 @@ void Model::GetPartMultiplyColor(int index, float& r, float& g, float& b, float&
     a = c.A;
 }
 
-int Model::GetDrawableCount()
-{
+int Model::GetDrawableCount() {
     return _model->GetDrawableCount();
 }
 
-void Model::GetDrawableIds(void* collector, void (*collect)(void* collector, const char* id))
-{
+void Model::GetDrawableIds(void* collector, void (*collect)(void* collector, const char* id)) {
     const int count = _model->GetDrawableCount();
     for (int i = 0; i < count; i++) {
         collect(collector, _model->GetDrawableId(i)->GetString().GetRawString());
     }
 }
 
-const float* Model::GetDrawableVertices(int index)
-{
+const float* Model::GetDrawableVertices(int index) {
     return _model->GetDrawableVertices(index);
 }
 
-const int Model::GetDrawableVertexCount(int index)
-{
+const int Model::GetDrawableVertexCount(int index) {
     return _model->GetDrawableVertexCount(index);
 }
 
-const int Model::GetDrawableVertexIndexCount(int index)
-{
+const int Model::GetDrawableVertexIndexCount(int index) {
     return _model->GetDrawableVertexIndexCount(index);
 }
 
-const unsigned short* Model::GetDrawableIndices(int index)
-{
+const unsigned short* Model::GetDrawableIndices(int index) {
     return _model->GetDrawableVertexIndices(index);
 }
 
-void Model::SetDrawableMultiColor(int index, float r, float g, float b, float a)
-{
+void Model::SetDrawableMultiColor(int index, float r, float g, float b, float a) {
     const int count = _model->GetDrawableVertexCount(index);
     auto& overrideColors = _model->GetOverrideMultiplyAndScreenColor();
     overrideColors.SetDrawableMultiplyColor(index, r, g, b, a);
 }
 
-void Model::SetDrawableScreenColor(int index, float r, float g, float b, float a)
-{
+void Model::SetDrawableScreenColor(int index, float r, float g, float b, float a) {
     const int count = _model->GetDrawableVertexCount(index);
     auto& overrideColors = _model->GetOverrideMultiplyAndScreenColor();
     overrideColors.SetDrawableScreenColor(index, r, g, b, a);
 }
 
-void Model::AddExpression(const char* expressionId)
-{
+void Model::AddExpression(const char* expressionId) {
     ACubismMotion* motion = mExpressions[expressionId];
 
     if (motion != nullptr) {
@@ -1156,8 +1082,7 @@ void Model::AddExpression(const char* expressionId)
     }
 }
 
-void Model::RemoveExpression(const char* expressionId)
-{
+void Model::RemoveExpression(const char* expressionId) {
     if (mExpManagers.find(expressionId) == mExpManagers.end()) {
         return;
     }
@@ -1166,8 +1091,7 @@ void Model::RemoveExpression(const char* expressionId)
     LOGI("remove expression: [%s]", expressionId);
 }
 
-void Model::SetExpression(const char* expressionId)
-{
+void Model::SetExpression(const char* expressionId) {
     ACubismMotion* motion = mExpressions[expressionId];
 
     LOGI("Set expression: [%s]", expressionId);
@@ -1179,8 +1103,7 @@ void Model::SetExpression(const char* expressionId)
     }
 }
 
-const char* Model::SetRandomExpression()
-{
+const char* Model::SetRandomExpression() {
     const int size = mExpressions.GetSize();
     if (size == 0) {
         return nullptr;
@@ -1199,8 +1122,7 @@ const char* Model::SetRandomExpression()
     return nullptr;
 }
 
-void Model::ResetExpressions()
-{
+void Model::ResetExpressions() {
     for (auto& [id, expMgr] : mExpManagers) {
         expMgr->StopAllMotions();
     }
@@ -1209,19 +1131,16 @@ void Model::ResetExpressions()
     LOGI("Clear all expressions");
 }
 
-void Model::ResetExpression()
-{
+void Model::ResetExpression() {
     _expressionManager->StopAllMotions();
 }
 
-int Model::GetExpressionCount()
-{
+int Model::GetExpressionCount() {
     return mModelSetting->GetExpressionCount();
 }
 
 void Model::GetExpressions(void* collector,
-                           void (*collect)(void* collector, const char* id, const char* file))
-{
+                           void (*collect)(void* collector, const char* id, const char* file)) {
     const int count = mModelSetting->GetExpressionCount();
     for (int i = 0; i < count; i++) {
         const char* file = mModelSetting->GetExpressionFileName(i);
@@ -1230,8 +1149,7 @@ void Model::GetExpressions(void* collector,
     }
 }
 
-void Model::LoadExtraExpression(const char* expressionId, const char* expressionFilePath)
-{
+void Model::LoadExtraExpression(const char* expressionId, const char* expressionFilePath) {
     LoadAssets(expressionFilePath, [&](csmByte* buffer, csmSizeInt size) {
         ACubismMotion* expression = LoadExpression(buffer, size, expressionId);
         if (expression) {
@@ -1254,55 +1172,46 @@ void Model::LoadExtraExpression(const char* expressionId, const char* expression
     });
 }
 
-void Model::StopAllMotions()
-{
+void Model::StopAllMotions() {
     _motionManager->StopAllMotions();
 }
 
-void Model::ResetAllParameters()
-{
+void Model::ResetAllParameters() {
     for (int i = 0; i < mParameterCount; i++) {
         mParameterValues[i] = mParameterDefaultValues[i];
         mSavedParameterValues[i] = mParameterDefaultValues[i];
     }
 }
 
-void Model::ResetPose()
-{
+void Model::ResetPose() {
     if (_pose != nullptr) {
         _pose->Reset(_model);
     }
 }
 
-void Model::GetCanvasSize(float& w, float& h)
-{
+void Model::GetCanvasSize(float& w, float& h) {
     w = _model->GetCanvasWidth();
     h = _model->GetCanvasHeight();
 }
 
-void Model::GetCanvasSizePixel(float& w, float& h)
-{
+void Model::GetCanvasSizePixel(float& w, float& h) {
     w = _model->GetCanvasWidthPixel();
     h = _model->GetCanvasHeightPixel();
 }
 
-float Model::GetPixelsPerUnit()
-{
+float Model::GetPixelsPerUnit() {
     return _model->GetPixelsPerUnit();
 }
 
-void Model::SetAutoBlink(bool on)
-{
+void Model::SetAutoBlink(bool on) {
     autoBlink = on;
 }
 
-void Model::SetAutoBreath(bool on)
-{
+void Model::SetAutoBreath(bool on) {
     autoBreath = on;
 }
 
-bool Model::HasMocConsistencyFromFile(const char* mocFileName)
-{
+bool Model::HasMocConsistencyFromFile(const char* mocFileName) {
     if (!mocFileName || !*mocFileName)
         return false;
     csmString path = mModelHomeDir + mocFileName;
@@ -1315,8 +1224,7 @@ bool Model::HasMocConsistencyFromFile(const char* mocFileName)
     return ok;
 }
 
-void Model::ReleaseMotions()
-{
+void Model::ReleaseMotions() {
     for (csmMap<csmString, ACubismMotion*>::const_iterator iter = mMotions.Begin();
          iter != mMotions.End();
          ++iter) {
@@ -1326,8 +1234,7 @@ void Model::ReleaseMotions()
     mMotions.Clear();
 }
 
-void Model::ReleaseExpressions()
-{
+void Model::ReleaseExpressions() {
     for (csmMap<csmString, ACubismMotion*>::const_iterator iter = mExpressions.Begin();
          iter != mExpressions.End();
          ++iter) {
@@ -1337,16 +1244,14 @@ void Model::ReleaseExpressions()
     mExpressions.Clear();
 }
 
-void Model::ReleaseExpressionManagers()
-{
+void Model::ReleaseExpressionManagers() {
     for (auto& [id, expMgr] : mExpManagers) {
         delete expMgr;
     }
     mExpManagers.clear();
 }
 
-void Model::SetupTextures()
-{
+void Model::SetupTextures() {
     for (csmInt32 modelTextureNumber = 0; modelTextureNumber < mModelSetting->GetTextureCount();
          modelTextureNumber++) {
         if (strcmp(mModelSetting->GetTextureFileName(modelTextureNumber), "") == 0) {
@@ -1373,8 +1278,7 @@ void Model::SetupTextures()
 #endif
 }
 
-void Model::PreloadMotionGroup(const csmChar* group)
-{
+void Model::PreloadMotionGroup(const csmChar* group) {
     const csmInt32 count = mModelSetting->GetMotionCount(group);
 
     if (count > 0) {
@@ -1405,8 +1309,7 @@ void Model::PreloadMotionGroup(const csmChar* group)
     }
 }
 
-const int* Model::GetDrawableRenderOrders() const
-{
+const int* Model::GetDrawableRenderOrders() const {
     return _model->GetRenderOrders();
 }
 }   // namespace V3

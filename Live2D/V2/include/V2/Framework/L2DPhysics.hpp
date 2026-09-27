@@ -6,8 +6,7 @@
 namespace Live2D {
 namespace V2 {
 class ModelContext;
-class L2DPhysics
-{
+class L2DPhysics {
 public:
     L2DPhysics();
     void updateParam(ModelContext* context);

@@ -7,12 +7,10 @@ namespace V2 {
 
 class PartsData;
 
-class PartsDataContext
-{
+class PartsDataContext {
 public:
     explicit PartsDataContext(PartsData* parts)
-        : mPartsData(parts)
-    {}
+        : mPartsData(parts) {}
 
     float getPartsOpacity() const { return mPartsOpacity; }
     void setPartsOpacity(float value) { mPartsOpacity = value; }

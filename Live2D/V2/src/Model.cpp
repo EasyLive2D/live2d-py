@@ -36,8 +36,7 @@ using json = nlohmann::json;
 using namespace Live2D::Common::Log;
 
 // Helper: read entire file using std::filesystem::u8path for Unicode path support
-static std::vector<uint8_t> readFile(const std::string& path)
-{
+static std::vector<uint8_t> readFile(const std::string& path) {
     std::filesystem::path fp = std::filesystem::u8path(path);
     std::ifstream f(fp, std::ios::binary | std::ios::ate);
     if (!f)
@@ -51,8 +50,7 @@ static std::vector<uint8_t> readFile(const std::string& path)
 }
 
 // Simple JSON texture path extractor
-static void parseTexturePaths(const json& data, std::vector<std::string>& texPaths)
-{
+static void parseTexturePaths(const json& data, std::vector<std::string>& texPaths) {
     auto textures = data.find("textures");
     if (textures != data.end()) {
         texPaths = textures->get<std::vector<std::string>>();
@@ -60,12 +58,10 @@ static void parseTexturePaths(const json& data, std::vector<std::string>& texPat
 }
 
 Model::Model()
-    : mRenderer(nullptr)
-{}
+    : mRenderer(nullptr) {}
 Model::~Model() = default;
 
-void Model::loadModelJson(const std::string& path, bool createRenderer)
-{
+void Model::loadModelJson(const std::string& path, bool createRenderer) {
     // Read JSON (use filesystem for Unicode path support)
     std::filesystem::path fp = std::filesystem::u8path(path);
     std::ifstream f(fp);
@@ -157,12 +153,10 @@ void Model::loadModelJson(const std::string& path, bool createRenderer)
         CreateRenderer();
     }
 }
-void Model::resize(int w, int h)
-{
+void Model::resize(int w, int h) {
     mMatrixManager.onResize(w, h);
 }
-void Model::drag(float x, float y)
-{
+void Model::drag(float x, float y) {
     // Convert screen coords to scene coords (match Python MatrixManager.screenToScene)
     float w = (float)mMatrixManager.getWidth();
     float h = (float)mMatrixManager.getHeight();
@@ -170,20 +164,16 @@ void Model::drag(float x, float y)
     float sy = (y - h * 0.5f) * -2.0f / h;
     mDragMgr.set(sx, sy);
 }
-bool Model::isMotionFinished() const
-{
+bool Model::isMotionFinished() const {
     return mMainMotionMgr->isFinished();
 }
-void Model::setOffset(float dx, float dy)
-{
+void Model::setOffset(float dx, float dy) {
     mMatrixManager.setOffset(dx, dy);
 }
-void Model::setScale(float s)
-{
+void Model::setScale(float s) {
     mMatrixManager.setScale(s);
 }
-void Model::setParameterValue(const std::string& id, float val, float w)
-{
+void Model::setParameterValue(const std::string& id, float val, float w) {
     int idx = mModelContext->getParamIndex(&Id::getID(id));
     mModelContext->setParamFloat(idx, val, w);
     // Match Python: also update savedParamValues so loadParam() doesn't revert
@@ -191,32 +181,26 @@ void Model::setParameterValue(const std::string& id, float val, float w)
         mModelContext->mSavedParamValues[idx] =
             mModelContext->mSavedParamValues[idx] * (1.0f - w) + val * w;
 }
-void Model::addParameterValue(const std::string& id, float val, float w)
-{
+void Model::addParameterValue(const std::string& id, float val, float w) {
     int idx = mModelContext->getParamIndex(&Id::getID(id));
     mModelContext->setParamFloat(idx, mModelContext->getParamFloat(idx) + val * w);
 }
-int Model::getParameterCount() const
-{
+int Model::getParameterCount() const {
     return (int)mModelContext->mParamValues.size();
 }
-int Model::getPartCount() const
-{
+int Model::getPartCount() const {
     return (int)mModelContext->mPartsDataList.size();
 }
-std::string Model::getPartId(int index) const
-{
+std::string Model::getPartId(int index) const {
     auto& parts = mModelContext->mPartsDataList;
     if (index >= 0 && index < (int)parts.size() && parts[index]->getId())
         return parts[index]->getId()->str();
     return "";
 }
-void Model::setPartOpacity(int index, float val)
-{
+void Model::setPartOpacity(int index, float val) {
     mModelContext->setPartsOpacity(index, val);
 }
-void Model::update()
-{
+void Model::update() {
     mDragMgr.update(0.016f);
     setDrag(mDragMgr.getX(), mDragMgr.getY());
 
@@ -292,8 +276,7 @@ void Model::update()
     if (mPose)
         mPose->updateParam(mModelContext.get());
 }
-void Model::draw()
-{
+void Model::draw() {
     // Match v2 Python: process deformer chain in draw(), not update()
     // This allows SetParameterValue between Update() and Draw() to take effect
     mModelContext->update();
@@ -308,8 +291,7 @@ void Model::draw()
     mRenderer->preDraw(mModelContext.get());
     mRenderer->draw(mModelContext.get());
 }
-bool Model::hitTest(const std::string& area, float x, float y)
-{
+bool Model::hitTest(const std::string& area, float x, float y) {
     // Convert screen pixels → scene coords (match Python screenToScene)
     float w = (float)mMatrixManager.getWidth();
     float h = (float)mMatrixManager.getHeight();
@@ -317,16 +299,14 @@ bool Model::hitTest(const std::string& area, float x, float y)
     float sy = (y - h * 0.5f) * -2.0f / h;
     return hitTestSimple(area, sx, sy);
 }
-void Model::setExpression(const std::string& name)
-{
+void Model::setExpression(const std::string& name) {
     auto it = mExpressions.find(name);
     if (it != mExpressions.end()) {
         LOGI("Start expression: %s", name.c_str());
         mExpressionMgr->startMotion(it->second.get(), false);
     }
 }
-void Model::setRandomExpression()
-{
+void Model::setRandomExpression() {
     if (!mExpressions.empty()) {
         auto it = mExpressions.begin();
         std::advance(it, rand() % mExpressions.size());
@@ -335,8 +315,7 @@ void Model::setRandomExpression()
     }
 }
 void Model::startMotion(const std::string& group, int no, int priority, StartCallback onStart,
-                            FinishCallback onFinish)
-{
+                        FinishCallback onFinish) {
     mOnStartMotion = std::move(onStart);
     mOnFinishMotion = std::move(onFinish);
     auto it = mMotions.find(group);
@@ -382,8 +361,7 @@ void Model::startMotion(const std::string& group, int no, int priority, StartCal
     }
 }
 void Model::startRandomMotion(const std::string& group, int priority, StartCallback onStart,
-                                  FinishCallback onFinish)
-{
+                              FinishCallback onFinish) {
     if (group.empty()) {
         if (mMotions.empty())
             return;
@@ -400,64 +378,51 @@ void Model::startRandomMotion(const std::string& group, int priority, StartCallb
         startMotion(group, no, priority, std::move(onStart), std::move(onFinish));
     }
 }
-void Model::clearMotions()
-{
+void Model::clearMotions() {
     mClearFlag = true;
 }
-void Model::resetExpression()
-{
+void Model::resetExpression() {
     mExpressionMgr->stopAllMotions();
 }
-void Model::resetPose()
-{
+void Model::resetPose() {
     if (mPose) {
         for (auto& g : mPose->mMGroups)
             for (auto& p : g.parts)
                 p.initIndex(mModelContext.get());
     }
 }
-void Model::rotate(float deg)
-{
+void Model::rotate(float deg) {
     mMatrixManager.rotate(deg);
 }
-float Model::getParameterValue(int index) const
-{
+float Model::getParameterValue(int index) const {
     return mModelContext->getParamFloat(index);
 }
-float Model::getParameterMin(int index) const
-{
+float Model::getParameterMin(int index) const {
     return mModelContext->getParamMin(index);
 }
-float Model::getParameterMax(int index) const
-{
+float Model::getParameterMax(int index) const {
     return mModelContext->getParamMax(index);
 }
-float Model::getParameterDefault(int index) const
-{
+float Model::getParameterDefault(int index) const {
     return mModelContext->getParamDefault(index);
 }
-std::string Model::getParameterId(int index) const
-{
+std::string Model::getParameterId(int index) const {
     auto& ids = mModelContext->mParamIdList;
     if (index >= 0 && index < (int)ids.size() && ids[index])
         return ids[index]->str();
     return "";
 }
-void Model::setPartScreenColor(int index, float r, float g, float b, float a)
-{
+void Model::setPartScreenColor(int index, float r, float g, float b, float a) {
     mModelContext->setPartScreenColor(index, r, g, b, a);
 }
-void Model::setPartMultiplyColor(int index, float r, float g, float b, float a)
-{
+void Model::setPartMultiplyColor(int index, float r, float g, float b, float a) {
     mModelContext->setPartMultiplyColor(index, r, g, b, a);
 }
-std::vector<float> Model::getPartScreenColor(int index) const
-{
+std::vector<float> Model::getPartScreenColor(int index) const {
     auto* ctx = mModelContext->getPartsContext(index);
     return {ctx->mScreenColor[0], ctx->mScreenColor[1], ctx->mScreenColor[2], ctx->mScreenColor[3]};
 }
-std::vector<float> Model::getPartMultiplyColor(int index) const
-{
+std::vector<float> Model::getPartMultiplyColor(int index) const {
     auto* ctx = mModelContext->getPartsContext(index);
     return {ctx->mMultiplyColor[0],
             ctx->mMultiplyColor[1],
@@ -465,8 +430,7 @@ std::vector<float> Model::getPartMultiplyColor(int index) const
             ctx->mMultiplyColor[3]};
 }
 static bool isInTriangle(float px, float py, float ax, float ay, float bx, float by, float cx,
-                         float cy)
-{
+                         float cy) {
     float v0x = cx - ax, v0y = cy - ay;
     float v1x = bx - ax, v1y = by - ay;
     float v2x = px - ax, v2y = py - ay;
@@ -483,8 +447,7 @@ static bool isInTriangle(float px, float py, float ax, float ay, float bx, float
     return (u >= 0) && (v >= 0) && (u + v <= 1);
 }
 
-std::vector<std::string> Model::hitPart(float x, float y, bool topOnly)
-{
+std::vector<std::string> Model::hitPart(float x, float y, bool topOnly) {
     // Step 1: screen pixels → scene coords (match Python MatrixManager.screenToScene)
     float w = (float)mMatrixManager.getWidth();
     float h = (float)mMatrixManager.getHeight();
@@ -605,8 +568,7 @@ std::vector<std::string> Model::hitPart(float x, float y, bool topOnly)
     return result;
 }
 
-void Model::CreateRenderer()
-{
+void Model::CreateRenderer() {
     if (mRenderer) {
         LOGW("Renderer already exists, releasing it first");
         return;
@@ -638,8 +600,7 @@ void Model::CreateRenderer()
         stbi_image_free(pixels);
     }
 }
-void Model::ReleaseRenderer()
-{
+void Model::ReleaseRenderer() {
     if (!mRenderer) {
         LOGW("Renderer not initialized, nothing to release");
         return;

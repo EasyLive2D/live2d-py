@@ -23,8 +23,7 @@ using namespace Csm;
 namespace Live2D {
 namespace V3 {
 
-class Model : public Csm::CubismUserModel
-{
+class Model : public Csm::CubismUserModel {
 public:
     Model();
     ~Model() override;

@@ -12,8 +12,7 @@ class Deformer;
 class IDrawData;
 class PartsData;
 
-class Avatar final : public ISerializable
-{
+class Avatar final : public ISerializable {
 public:
     Avatar() = default;
     ~Avatar() override;

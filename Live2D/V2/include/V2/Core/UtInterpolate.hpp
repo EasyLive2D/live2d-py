@@ -8,8 +8,7 @@ namespace V2 {
 class ModelContext;
 class PivotManager;
 
-class UtInterpolate
-{
+class UtInterpolate {
 public:
     static float interpolateFloat(ModelContext* mdc, PivotManager* pivotMgr, bool& ret,
                                   const std::vector<float>& values);

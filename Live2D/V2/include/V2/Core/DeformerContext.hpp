@@ -5,12 +5,10 @@ namespace V2 {
 
 class Deformer;
 
-class DeformerContext
-{
+class DeformerContext {
 public:
     explicit DeformerContext(Deformer* deformer)
-        : mDeformer(deformer)
-    {}
+        : mDeformer(deformer) {}
     virtual ~DeformerContext() = default;
 
     Deformer* getDeformer() const { return mDeformer; }

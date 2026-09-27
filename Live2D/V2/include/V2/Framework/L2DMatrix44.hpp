@@ -5,8 +5,7 @@
 namespace Live2D {
 namespace V2 {
 
-class L2DMatrix44
-{
+class L2DMatrix44 {
 public:
     L2DMatrix44();
 

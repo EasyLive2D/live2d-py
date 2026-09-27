@@ -23,8 +23,7 @@ static constexpr int CHANNEL_COUNT = 4;
 static constexpr int CLIP_MASK_SIZE = 256;
 
 ClippingManagerOpenGL::ClippingManagerOpenGL(GLRenderer& renderer)
-    : mRenderer(renderer)
-{
+    : mRenderer(renderer) {
     // Init channel colors
     mChannelColors.resize(CHANNEL_COUNT);
     // Match v2 Python: ch0=Alpha, ch1=Red, ch2=Green, ch3=Blue
@@ -39,8 +38,7 @@ ClippingManagerOpenGL::ClippingManagerOpenGL(GLRenderer& renderer)
 ClippingManagerOpenGL::~ClippingManagerOpenGL() = default;
 
 static ClipContext* findSameClip(const std::vector<std::unique_ptr<ClipContext>>& list,
-                                 const std::vector<std::string>& ids)
-{
+                                 const std::vector<std::string>& ids) {
     for (auto& ctx : list) {
         if (ctx->mClipIDList.size() != ids.size())
             continue;
@@ -59,8 +57,7 @@ static ClipContext* findSameClip(const std::vector<std::unique_ptr<ClipContext>>
 
 void ClippingManagerOpenGL::init(ModelContext* modelContext,
                                  const std::vector<IDrawData*>& drawDataList,
-                                 const std::vector<MeshContext*>& drawContextList)
-{
+                                 const std::vector<MeshContext*>& drawContextList) {
     int clipCount = 0;
     for (size_t i = 0; i < drawDataList.size(); i++) {
         auto& clipIDs = drawDataList[i]->getClipIDList();
@@ -98,8 +95,7 @@ void ClippingManagerOpenGL::init(ModelContext* modelContext,
 }
 
 void ClippingManagerOpenGL::calcClippedDrawTotalBounds(ModelContext* modelContext,
-                                                       ClipContext* clip)
-{
+                                                       ClipContext* clip) {
     int canvasW = modelContext->getCanvasWidth();
     int canvasH = modelContext->getCanvasHeight();
     float maxDim = (float)std::max(canvasW, canvasH);
@@ -152,8 +148,7 @@ void ClippingManagerOpenGL::calcClippedDrawTotalBounds(ModelContext* modelContex
     }
 }
 
-void ClippingManagerOpenGL::setupLayoutBounds(int count)
-{
+void ClippingManagerOpenGL::setupLayoutBounds(int count) {
     int rows = count / CHANNEL_COUNT;
     int remainder = count % CHANNEL_COUNT;
     int idx = 0;
@@ -201,8 +196,7 @@ void ClippingManagerOpenGL::setupLayoutBounds(int count)
 // Build clip matrix from ClipContext layout + bounds
 // forMask=true:  includes T(-1,-1)*S(2,2) NDC mapping (used as u_mvpMatrix in MASK path)
 // forMask=false: maps directly to [0,1] texture coords (used as u_clipMatrix in CLIP path)
-static void buildClipMatrix(std::array<float, 16>& out, ClipContext* clip, bool forMask)
-{
+static void buildClipMatrix(std::array<float, 16>& out, ClipContext* clip, bool forMask) {
     out.fill(0);
     float bx = clip->mLayoutBounds[0], by = clip->mLayoutBounds[1];
     float bw = clip->mLayoutBounds[2], bh = clip->mLayoutBounds[3];
@@ -239,8 +233,7 @@ static void buildClipMatrix(std::array<float, 16>& out, ClipContext* clip, bool 
     }
 }
 
-void ClippingManagerOpenGL::setupClip(ModelContext* modelContext)
-{
+void ClippingManagerOpenGL::setupClip(ModelContext* modelContext) {
     int activeCount = 0;
     for (auto& clip : mClipContextList) {
         calcClippedDrawTotalBounds(modelContext, clip.get());

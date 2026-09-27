@@ -7,8 +7,7 @@ namespace V2 {
 
 ParamDefSet::~ParamDefSet() = default;
 
-void ParamDefSet::read(BinaryReader& br)
-{
+void ParamDefSet::read(BinaryReader& br) {
     auto raw = br.readObject<std::vector<ParamDefFloat*>>();
     mParamDefList.reserve(raw.size());
     for (auto* p : raw)

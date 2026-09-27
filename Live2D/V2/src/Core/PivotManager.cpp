@@ -11,16 +11,14 @@ namespace V2 {
 
 PivotManager::~PivotManager() = default;
 
-void PivotManager::read(BinaryReader& br)
-{
+void PivotManager::read(BinaryReader& br) {
     auto raw = br.readObject<std::vector<ParamPivots*>>();
     mParamPivotTable.reserve(raw.size());
     for (auto* p : raw)
         mParamPivotTable.emplace_back(p);
 }
 
-bool PivotManager::checkParamUpdated(ModelContext* modelContext)
-{
+bool PivotManager::checkParamUpdated(ModelContext* modelContext) {
     if (modelContext->requireSetup())
         return true;
 
@@ -36,8 +34,7 @@ bool PivotManager::checkParamUpdated(ModelContext* modelContext)
     return false;
 }
 
-int PivotManager::calcPivotValues(ModelContext* modelContext, bool& outRet)
-{
+int PivotManager::calcPivotValues(ModelContext* modelContext, bool& outRet) {
     int paramCount = static_cast<int>(mParamPivotTable.size());
     int initVersion = modelContext->getInitVersion();
     int interpolationCount = 0;
@@ -107,8 +104,7 @@ int PivotManager::calcPivotValues(ModelContext* modelContext, bool& outRet)
 }
 
 void PivotManager::calcPivotIndices(std::vector<int16_t>& indexArray, std::vector<float>& tArray,
-                                    int interpolationCount)
-{
+                                    int interpolationCount) {
     int tableSize = 1 << interpolationCount;
     if (tableSize + 1 > PIVOT_TABLE_SIZE) {
         printf("err 23245\n");

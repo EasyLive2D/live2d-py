@@ -17,16 +17,14 @@ using namespace Live2D::Common::Log;
 
 class ISerializable;
 
-class BinaryReader
-{
+class BinaryReader {
 public:
     explicit BinaryReader(std::vector<uint8_t> buf)
         : mBuf(std::move(buf))
         , mOffset(0)
         , mFormatVersion(0)
         , mOffset8Bit(0)
-        , mCurrent8Bit(0)
-    {}
+        , mCurrent8Bit(0) {}
     ~BinaryReader();
 
     // -- Basic types (big-endian binary format) --
@@ -76,11 +74,9 @@ private:
 
     // Trait to detect std::vector specializations
     template<typename T>
-    struct is_vector : std::false_type
-    {};
+    struct is_vector : std::false_type {};
     template<typename U, typename A>
-    struct is_vector<std::vector<U, A>> : std::true_type
-    {};
+    struct is_vector<std::vector<U, A>> : std::true_type {};
 
     // Tag-dispatched implementations
     template<typename T>
@@ -99,50 +95,42 @@ private:
 // -- Tag dispatch --
 
 template<typename T>
-inline T BinaryReader::readObject(int type)
-{
+inline T BinaryReader::readObject(int type) {
     return readObjectDispatch<T>(is_vector<T>{}, type);
 }
 
 template<typename T>
-inline T BinaryReader::readObjectDispatch(std::true_type /*is_vector*/, int type)
-{
+inline T BinaryReader::readObjectDispatch(std::true_type /*is_vector*/, int type) {
     return readObjectVector<T>(type);
 }
 
 template<typename T>
-inline T BinaryReader::readObjectDispatch(std::false_type /*is_vector*/, int type)
-{
+inline T BinaryReader::readObjectDispatch(std::false_type /*is_vector*/, int type) {
     return readObjectPtr<T>(type);
 }
 
 // Helper: reads a primitive-typed array directly (type code already consumed)
 template<typename ElemType>
-inline std::vector<ElemType> readPrimitiveArray(BinaryReader* /*br*/)
-{
+inline std::vector<ElemType> readPrimitiveArray(BinaryReader* /*br*/) {
     LOGE("Unsupported primitive array type");
     return {};
 }
 
 template<>
-inline std::vector<float> readPrimitiveArray<float>(BinaryReader* br)
-{
+inline std::vector<float> readPrimitiveArray<float>(BinaryReader* br) {
     return br->readFloat32Array();
 }
 template<>
-inline std::vector<int32_t> readPrimitiveArray<int32_t>(BinaryReader* br)
-{
+inline std::vector<int32_t> readPrimitiveArray<int32_t>(BinaryReader* br) {
     return br->readInt32Array();
 }
 template<>
-inline std::vector<double> readPrimitiveArray<double>(BinaryReader* br)
-{
+inline std::vector<double> readPrimitiveArray<double>(BinaryReader* br) {
     return br->readFloat64Array();
 }
 
 template<typename T>
-inline T BinaryReader::readObjectVector(int type)
-{
+inline T BinaryReader::readObjectVector(int type) {
     using ElemType = typename T::value_type;
     checkBits();
     int actualType = (type < 0) ? readType() : type;
@@ -218,8 +206,7 @@ inline T BinaryReader::readObjectVector(int type)
 }
 
 template<typename T>
-inline T BinaryReader::readObjectPtr(int type)
-{
+inline T BinaryReader::readObjectPtr(int type) {
     checkBits();
     int actualType = (type < 0) ? readType() : type;
 

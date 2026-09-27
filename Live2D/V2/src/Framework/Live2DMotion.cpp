@@ -11,8 +11,7 @@ namespace V2 {
 
 Live2DMotion::Live2DMotion() = default;
 
-void Live2DMotion::updateParam(ModelContext* context, float timeSec, float weight)
-{
+void Live2DMotion::updateParam(ModelContext* context, float timeSec, float weight) {
     if (mDurationMs <= 0 || mMotions.empty())
         return;
     float timeMs = timeSec * 1000.0f;
@@ -62,17 +61,14 @@ void Live2DMotion::updateParam(ModelContext* context, float timeSec, float weigh
     }
 }
 
-float Live2DMotion::getDurationSec() const
-{
+float Live2DMotion::getDurationSec() const {
     return mDurationMs / 1000.0f;
 }
-bool Live2DMotion::isLoop() const
-{
+bool Live2DMotion::isLoop() const {
     return mLoop;
 }
 
-Live2DMotion* Live2DMotion::load(const std::vector<uint8_t>& data)
-{
+Live2DMotion* Live2DMotion::load(const std::vector<uint8_t>& data) {
     auto* m = new Live2DMotion();
     std::string content((const char*)data.data(), data.size());
     std::istringstream ss(content);

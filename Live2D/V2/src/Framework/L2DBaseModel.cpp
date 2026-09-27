@@ -22,13 +22,11 @@ L2DBaseModel::L2DBaseModel()
     , mPhysics(std::make_unique<L2DPhysics>())
     , mPose(std::make_unique<L2DPose>())
     , mMainMotionMgr(std::make_unique<L2DMotionManager>())
-    , mExpressionMgr(std::make_unique<L2DMotionManager>())
-{}
+    , mExpressionMgr(std::make_unique<L2DMotionManager>()) {}
 
 L2DBaseModel::~L2DBaseModel() = default;
 
-void L2DBaseModel::loadModelData(const std::vector<uint8_t>& data, int version)
-{
+void L2DBaseModel::loadModelData(const std::vector<uint8_t>& data, int version) {
     BinaryReader br(data);
     br.readByte();
     br.readByte();
@@ -44,29 +42,24 @@ void L2DBaseModel::loadModelData(const std::vector<uint8_t>& data, int version)
     mModelMatrix.setWidth(2);
     mModelMatrix.setCenterPosition(0, 0);
 }
-AMotion* L2DBaseModel::loadMotion(const std::string& name, const std::vector<uint8_t>& data)
-{
+AMotion* L2DBaseModel::loadMotion(const std::string& name, const std::vector<uint8_t>& data) {
     auto* m = Live2DMotion::load(data);
     mMotions[name].emplace_back(m);
     return m;
 }
-AMotion* L2DBaseModel::loadExpression(const std::string& name, const std::vector<uint8_t>& data)
-{
+AMotion* L2DBaseModel::loadExpression(const std::string& name, const std::vector<uint8_t>& data) {
     auto* m = L2DExpressionMotion::load(data);
     mExpressions[name].reset(m);
     return m;
 }
-L2DPose* L2DBaseModel::loadPose(const std::vector<uint8_t>& data)
-{
+L2DPose* L2DBaseModel::loadPose(const std::vector<uint8_t>& data) {
     mPose.reset(L2DPose::load(data));
     return mPose.get();
 }
-void L2DBaseModel::loadPhysics(const std::vector<uint8_t>& data)
-{
+void L2DBaseModel::loadPhysics(const std::vector<uint8_t>& data) {
     mPhysics.reset(L2DPhysics::load(data));
 }
-bool L2DBaseModel::hitTestSimple(const std::string& drawID, float x, float y)
-{
+bool L2DBaseModel::hitTestSimple(const std::string& drawID, float x, float y) {
     auto* mc = mModelContext.get();
     int drawIdx = mc->getDrawDataIndex(&Id::getID(drawID));
     if (drawIdx < 0)

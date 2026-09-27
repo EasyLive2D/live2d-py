@@ -3,8 +3,7 @@
 #include <vector>
 namespace Live2D {
 namespace V2 {
-struct Motion
-{
+struct Motion {
     std::string mParamId;
     std::string mSecondaryId;
     std::vector<float> mValues;

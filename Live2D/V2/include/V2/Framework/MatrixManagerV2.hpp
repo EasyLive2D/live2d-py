@@ -5,8 +5,7 @@ namespace Live2D {
 namespace V2 {
 class L2DModelMatrix;
 
-class MatrixManagerV2
-{
+class MatrixManagerV2 {
 public:
     MatrixManagerV2();
 

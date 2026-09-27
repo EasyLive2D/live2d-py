@@ -6,8 +6,7 @@
 #include <vector>
 namespace Live2D {
 namespace V2 {
-class L2DExpressionMotion : public AMotion
-{
+class L2DExpressionMotion : public AMotion {
 public:
     L2DExpressionMotion();
     void updateParam(ModelContext* model, float timeSec, float weight) override;

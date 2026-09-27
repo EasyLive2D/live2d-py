@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <GL/glew.h>
+#include <GL/glad.h>
 
 static void* get_proc(const char *namez);
 

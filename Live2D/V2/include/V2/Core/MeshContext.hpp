@@ -8,12 +8,10 @@ namespace V2 {
 
 class Mesh;
 
-class MeshContext : public IDrawContext
-{
+class MeshContext : public IDrawContext {
 public:
     explicit MeshContext(Mesh* drawData)
-        : mDrawData(drawData)
-    {}
+        : mDrawData(drawData) {}
 
     Mesh* getDrawData() const { return mDrawData; }
 

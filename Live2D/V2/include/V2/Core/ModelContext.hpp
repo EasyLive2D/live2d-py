@@ -21,8 +21,7 @@ class PivotManager;
 class ParamPivots;
 
 
-class ModelContext
-{
+class ModelContext {
 public:
     static constexpr int NOT_USED_ORDER = -1;
     static constexpr int NO_NEXT = -1;
@@ -55,8 +54,7 @@ public:
     bool requireSetup() const { return mNeedSetup; }
 
     Deformer* getDeformer(int index) const { return mDeformerList[index]; }
-    DeformerContext* getDeformerContext(int index) const
-    {
+    DeformerContext* getDeformerContext(int index) const {
         return mDeformerContextList[index].get();
     }
     IDrawData* getDrawData(int index) const;

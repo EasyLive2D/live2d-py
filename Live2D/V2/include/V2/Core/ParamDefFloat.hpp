@@ -6,8 +6,7 @@
 namespace Live2D {
 namespace V2 {
 
-class ParamDefFloat final : public ISerializable
-{
+class ParamDefFloat final : public ISerializable {
 public:
     ParamDefFloat() = default;
 

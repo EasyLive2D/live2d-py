@@ -11,8 +11,7 @@
 
 namespace Live2D {
 namespace V2 {
-class Model : public L2DBaseModel
-{
+class Model : public L2DBaseModel {
 public:
     using StartCallback = std::function<void(const std::string&, int)>;
     using FinishCallback = std::function<void(const std::string&, int)>;

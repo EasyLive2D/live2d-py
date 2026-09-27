@@ -8,8 +8,7 @@ namespace V2 {
 
 ModelImpl::~ModelImpl() = default;
 
-void ModelImpl::read(BinaryReader& br)
-{
+void ModelImpl::read(BinaryReader& br) {
     mParamDefSet.reset(br.readObject<ParamDefSet*>());
     auto rawParts = br.readObject<std::vector<PartsData*>>();
     mPartsDataList.reserve(rawParts.size());

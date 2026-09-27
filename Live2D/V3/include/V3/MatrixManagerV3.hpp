@@ -5,8 +5,7 @@
 #include "Math/CubismMatrix44.hpp"
 namespace Live2D {
 namespace V3 {
-class MatrixManagerV3
-{
+class MatrixManagerV3 {
 public:
     MatrixManagerV3();
     void SetModelWH(float mw, float mh);

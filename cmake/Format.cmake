@@ -13,16 +13,22 @@ if(CLANG_FORMAT_EXECUTABLE)
         ${CMAKE_SOURCE_DIR}/Live2D/V2/*.hpp
         ${CMAKE_SOURCE_DIR}/Live2D/V2/*.h
 
-        ${CMAKE_SOURCE_DIR}/Live2D/V3/Main/*.cpp
-        ${CMAKE_SOURCE_DIR}/Live2D/V3/Main/*.hpp
-        ${CMAKE_SOURCE_DIR}/Live2D/V3/Main/*.h
+        ${CMAKE_SOURCE_DIR}/Live2D/V3/src/*.cpp
+        ${CMAKE_SOURCE_DIR}/Live2D/V3/src/*.hpp
+        ${CMAKE_SOURCE_DIR}/Live2D/V3/src/*.h
+        ${CMAKE_SOURCE_DIR}/Live2D/V3/include/*.cpp
+        ${CMAKE_SOURCE_DIR}/Live2D/V3/include/*.hpp
+        ${CMAKE_SOURCE_DIR}/Live2D/V3/include/*.h
 
-        ${CMAKE_SOURCE_DIR}/Live2D/Common/*.cpp
-        ${CMAKE_SOURCE_DIR}/Live2D/Common/*.hpp
-        ${CMAKE_SOURCE_DIR}/Live2D/Common/*.h
+        ${CMAKE_SOURCE_DIR}/Live2D/Common/Debug.cpp
+        ${CMAKE_SOURCE_DIR}/Live2D/Common/Debug.hpp
+        ${CMAKE_SOURCE_DIR}/Live2D/Common/Log.cpp
+        ${CMAKE_SOURCE_DIR}/Live2D/Common/Log.hpp
 
         ${CMAKE_SOURCE_DIR}/Wrapper/*.cpp
         ${CMAKE_SOURCE_DIR}/Wrapper/*.hpp
+        ${CMAKE_SOURCE_DIR}/Wrapper/*.h
+
         ${CMAKE_SOURCE_DIR}/tests/v2/main.cpp
     )
 

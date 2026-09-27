@@ -8,8 +8,7 @@ namespace Live2D {
 namespace V2 {
 
 // ---- PhysicsSrc ----
-void PhysicsSrc::update(ModelContext* context, PhysicsHair* ctx)
-{
+void PhysicsSrc::update(ModelContext* context, PhysicsHair* ctx) {
     int idx = context->getParamIndex(&Id::getID(paramId));
     if (idx < 0)
         return;
@@ -28,8 +27,7 @@ void PhysicsSrc::update(ModelContext* context, PhysicsHair* ctx)
 }
 
 // ---- PhysicsTarget ----
-void PhysicsTarget::update(ModelContext* context, PhysicsHair* ctx)
-{
+void PhysicsTarget::update(ModelContext* context, PhysicsHair* ctx) {
     int idx = context->getParamIndex(&Id::getID(paramId));
     if (idx < 0)
         return;
@@ -40,13 +38,11 @@ void PhysicsTarget::update(ModelContext* context, PhysicsHair* ctx)
 }
 
 // ---- PhysicsHair ----
-PhysicsHair::PhysicsHair()
-{
+PhysicsHair::PhysicsHair() {
     setup(0.3f, 0.5f, 0.1f);
 }
 
-void PhysicsHair::setup(float l, float stiff, float mass)
-{
+void PhysicsHair::setup(float l, float stiff, float mass) {
     currentAngle = calcAngle();
     p2.setupLast();
     length = l;
@@ -56,23 +52,19 @@ void PhysicsHair::setup(float l, float stiff, float mass)
     p2.y = l;
 }
 
-float PhysicsHair::calcAngle() const
-{
+float PhysicsHair::calcAngle() const {
     return -180.0f * std::atan2(p1.x - p2.x, -(p1.y - p2.y)) / 3.14159265f;
 }
 
-void PhysicsHair::addSrcParam(PhysicsSrcType t, const std::string& id, float scale, float weight)
-{
+void PhysicsHair::addSrcParam(PhysicsSrcType t, const std::string& id, float scale, float weight) {
     sourceParams.push_back({t, id, scale, weight});
 }
 void PhysicsHair::addTargetParam(PhysicsTargetType t, const std::string& id, float scale,
-                                 float weight)
-{
+                                 float weight) {
     targetParams.push_back({t, id, scale, weight});
 }
 
-void PhysicsHair::update(ModelContext* context, long long timeMs)
-{
+void PhysicsHair::update(ModelContext* context, long long timeMs) {
     if (lastTime == 0) {
         lastTime = currentTime = timeMs;
         float dx = p1.x - p2.x, dy = p1.y - p2.y;
@@ -93,8 +85,7 @@ void PhysicsHair::update(ModelContext* context, long long timeMs)
     currentTime = timeMs;
 }
 
-void PhysicsHair::updatePhysics(ModelContext*, float deltaSec)
-{
+void PhysicsHair::updatePhysics(ModelContext*, float deltaSec) {
     if (deltaSec < 0.033f)
         deltaSec = 0.033f;
     float inv = 1.0f / deltaSec;

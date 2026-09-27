@@ -83,27 +83,27 @@ BinPackParameters: true
 # 大括号换行，只有当 BreakBeforeBraces 设置为Custom时才有效
 BraceWrapping:
   # case 语句后面
-  AfterCaseLabel: true
+  AfterCaseLabel: false
   # class定义后面
-  AfterClass: true
+  AfterClass: false
   # 控制语句后面
   AfterControlStatement: Never
   # enum定义后面
-  AfterEnum: true
+  AfterEnum: false
   # 函数定义后面
-  AfterFunction: true
+  AfterFunction: false
   # 命名空间定义后面
   AfterNamespace: false
   # ObjC定义后面
   AfterObjCDeclaration: false
   # struct定义后面
-  AfterStruct: true
+  AfterStruct: false
   # union定义后面
-  AfterUnion: true
+  AfterUnion: false
   # extern 导出块后面
   AfterExternBlock: false
   # catch之前
-  BeforeCatch: true
+  BeforeCatch: false
   # else之前
   BeforeElse: false
   # 缩进大括号(整个大括号框起来的部分都缩进)
@@ -242,10 +242,10 @@ PenaltyReturnTypeOnItsOwnLine: 120
 PointerAlignment: Left
  
 # 允许重新排版注释
-ReflowComments: true
+ReflowComments: false
  
 # 允许排序#include
-SortIncludes: true
+SortIncludes: false
  
 # 允许排序 using 声明顺序
 SortUsingDeclarations: false

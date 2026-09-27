@@ -5,8 +5,7 @@
 namespace Live2D {
 namespace V2 {
 class ALive2DModel;
-struct MotionQueueEntry
-{
+struct MotionQueueEntry {
     AMotion* mMotion = nullptr;
     float mFadeIn = 0, mFadeOut = 0;
     bool mStarted = false;
@@ -15,8 +14,7 @@ struct MotionQueueEntry
     float mEndTimeMs = -1;      // for fade-out
     bool mFinished = false;     // true when endTimeMs has passed
 };
-class L2DMotionManager
-{
+class L2DMotionManager {
 public:
     L2DMotionManager();
     int startMotion(AMotion* motion, bool autoPriority);

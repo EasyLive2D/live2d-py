@@ -14,8 +14,7 @@ class IDrawData;
 class MeshContext;
 
 class ALive2DModel;
-class ClippingManagerOpenGL
-{
+class ClippingManagerOpenGL {
 public:
     explicit ClippingManagerOpenGL(GLRenderer& renderer);
     ~ClippingManagerOpenGL();

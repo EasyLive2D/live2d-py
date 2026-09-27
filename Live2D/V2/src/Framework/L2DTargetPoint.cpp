@@ -4,8 +4,7 @@
 namespace Live2D {
 namespace V2 {
 
-void L2DTargetPoint::update(float deltaSec)
-{
+void L2DTargetPoint::update(float deltaSec) {
     float dx = mTargetX - mX;
     float dy = mTargetY - mY;
     if (std::abs(dx) < sEpsilon && std::abs(dy) < sEpsilon)

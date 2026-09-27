@@ -4,8 +4,7 @@
 namespace Live2D {
 namespace V2 {
 L2DMotionManager::L2DMotionManager() = default;
-bool L2DMotionManager::reserveMotion(int priority)
-{
+bool L2DMotionManager::reserveMotion(int priority) {
     if (priority < mReservePriority)
         return false;
     if (priority < mCurrentPriority)
@@ -13,8 +12,7 @@ bool L2DMotionManager::reserveMotion(int priority)
     mReservePriority = priority;
     return true;
 }
-int L2DMotionManager::startMotion(AMotion* motion, bool autoPriority)
-{
+int L2DMotionManager::startMotion(AMotion* motion, bool autoPriority) {
     float now = (float)UtSystem::getUserTimeMSec();
     // Fade out existing motions, matching Python v2: shorter end time wins
     for (auto& e : mMotions) {
@@ -28,16 +26,14 @@ int L2DMotionManager::startMotion(AMotion* motion, bool autoPriority)
     mMotions.push_back({motion, motion->mFadeInSec, motion->mFadeOutSec, false, now, now, -1.0f});
     return (int)mMotions.size() - 1;
 }
-int L2DMotionManager::startMotionPrio(AMotion* motion, int priority)
-{
+int L2DMotionManager::startMotionPrio(AMotion* motion, int priority) {
     if (priority == mReservePriority)
         mReservePriority = 0;
     mCurrentPriority = priority;
     return startMotion(motion, false);
 }
 // Easing: 0.5 - 0.5*cos(x*pi), clamped [0,1]
-static float easeSine(float x)
-{
+static float easeSine(float x) {
     if (x <= 0)
         return 0;
     if (x >= 1)
@@ -45,8 +41,7 @@ static float easeSine(float x)
     return 0.5f - 0.5f * cosf(x * 3.14159265f);
 }
 
-bool L2DMotionManager::updateParam(ModelContext* context)
-{
+bool L2DMotionManager::updateParam(ModelContext* context) {
     float now = (float)UtSystem::getUserTimeMSec();
     bool updated = false;
     for (size_t i = 0; i < mMotions.size();) {
@@ -96,12 +91,10 @@ bool L2DMotionManager::updateParam(ModelContext* context)
         mCurrentPriority = 0;
     return updated;
 }
-bool L2DMotionManager::isFinished() const
-{
+bool L2DMotionManager::isFinished() const {
     return mMotions.empty();
 }
-void L2DMotionManager::stopAllMotions()
-{
+void L2DMotionManager::stopAllMotions() {
     mMotions.clear();
 }
 }   // namespace V2

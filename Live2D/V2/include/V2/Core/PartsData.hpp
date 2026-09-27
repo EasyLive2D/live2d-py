@@ -12,8 +12,7 @@ namespace V2 {
 
 class PartsDataContext;
 
-class PartsData final : public ISerializable
-{
+class PartsData final : public ISerializable {
 public:
     PartsData() = default;
     ~PartsData() override;
@@ -27,12 +26,10 @@ public:
     void setVisible(bool v) { mVisible = v; }
     void setLocked(bool v) { mLocked = v; }
 
-    void setDeformer(std::vector<std::unique_ptr<Deformer>>&& list)
-    {
+    void setDeformer(std::vector<std::unique_ptr<Deformer>>&& list) {
         mDeformerList = std::move(list);
     }
-    void setDrawData(std::vector<std::unique_ptr<IDrawData>>&& list)
-    {
+    void setDrawData(std::vector<std::unique_ptr<IDrawData>>&& list) {
         mDrawDataList = std::move(list);
     }
 

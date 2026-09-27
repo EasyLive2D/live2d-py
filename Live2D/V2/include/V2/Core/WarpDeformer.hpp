@@ -9,8 +9,7 @@ namespace V2 {
 
 class PivotManager;
 
-class WarpDeformer final : public Deformer
-{
+class WarpDeformer final : public Deformer {
 public:
     WarpDeformer() = default;
     ~WarpDeformer() override;

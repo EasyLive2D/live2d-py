@@ -10,8 +10,7 @@ namespace V2 {
 class PivotManager;
 class AffineEnt;
 
-class RotationDeformer final : public Deformer
-{
+class RotationDeformer final : public Deformer {
 public:
     RotationDeformer() = default;
     ~RotationDeformer() override;

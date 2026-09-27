@@ -7,8 +7,7 @@ namespace V2 {
 
 class ISerializable;
 
-class Live2DObjectFactory
-{
+class Live2DObjectFactory {
 public:
     static std::unique_ptr<ISerializable> create(int clsNo);
 };
