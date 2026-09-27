@@ -16,7 +16,7 @@ def main():
 
     live2d.glInit()
 
-    model = live2d.LAppModel()
+    model = live2d.Model()
     background = Image(
         os.path.join(resources.RESOURCES_DIRECTORY, "RING.png")
     )

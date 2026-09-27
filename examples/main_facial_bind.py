@@ -178,14 +178,14 @@ def main():
     live2d.init()
     live2d.glInit()
 
-    model = live2d.LAppModel()
+    model = live2d.Model()
     if live2d.LIVE2D_VERSION == 3:
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
     else:
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json"))
     model.Resize(w, h)
-    model.SetAutoBreathEnable(False)
-    model.SetAutoBlinkEnable(False)
+    model.SetAutoBreath(False)
+    model.SetAutoBlink(False)
 
     params = Params()
     td.Thread(None, capture_task, "capture", (params, 0), daemon=True).start()
@@ -204,15 +204,15 @@ def main():
     while not glfw.window_should_close(window):
         glfw.poll_events()
 
-        model.SetParameterValue(StandardParams.ParamEyeLOpen,   params.EyeLOpen,   1)
-        model.SetParameterValue(StandardParams.ParamEyeROpen,   params.EyeROpen,   1)
-        model.SetParameterValue(StandardParams.ParamMouthOpenY, params.MouthOpenY, 1)
-        model.SetParameterValue(StandardParams.ParamMouthForm,  params.MouthForm,  1)
-        model.SetParameterValue(StandardParams.ParamAngleX,     params.AngleX,     1)
-        model.SetParameterValue(StandardParams.ParamAngleY,     params.AngleY,     1)
-        model.SetParameterValue(StandardParams.ParamAngleZ,     params.AngleZ,     1)
-        model.SetParameterValue(StandardParams.ParamEyeBallX,   params.EyeBallX,   1)
-        model.SetParameterValue("Param14", 1, 1)
+        model.SetParamById(StandardParams.ParamEyeLOpen,  params.EyeLOpen,  1)
+        model.SetParamById(StandardParams.ParamEyeROpen,  params.EyeROpen,  1)
+        model.SetParamById(StandardParams.ParamMouthOpenY,  params.MouthOpenY,  1)
+        model.SetParamById(StandardParams.ParamMouthForm,  params.MouthForm,  1)
+        model.SetParamById(StandardParams.ParamAngleX,  params.AngleX,  1)
+        model.SetParamById(StandardParams.ParamAngleY,  params.AngleY,  1)
+        model.SetParamById(StandardParams.ParamAngleZ,  params.AngleZ,  1)
+        model.SetParamById(StandardParams.ParamEyeBallX,  params.EyeBallX,  1)
+        model.SetParamById("Param14", 1, 1)
 
         live2d.clearBuffer()
         model.Update()

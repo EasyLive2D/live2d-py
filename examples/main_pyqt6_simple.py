@@ -22,7 +22,7 @@ class Win(QOpenGLWidget):
 
         self.resize(400, 500)
 
-        self.model: live2d.LAppModel | None = None
+        self.model: live2d.Model | None = None
 
 
     def initializeGL(self) -> None:
@@ -30,7 +30,7 @@ class Win(QOpenGLWidget):
         # 图形会被绘制到当前窗口
         live2d.glInit()
         # 创建模型
-        self.model = live2d.LAppModel()
+        self.model = live2d.Model()
 
         if live2d.LIVE2D_VERSION == 3:
             self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))

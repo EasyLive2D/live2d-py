@@ -117,6 +117,15 @@ void Model::Update(float deltaSecs) {
         }
         mLastUpdatePoint = now;
     }
+    // 表情 fadeout: 到期恢复上一个持久表情
+    if (mFadeoutMs >= 0.0f) {
+        mFadeoutElapsedMs += deltaSecs * 1000.0f;
+        if (mFadeoutElapsedMs >= mFadeoutMs) {
+            mFadeoutMs = -1.0f;
+            SetExpression(mLastExpression.c_str());
+        }
+    }
+
     mProxy._dragManager->Update(deltaSecs);
     mDragX = mProxy._dragManager->GetX();
     mDragY = mProxy._dragManager->GetY();
@@ -308,6 +317,15 @@ bool Model::UpdateMotion(float deltaSecs) {
 }
 
 void Model::UpdateDrag(float deltaSecs) {
+    // 表情 fadeout: 到期恢复上一个持久表情
+    if (mFadeoutMs >= 0.0f) {
+        mFadeoutElapsedMs += deltaSecs * 1000.0f;
+        if (mFadeoutElapsedMs >= mFadeoutMs) {
+            mFadeoutMs = -1.0f;
+            SetExpression(mLastExpression.c_str());
+        }
+    }
+
     mProxy._dragManager->Update(deltaSecs);
     mDragX = mProxy._dragManager->GetX();
     mDragY = mProxy._dragManager->GetY();
@@ -466,7 +484,19 @@ void Model::Resize(int width, int height) {
 }
 
 void Model::SetOffset(float x, float y) {
+    mOffsetX = x;
+    mOffsetY = y;
     mMatrixManager.SetOffset(x, y);
+}
+
+void Model::SetOffsetX(float x) {
+    mOffsetX = x;
+    mMatrixManager.SetOffset(mOffsetX, mOffsetY);
+}
+
+void Model::SetOffsetY(float y) {
+    mOffsetY = y;
+    mMatrixManager.SetOffset(mOffsetX, mOffsetY);
 }
 
 void Model::Rotate(float angle) {
@@ -675,6 +705,11 @@ int Model::GetMotionGroupCount() {
 
 int Model::GetMotionCount(const char* group) {
     return mModelSetting->GetMotionCount(group);
+}
+
+const char* Model::GetMotionSound(const char* group, int no) {
+    const char* sound = mModelSetting->GetMotionSoundFileName(group, no);
+    return sound ? sound : "";
 }
 
 void Model::GetMotions(void* collector, void (*collect)(void* collector, const char* group, int no,
@@ -931,6 +966,10 @@ void Model::Drag(float x, float y) {
 }
 
 void Model::CreateRenderer(int maskBufferCount) {
+    if (mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>()) {
+        LOGW("Renderer already exists, skipping creation");
+        return;
+    }
     mTextureManager.ReleaseTextures();
     mProxy.CreateRenderer(
         mMatrixManager.GetWidth(), mMatrixManager.GetHeight(), maskBufferCount);
@@ -1072,7 +1111,7 @@ void Model::RemoveExpression(const char* expressionId) {
     LOGI("remove expression: [%s]", expressionId);
 }
 
-void Model::SetExpression(const char* expressionId) {
+void Model::SetExpression(const char* expressionId, float fadeoutMs) {
     ACubismMotion* motion = mExpressions[expressionId];
 
     LOGI("Set expression: [%s]", expressionId);
@@ -1082,9 +1121,18 @@ void Model::SetExpression(const char* expressionId) {
     } else {
         LOGW("expression[%s] is null ", expressionId);
     }
+
+    // fadeout 语义: >=0 为临时表情（到时恢复上一个持久表情），<0 为持久表情
+    if (fadeoutMs >= 0.0f) {
+        mFadeoutMs = fadeoutMs;
+        mFadeoutElapsedMs = 0;
+    } else {
+        mFadeoutMs = -1.0f;
+        mLastExpression = expressionId;
+    }
 }
 
-const char* Model::SetRandomExpression() {
+const char* Model::SetRandomExpression(float fadeoutMs) {
     const int size = mExpressions.GetSize();
     if (size == 0) {
         return nullptr;
@@ -1095,7 +1143,7 @@ const char* Model::SetRandomExpression() {
     for (map_ite = mExpressions.Begin(); map_ite != mExpressions.End(); map_ite++) {
         if (i == no) {
             csmString name = (*map_ite).First;
-            SetExpression(name.GetRawString());
+            SetExpression(name.GetRawString(), fadeoutMs);
             return name.GetRawString();
         }
         i++;
@@ -1109,10 +1157,17 @@ void Model::ResetExpressions() {
     }
     mProxy._expressionManager->StopAllMotions();
 
+    mFadeoutMs = -1.0f;
+    mFadeoutElapsedMs = 0;
+    mLastExpression.clear();
+
     LOGI("Clear all expressions");
 }
 
 void Model::ResetExpression() {
+    mFadeoutMs = -1.0f;
+    mFadeoutElapsedMs = 0;
+    mLastExpression.clear();
     mProxy._expressionManager->StopAllMotions();
 }
 

@@ -65,6 +65,8 @@ public:
     // ---- 变换 ----
     virtual void Resize(int width, int height) = 0;
     virtual void SetOffset(float x, float y) = 0;
+    virtual void SetOffsetX(float x) = 0;
+    virtual void SetOffsetY(float y) = 0;
     virtual void Rotate(float angle) = 0;
     virtual void SetScale(float scale) = 0;
     virtual void SetScaleX(float scaleX) = 0;
@@ -85,6 +87,8 @@ public:
     virtual int LoadExtraMotion(const char* group, const char* motionJsonPath) = 0;
     virtual int GetMotionGroupCount() = 0;
     virtual int GetMotionCount(const char* group) = 0;
+    // 返回指定动作的音效文件路径（无音效返回 ""）
+    virtual const char* GetMotionSound(const char* group, int no) = 0;
     virtual void GetMotions(void* collector,
                             void (*collect)(void* collector,
                                             const char* group,
@@ -145,8 +149,10 @@ public:
     // ---- 表情 ----
     virtual void AddExpression(const char* expressionId) = 0;
     virtual void RemoveExpression(const char* expressionId) = 0;
-    virtual void SetExpression(const char* expressionId) = 0;
-    virtual const char* SetRandomExpression() = 0;
+    // fadeoutMs >= 0: 临时表情，fadeoutMs 毫秒后自动恢复上一个表情;
+    // fadeoutMs < 0（默认）: 持久表情
+    virtual void SetExpression(const char* expressionId, float fadeoutMs = -1.0f) = 0;
+    virtual const char* SetRandomExpression(float fadeoutMs = -1.0f) = 0;
     virtual void ResetExpressions() = 0;
     virtual void ResetExpression() = 0;
     virtual int GetExpressionCount() = 0;

@@ -59,8 +59,8 @@ def main():
     model.Resize(*display)
 
     # Disable auto effects
-    model.SetAutoBlinkEnable(False)
-    model.SetAutoBreathEnable(False)
+    model.SetAutoBlink(False)
+    model.SetAutoBreath(False)
 
     wavHandler = WavHandler()
     lipSyncN = 3
@@ -73,10 +73,11 @@ def main():
         log.LOGI("motion finished")
 
     # Print all parameters
-    print(f"Parameter Count: {model.GetParameterCount()}")
-    for i in range(model.GetParameterCount()):
-        param = model.GetParameter(i)
-        log.LOGD(param.id, param.type, param.value, param.max, param.min, param.default)
+    print(f"Parameter Count: {model.GetParamCount()}")
+    paramIds = model.GetParamIds()
+    for i in range(model.GetParamCount()):
+        log.LOGD(paramIds[i], 0, model.GetParamValueByIndex(i), model.GetParamMaxByIndex(i),
+                 model.GetParamMinByIndex(i), model.GetParamDefaultByIndex(i))
 
     # Print part IDs
     partIds = model.GetPartIds()
@@ -125,7 +126,7 @@ def main():
         elif key == glfw.KEY_R:
             model.StopAllMotions()
             model.ResetPose()
-            model.ResetParameters()
+            model.ResetAllParameters()
         elif key == glfw.KEY_E:
             model.ResetExpression()
     glfw.set_key_callback(window, on_key)
@@ -179,7 +180,7 @@ def main():
             model.SetPartMultiplyColor(pidx, 0.0, 0.0, 1.0, 0.9)
 
         if wavHandler.Update():
-            model.SetParameterValue(StandardParams.ParamMouthOpenY, wavHandler.GetRms() * lipSyncN)
+            model.SetParamById(StandardParams.ParamMouthOpenY, wavHandler.GetRms() * lipSyncN)
 
         if not audioPlayed:
             model.StartMotion("", 0, live2d.MotionPriority.FORCE,

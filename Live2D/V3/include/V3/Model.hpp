@@ -104,6 +104,8 @@ public:
     void Resize(int width, int height) override;
 
     void SetOffset(float x, float y) override;
+    void SetOffsetX(float x) override;
+    void SetOffsetY(float y) override;
 
     void Rotate(float angle) override;
 
@@ -130,6 +132,8 @@ public:
     int GetMotionGroupCount() override;
 
     int GetMotionCount(const char* group) override;
+
+    const char* GetMotionSound(const char* group, int no) override;
 
     void GetMotions(void* collector, void (*collect)(void* collector, const char* group, int no,
                                                      const char* file, const char* sound)) override;
@@ -191,9 +195,9 @@ public:
 
     void RemoveExpression(const char* expressionId) override;
 
-    void SetExpression(const char* expressionId) override;
+    void SetExpression(const char* expressionId, float fadeoutMs = -1.0f) override;
 
-    const char* SetRandomExpression() override;
+    const char* SetRandomExpression(float fadeoutMs = -1.0f) override;
 
     void ResetExpressions() override;
 
@@ -286,6 +290,11 @@ private:
 
     // Update() 哨兵路径（deltaSecs<0）的内部自计时时间戳
     std::chrono::steady_clock::time_point mLastUpdatePoint{};
+
+    float mOffsetX = 0, mOffsetY = 0;   // SetOffsetX/Y 跟踪
+    float mFadeoutMs = -1.0f;           // 表情 fadeout 时长（<0 关闭）
+    float mFadeoutElapsedMs = 0;        // fadeout 已累计
+    std::string mLastExpression;        // 持久表情（fadeout 结束后恢复）
 };
 }   // namespace V3
 }   // namespace Live2D

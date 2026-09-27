@@ -125,7 +125,7 @@ class GLWidget(QOpenGLWidget):
         
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Q:
-            self.model.ClearMotions()
+            self.model.StopAllMotions()
             self.model.StartMotion("idle_3",0,3)
             print("调试信息：Q 键被按下！")
         else:

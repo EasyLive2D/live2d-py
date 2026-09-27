@@ -57,6 +57,8 @@ public:
 
     void Resize(int w, int h) override;
     void SetOffset(float dx, float dy) override;
+    void SetOffsetX(float x) override;
+    void SetOffsetY(float y) override;
     void Rotate(float deg) override;
     void SetScale(float s) override;
     void SetScaleX(float scaleX) override;
@@ -73,6 +75,7 @@ public:
     int LoadExtraMotion(const char* group, const char* motionJsonPath) override;
     int GetMotionGroupCount() override;
     int GetMotionCount(const char* group) override;
+    const char* GetMotionSound(const char* group, int no) override;
     void GetMotions(void* collector,
                     void (*collect)(void* collector, const char* group, int no, const char* file,
                                     const char* sound)) override;
@@ -114,8 +117,8 @@ public:
 
     void AddExpression(const char* expressionId) override;
     void RemoveExpression(const char* expressionId) override;
-    void SetExpression(const char* expressionId) override;
-    const char* SetRandomExpression() override;
+    void SetExpression(const char* expressionId, float fadeoutMs = -1.0f) override;
+    const char* SetRandomExpression(float fadeoutMs = -1.0f) override;
     void ResetExpressions() override;
     void ResetExpression() override;
     int GetExpressionCount() override;
@@ -148,6 +151,10 @@ private:
     //（delta 路径直接用传入值）。子系统全部收 dt、内部累计 elapsed。
     float mBreathTimeMs = 0;       // 呼吸动画累计（Model 自己的逻辑）
     float mLastFrameTimeMs = 0;    // 墙钟路径上一帧时间戳（算 dt 用）
+    float mOffsetX = 0, mOffsetY = 0;              // SetOffsetX/Y 跟踪
+    float mFadeoutMs = -1.0f;                      // 表情 fadeout 时长（<0 关闭）
+    float mFadeoutElapsedMs = 0;                   // fadeout 已累计
+    std::string mLastExpression;                   // 持久表情（fadeout 结束后恢复）
     bool mAutoBreath = true, mAutoBlink = true;
     bool mClearFlag = false;
     std::string mModelHomeDir;

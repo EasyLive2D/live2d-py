@@ -8,7 +8,7 @@
 
 using namespace Live2D::Common::Log;
 
-// ---- Callback helpers (Python → C++ conversion, no live2d dependency) ----
+// ---- Callback helpers (Python → C++ conversion) ----
 static auto MakeMotionCallback(PyObject* cb) -> std::function<void(const std::string&, int)> {
     if (!cb || Py_IsNone(cb) || !PyCallable_Check(cb))
         return nullptr;
@@ -59,6 +59,22 @@ static PyObject* PyLAppModel_LoadModelJson(PyLAppModelObject* self, PyObject* ar
     Py_RETURN_NONE;
 }
 
+static PyObject* PyLAppModel_GetModelHomeDir(PyLAppModelObject* self, PyObject*) {
+    return PyUnicode_FromString(self->model->GetModelHomeDir());
+}
+
+static PyObject* PyLAppModel_Version(PyLAppModelObject* self, PyObject*) {
+    return PyLong_FromLong(self->model->Version());
+}
+
+static PyObject* PyLAppModel_IsV2(PyLAppModelObject* self, PyObject*) {
+    return PyBool_FromLong(self->model->IsV2() ? 1 : 0);
+}
+
+static PyObject* PyLAppModel_IsV3(PyLAppModelObject* self, PyObject*) {
+    return PyBool_FromLong(self->model->IsV3() ? 1 : 0);
+}
+
 static PyObject* PyLAppModel_Resize(PyLAppModelObject* self, PyObject* args) {
     int w, h;
     if (!PyArg_ParseTuple(args, "ii", &w, &h))
@@ -87,6 +103,22 @@ static PyObject* PyLAppModel_SetOffset(PyLAppModelObject* self, PyObject* args) 
     Py_RETURN_NONE;
 }
 
+static PyObject* PyLAppModel_SetOffsetX(PyLAppModelObject* self, PyObject* args) {
+    float x;
+    if (!PyArg_ParseTuple(args, "f", &x))
+        return nullptr;
+    self->model->SetOffsetX(x);
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_SetOffsetY(PyLAppModelObject* self, PyObject* args) {
+    float y;
+    if (!PyArg_ParseTuple(args, "f", &y))
+        return nullptr;
+    self->model->SetOffsetY(y);
+    Py_RETURN_NONE;
+}
+
 static PyObject* PyLAppModel_SetScale(PyLAppModelObject* self, PyObject* args) {
     float s;
     if (!PyArg_ParseTuple(args, "f", &s))
@@ -95,7 +127,50 @@ static PyObject* PyLAppModel_SetScale(PyLAppModelObject* self, PyObject* args) {
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_SetParameterValue(PyLAppModelObject* self, PyObject* args) {
+static PyObject* PyLAppModel_SetScaleX(PyLAppModelObject* self, PyObject* args) {
+    float s;
+    if (!PyArg_ParseTuple(args, "f", &s))
+        return nullptr;
+    self->model->SetScaleX(s);
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_SetScaleY(PyLAppModelObject* self, PyObject* args) {
+    float s;
+    if (!PyArg_ParseTuple(args, "f", &s))
+        return nullptr;
+    self->model->SetScaleY(s);
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_Rotate(PyLAppModelObject* self, PyObject* args) {
+    float deg;
+    if (!PyArg_ParseTuple(args, "f", &deg))
+        return nullptr;
+    self->model->Rotate(deg);
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_GetMvp(PyLAppModelObject* self, PyObject*) {
+    const float* mvp = self->model->GetMvp();
+    PyObject* tuple = PyTuple_New(16);
+    for (int i = 0; i < 16; i++)
+        PyTuple_SetItem(tuple, i, PyFloat_FromDouble(mvp[i]));
+    return tuple;
+}
+
+// ---- 参数（统一命名: 按 index 为主，ById 为 id 版本） ----
+
+static PyObject* PyLAppModel_SetParamByIndex(PyLAppModelObject* self, PyObject* args) {
+    int index;
+    float val, weight = 1.0f;
+    if (!PyArg_ParseTuple(args, "if|f", &index, &val, &weight))
+        return nullptr;
+    self->model->SetParameterValue(index, val, weight);
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_SetParamById(PyLAppModelObject* self, PyObject* args) {
     const char* id;
     float val, weight = 1.0f;
     if (!PyArg_ParseTuple(args, "sf|f", &id, &val, &weight))
@@ -104,35 +179,180 @@ static PyObject* PyLAppModel_SetParameterValue(PyLAppModelObject* self, PyObject
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_AddParameterValue(PyLAppModelObject* self, PyObject* args) {
+static PyObject* PyLAppModel_AddParamByIndex(PyLAppModelObject* self, PyObject* args) {
+    int index;
+    float val;
+    if (!PyArg_ParseTuple(args, "if", &index, &val))
+        return nullptr;
+    self->model->AddParameterValue(index, val);
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_AddParamById(PyLAppModelObject* self, PyObject* args) {
+    const char* id;
+    float val;
+    if (!PyArg_ParseTuple(args, "sf", &id, &val))
+        return nullptr;
+    self->model->AddParameterValue(id, val);
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_SetSaveParamByIndex(PyLAppModelObject* self, PyObject* args) {
+    int index;
+    float val, weight = 1.0f;
+    if (!PyArg_ParseTuple(args, "if|f", &index, &val, &weight))
+        return nullptr;
+    self->model->SetAndSaveParameterValue(index, val, weight);
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_SetSaveParamById(PyLAppModelObject* self,
+                                                           PyObject* args) {
     const char* id;
     float val, weight = 1.0f;
     if (!PyArg_ParseTuple(args, "sf|f", &id, &val, &weight))
         return nullptr;
-    // 统一接口的 AddParameterValue 无 weight，直接合并进 value（等价 val * w 语义）
-    self->model->AddParameterValue(id, val * weight);
+    self->model->SetAndSaveParameterValue(id, val, weight);
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_SetAutoBreathEnable(PyLAppModelObject* self, PyObject* args) {
-    int v;
-    if (!PyArg_ParseTuple(args, "p", &v))
+static PyObject* PyLAppModel_AddSaveParamByIndex(PyLAppModelObject* self, PyObject* args) {
+    int index;
+    float val;
+    if (!PyArg_ParseTuple(args, "if", &index, &val))
         return nullptr;
-    self->model->SetAutoBreath(v != 0);
+    self->model->AddAndSaveParameterValue(index, val);
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_SetAutoBlinkEnable(PyLAppModelObject* self, PyObject* args) {
-    int v;
-    if (!PyArg_ParseTuple(args, "p", &v))
+static PyObject* PyLAppModel_AddSaveParamById(PyLAppModelObject* self,
+                                                           PyObject* args) {
+    const char* id;
+    float val;
+    if (!PyArg_ParseTuple(args, "sf", &id, &val))
         return nullptr;
-    self->model->SetAutoBlink(v != 0);
+    self->model->AddAndSaveParameterValue(id, val);
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_GetParameterCount(PyLAppModelObject* self, PyObject*) {
+static PyObject* PyLAppModel_GetParamCount(PyLAppModelObject* self, PyObject*) {
     return PyLong_FromLong(self->model->GetParameterCount());
 }
+
+static PyObject* PyLAppModel_GetParamIds(PyLAppModelObject* self, PyObject*) {
+    const int count = self->model->GetParameterCount();
+    PyObject* list = PyList_New(count);
+    int index = 0;
+    void* collector[2] = {list, &index};
+    self->model->GetParameterIds(collector, [](void* collector, const char* id) {
+        PyObject* list = (PyObject*)(((void**)collector)[0]);
+        int* index = (int*)(((void**)collector)[1]);
+        PyList_SetItem(list, (*index)++, PyUnicode_FromString(id));
+    });
+    return list;
+}
+
+static PyObject* PyLAppModel_GetParamValueByIndex(PyLAppModelObject* self, PyObject* args) {
+    int index;
+    if (!PyArg_ParseTuple(args, "i", &index))
+        return nullptr;
+    return PyFloat_FromDouble(self->model->GetParameterValue(index));
+}
+
+static PyObject* PyLAppModel_GetParamMaxByIndex(PyLAppModelObject* self, PyObject* args) {
+    int index;
+    if (!PyArg_ParseTuple(args, "i", &index))
+        return nullptr;
+    return PyFloat_FromDouble(self->model->GetParameterMaximumValue(index));
+}
+
+static PyObject* PyLAppModel_GetParamMinByIndex(PyLAppModelObject* self, PyObject* args) {
+    int index;
+    if (!PyArg_ParseTuple(args, "i", &index))
+        return nullptr;
+    return PyFloat_FromDouble(self->model->GetParameterMinimumValue(index));
+}
+
+static PyObject* PyLAppModel_GetParamDefaultByIndex(PyLAppModelObject* self, PyObject* args) {
+    int index;
+    if (!PyArg_ParseTuple(args, "i", &index))
+        return nullptr;
+    return PyFloat_FromDouble(self->model->GetParameterDefaultValue(index));
+}
+
+
+static int ParamIndexById(PyLAppModelObject* self, const char* id) {
+    const int count = self->model->GetParameterCount();
+    for (int i = 0; i < count; i++) {
+        if (strcmp(self->model->GetParameterId(i), id) == 0)
+            return i;
+    }
+    return -1;
+}
+
+static PyObject* PyLAppModel_GetParamValueById(PyLAppModelObject* self, PyObject* args) {
+    const char* id;
+    if (!PyArg_ParseTuple(args, "s", &id))
+        return nullptr;
+    const int index = ParamIndexById(self, id);
+    if (index < 0) {
+        PyErr_Format(PyExc_ValueError, "parameter not found: %s", id);
+        return nullptr;
+    }
+    return PyFloat_FromDouble(self->model->GetParameterValue(index));
+}
+
+static PyObject* PyLAppModel_GetParamMaxById(PyLAppModelObject* self, PyObject* args) {
+    const char* id;
+    if (!PyArg_ParseTuple(args, "s", &id))
+        return nullptr;
+    const int index = ParamIndexById(self, id);
+    if (index < 0) {
+        PyErr_Format(PyExc_ValueError, "parameter not found: %s", id);
+        return nullptr;
+    }
+    return PyFloat_FromDouble(self->model->GetParameterMaximumValue(index));
+}
+
+static PyObject* PyLAppModel_GetParamMinById(PyLAppModelObject* self, PyObject* args) {
+    const char* id;
+    if (!PyArg_ParseTuple(args, "s", &id))
+        return nullptr;
+    const int index = ParamIndexById(self, id);
+    if (index < 0) {
+        PyErr_Format(PyExc_ValueError, "parameter not found: %s", id);
+        return nullptr;
+    }
+    return PyFloat_FromDouble(self->model->GetParameterMinimumValue(index));
+}
+
+static PyObject* PyLAppModel_GetParamDefaultById(PyLAppModelObject* self, PyObject* args) {
+    const char* id;
+    if (!PyArg_ParseTuple(args, "s", &id))
+        return nullptr;
+    const int index = ParamIndexById(self, id);
+    if (index < 0) {
+        PyErr_Format(PyExc_ValueError, "parameter not found: %s", id);
+        return nullptr;
+    }
+    return PyFloat_FromDouble(self->model->GetParameterDefaultValue(index));
+}
+static PyObject* PyLAppModel_LoadParameters(PyLAppModelObject* self, PyObject*) {
+    self->model->LoadParameters();
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_SaveParameters(PyLAppModelObject* self, PyObject*) {
+    self->model->SaveParameters();
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_ResetAllParameters(PyLAppModelObject* self, PyObject*) {
+    self->model->ResetAllParameters();
+    Py_RETURN_NONE;
+}
+
+// ---- 部件 ----
 
 static PyObject* PyLAppModel_GetPartCount(PyLAppModelObject* self, PyObject*) {
     return PyLong_FromLong(self->model->GetPartCount());
@@ -162,54 +382,126 @@ static PyObject* PyLAppModel_SetPartOpacity(PyLAppModelObject* self, PyObject* a
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_Update(PyLAppModelObject* self, PyObject* args) {
-    // 可选 dt: 不传 = 墙钟自适配（哨兵 -1），传入 = delta 驱动
-    float dt = -1.0f;
-    if (!PyArg_ParseTuple(args, "|f", &dt))
+static PyObject* PyLAppModel_SetPartScreenColor(PyLAppModelObject* self, PyObject* args) {
+    int idx;
+    float r, g, b, a;
+    if (!PyArg_ParseTuple(args, "iffff", &idx, &r, &g, &b, &a))
         return nullptr;
-    self->model->Update(dt);
+    self->model->SetPartScreenColor(idx, r, g, b, a);
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_Draw(PyLAppModelObject* self, PyObject*) {
-    self->model->Draw();
-    Py_RETURN_NONE;
-}
-
-static PyObject* PyLAppModel_HitTest(PyLAppModelObject* self, PyObject* args) {
-    const char* area;
-    float x, y;
-    if (!PyArg_ParseTuple(args, "sff", &area, &x, &y))
+static PyObject* PyLAppModel_GetPartScreenColor(PyLAppModelObject* self, PyObject* args) {
+    int idx;
+    if (!PyArg_ParseTuple(args, "i", &idx))
         return nullptr;
-    bool r = self->model->IsAreaHit(area, x, y);
-    if (r)
-        return PyUnicode_FromString(area);
-    Py_RETURN_NONE;
+    float r, g, b, a;
+    self->model->GetPartScreenColor(idx, r, g, b, a);
+    return Py_BuildValue("[ffff]", r, g, b, a);
 }
 
-static PyObject* PyLAppModel_SetExpression(PyLAppModelObject* self, PyObject* args) {
-    const char* name;
-    if (!PyArg_ParseTuple(args, "s", &name))
+static PyObject* PyLAppModel_SetPartMultiplyColor(PyLAppModelObject* self, PyObject* args) {
+    int idx;
+    float r, g, b, a;
+    if (!PyArg_ParseTuple(args, "iffff", &idx, &r, &g, &b, &a))
         return nullptr;
-    self->model->SetExpression(name);
+    self->model->SetPartMultiplyColor(idx, r, g, b, a);
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_SetRandomExpression(PyLAppModelObject* self, PyObject*) {
-    self->model->SetRandomExpression();
+static PyObject* PyLAppModel_GetPartMultiplyColor(PyLAppModelObject* self, PyObject* args) {
+    int idx;
+    if (!PyArg_ParseTuple(args, "i", &idx))
+        return nullptr;
+    float r, g, b, a;
+    self->model->GetPartMultiplyColor(idx, r, g, b, a);
+    return Py_BuildValue("[ffff]", r, g, b, a);
+}
+
+// ---- drawable ----
+
+static PyObject* PyLAppModel_GetDrawableIds(PyLAppModelObject* self, PyObject*) {
+    const int count = self->model->GetDrawableCount();
+    PyObject* list = PyList_New(count);
+    int index = 0;
+    void* collector[2] = {list, &index};
+    self->model->GetDrawableIds(collector, [](void* collector, const char* id) {
+        PyObject* list = (PyObject*)(((void**)collector)[0]);
+        int* index = (int*)(((void**)collector)[1]);
+        PyList_SetItem(list, (*index)++, PyUnicode_FromString(id));
+    });
+    return list;
+}
+
+static PyObject* PyLAppModel_GetDrawableVertices(PyLAppModelObject* self, PyObject* args) {
+    int index;
+    if (!PyArg_ParseTuple(args, "i", &index))
+        return nullptr;
+    const float* verts = self->model->GetDrawableVertices(index);
+    const int count = self->model->GetDrawableVertexCount(index) * 2;
+    PyObject* list = PyList_New(count);
+    for (int i = 0; i < count; i++)
+        PyList_SetItem(list, i, PyFloat_FromDouble(verts[i]));
+    return list;
+}
+
+static PyObject* PyLAppModel_GetDrawableVertexCount(PyLAppModelObject* self, PyObject* args) {
+    int index;
+    if (!PyArg_ParseTuple(args, "i", &index))
+        return nullptr;
+    return PyLong_FromLong(self->model->GetDrawableVertexCount(index));
+}
+
+static PyObject* PyLAppModel_GetDrawableVertexIndexCount(PyLAppModelObject* self,
+                                                         PyObject* args) {
+    int index;
+    if (!PyArg_ParseTuple(args, "i", &index))
+        return nullptr;
+    return PyLong_FromLong(self->model->GetDrawableVertexIndexCount(index));
+}
+
+static PyObject* PyLAppModel_GetDrawableIndices(PyLAppModelObject* self, PyObject* args) {
+    int index;
+    if (!PyArg_ParseTuple(args, "i", &index))
+        return nullptr;
+    const unsigned short* indices = self->model->GetDrawableIndices(index);
+    const int count = self->model->GetDrawableVertexIndexCount(index);
+    PyObject* list = PyList_New(count);
+    for (int i = 0; i < count; i++)
+        PyList_SetItem(list, i, PyLong_FromLong(indices[i]));
+    return list;
+}
+
+static PyObject* PyLAppModel_SetDrawableMultiplyColor(PyLAppModelObject* self, PyObject* args) {
+    int idx;
+    float r, g, b, a;
+    if (!PyArg_ParseTuple(args, "iffff", &idx, &r, &g, &b, &a))
+        return nullptr;
+    self->model->SetDrawableMultiColor(idx, r, g, b, a);
     Py_RETURN_NONE;
 }
+
+static PyObject* PyLAppModel_SetDrawableScreenColor(PyLAppModelObject* self, PyObject* args) {
+    int idx;
+    float r, g, b, a;
+    if (!PyArg_ParseTuple(args, "iffff", &idx, &r, &g, &b, &a))
+        return nullptr;
+    self->model->SetDrawableScreenColor(idx, r, g, b, a);
+    Py_RETURN_NONE;
+}
+
+// ---- 动作 ----
 
 static PyObject* PyLAppModel_StartMotion(PyLAppModelObject* self, PyObject* args,
                                          PyObject* kwargs) {
     const char* group;
-    int no, priority;
+    int no, priority = 3;
     PyObject* onStart = nullptr;
     PyObject* onFinish = nullptr;
     static const char* kwlist[] = {"group", "no", "priority", "onStart", "onFinish", nullptr};
     if (!PyArg_ParseTupleAndKeywords(args,
                                      kwargs,
-                                     "sii|OO",
+                                     "si|iOO",
                                      const_cast<char**>(kwlist),
                                      &group,
                                      &no,
@@ -225,314 +517,57 @@ static PyObject* PyLAppModel_StartMotion(PyLAppModelObject* self, PyObject* args
 
 static PyObject* PyLAppModel_StartRandomMotion(PyLAppModelObject* self, PyObject* args,
                                                PyObject* kwargs) {
-    PyObject* nameObj = Py_None;
-    PyObject* prioObj = Py_None;
+    const char* group = nullptr;
+    int priority = 3;
     PyObject* onStart = nullptr;
     PyObject* onFinish = nullptr;
     static const char* kwlist[] = {"group", "priority", "onStart", "onFinish", nullptr};
     if (!PyArg_ParseTupleAndKeywords(args,
                                      kwargs,
-                                     "|OOOO",
+                                     "|ziOO",
                                      const_cast<char**>(kwlist),
-                                     &nameObj,
-                                     &prioObj,
+                                     &group,
+                                     &priority,
                                      &onStart,
                                      &onFinish))
         return nullptr;
 
-    int priority = 3;
-    const char* group = nullptr;
-    PyObject* utf8Ref = nullptr;
-
-    if (prioObj != Py_None && PyLong_Check(prioObj)) {
-        priority = (int)PyLong_AsLong(prioObj);
-    }
-    if (nameObj != Py_None) {
-        if (PyLong_Check(nameObj)) {
-            priority = (int)PyLong_AsLong(nameObj);
-        } else {
-            utf8Ref = PyUnicode_AsUTF8String(nameObj);
-            if (!utf8Ref)
-                return nullptr;
-            group = PyBytes_AsString(utf8Ref);
-        }
-    }
-
-    auto sc = MakeMotionCallback(onStart);
-    auto fc = MakeMotionCallback(onFinish);
-    self->model->StartRandomMotion(group ? group : "", priority, std::move(sc), std::move(fc));
-    Py_XDECREF(utf8Ref);
+    self->model->StartRandomMotion(group ? group : "",
+                                   priority,
+                                   MakeMotionCallback(onStart),
+                                   MakeMotionCallback(onFinish));
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_GetCanvasWidth(PyLAppModelObject* self, PyObject*) {
-    float w, h;
-    self->model->GetCanvasSize(w, h);
-    return PyFloat_FromDouble(w);
-}
-
-static PyObject* PyLAppModel_GetCanvasHeight(PyLAppModelObject* self, PyObject*) {
-    float w, h;
-    self->model->GetCanvasSize(w, h);
-    return PyFloat_FromDouble(h);
-}
-
-static PyObject* PyLAppModel_GetCanvasSize(PyLAppModelObject* self, PyObject*) {
-    float w, h;
-    self->model->GetCanvasSize(w, h);
-    return Py_BuildValue("(ff)", w, h);
-}
-
-static PyObject* PyLAppModel_ClearMotions(PyLAppModelObject* self, PyObject*) {
-    self->model->StopAllMotions();
-    Py_RETURN_NONE;
-}
 static PyObject* PyLAppModel_StopAllMotions(PyLAppModelObject* self, PyObject*) {
     self->model->StopAllMotions();
     Py_RETURN_NONE;
 }
-static PyObject* PyLAppModel_ResetPose(PyLAppModelObject* self, PyObject*) {
-    self->model->ResetPose();
-    Py_RETURN_NONE;
-}
 
-static PyObject* PyLAppModel_ResetExpression(PyLAppModelObject* self, PyObject*) {
-    self->model->ResetExpression();
-    Py_RETURN_NONE;
-}
-// Global reference to Parameter class (imported from live2d.v2.params)
-static PyObject* sParamClass = nullptr;
-
-static void ensureParamClass() {
-    if (!sParamClass) {
-        auto* mod = PyImport_ImportModule("live2d.v2.params");
-        if (mod) {
-            sParamClass = PyObject_GetAttrString(mod, "Parameter");
-            Py_DECREF(mod);
-        }
-    }
-}
-
-static PyObject* PyLAppModel_GetParameter(PyLAppModelObject* self, PyObject* args) {
-    int index;
-    if (!PyArg_ParseTuple(args, "i", &index))
+static PyObject* PyLAppModel_LoadExtraMotion(PyLAppModelObject* self, PyObject* args) {
+    const char *group, *path;
+    if (!PyArg_ParseTuple(args, "ss", &group, &path))
         return nullptr;
-    ensureParamClass();
-    if (!sParamClass)
-        Py_RETURN_NONE;
-    PyObject* param = PyObject_CallObject(sParamClass, nullptr);
-    if (!param)
+    return PyLong_FromLong(self->model->LoadExtraMotion(group, path));
+}
+
+static PyObject* PyLAppModel_GetMotionGroupCount(PyLAppModelObject* self, PyObject*) {
+    return PyLong_FromLong(self->model->GetMotionGroupCount());
+}
+
+static PyObject* PyLAppModel_GetMotionCount(PyLAppModelObject* self, PyObject* args) {
+    const char* group;
+    if (!PyArg_ParseTuple(args, "s", &group))
         return nullptr;
-    PyObject_SetAttrString(
-        param, "id", PyUnicode_FromString(self->model->GetParameterId(index)));
-    PyObject_SetAttrString(param, "type", PyLong_FromLong(0));
-    PyObject_SetAttrString(
-        param, "value", PyFloat_FromDouble(self->model->GetParameterValue(index)));
-    PyObject_SetAttrString(
-        param, "min", PyFloat_FromDouble(self->model->GetParameterMinimumValue(index)));
-    PyObject_SetAttrString(
-        param, "max", PyFloat_FromDouble(self->model->GetParameterMaximumValue(index)));
-    PyObject_SetAttrString(
-        param, "default", PyFloat_FromDouble(self->model->GetParameterDefaultValue(index)));
-    return param;
+    return PyLong_FromLong(self->model->GetMotionCount(group));
 }
 
-static PyObject* PyLAppModel_HitPart(PyLAppModelObject* self, PyObject* args) {
-    float x, y;
-    int topOnly = 0;
-    if (!PyArg_ParseTuple(args, "ff|p", &x, &y, &topOnly))
+static PyObject* PyLAppModel_GetMotionSound(PyLAppModelObject* self, PyObject* args) {
+    const char* group;
+    int no;
+    if (!PyArg_ParseTuple(args, "si", &group, &no))
         return nullptr;
-    PyObject* lst = PyList_New(0);
-    self->model->HitPart(
-        x,
-        y,
-        lst,
-        [](void* collector, const char* id) {
-            PyList_Append((PyObject*)collector, PyUnicode_FromString(id));
-        },
-        topOnly != 0);
-    return lst;
-}
-
-static PyObject* PyLAppModel_SetPartScreenColor(PyLAppModelObject* self, PyObject* args) {
-    int idx;
-    float r, g, b, a;
-    if (!PyArg_ParseTuple(args, "iffff", &idx, &r, &g, &b, &a))
-        return nullptr;
-    self->model->SetPartScreenColor(idx, r, g, b, a);
-    Py_RETURN_NONE;
-}
-static PyObject* PyLAppModel_GetPartScreenColor(PyLAppModelObject* self, PyObject* args) {
-    int idx;
-    if (!PyArg_ParseTuple(args, "i", &idx))
-        return nullptr;
-    float r, g, b, a;
-    self->model->GetPartScreenColor(idx, r, g, b, a);
-    return Py_BuildValue("[ffff]", r, g, b, a);
-}
-static PyObject* PyLAppModel_SetPartMultiplyColor(PyLAppModelObject* self, PyObject* args) {
-    int idx;
-    float r, g, b, a;
-    if (!PyArg_ParseTuple(args, "iffff", &idx, &r, &g, &b, &a))
-        return nullptr;
-    self->model->SetPartMultiplyColor(idx, r, g, b, a);
-    Py_RETURN_NONE;
-}
-static PyObject* PyLAppModel_GetPartMultiplyColor(PyLAppModelObject* self, PyObject* args) {
-    int idx;
-    if (!PyArg_ParseTuple(args, "i", &idx))
-        return nullptr;
-    float r, g, b, a;
-    self->model->GetPartMultiplyColor(idx, r, g, b, a);
-    return Py_BuildValue("[ffff]", r, g, b, a);
-}
-static PyObject* PyLAppModel_Rotate(PyLAppModelObject* self, PyObject* args) {
-    float deg;
-    if (!PyArg_ParseTuple(args, "f", &deg))
-        return nullptr;
-    self->model->Rotate(deg);
-    Py_RETURN_NONE;
-}
-static PyObject* PyLAppModel_GetPixelsPerUnit(PyLAppModelObject* self, PyObject*) {
-    return PyLong_FromLong((long)self->model->GetPixelsPerUnit());
-}
-static PyObject* PyLAppModel_GetCanvasSizePixel(PyLAppModelObject* self, PyObject*) {
-    float w, h;
-    self->model->GetCanvasSizePixel(w, h);
-    return Py_BuildValue("(ff)", w, h);
-}
-
-// --- autoBreath property ---
-static PyObject* PyLAppModel_getAutoBreath(PyLAppModelObject* self, void*) {
-    return PyBool_FromLong(self->model->AutoBreathEnabled() ? 1 : 0);
-}
-static int PyLAppModel_setAutoBreath(PyLAppModelObject* self, PyObject* value, void*) {
-    if (!value) {
-        PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
-        return -1;
-    }
-    int ok = PyObject_IsTrue(value);
-    if (ok < 0)
-        return -1;
-    self->model->SetAutoBreath(ok != 0);
-    return 0;
-}
-
-// --- autoBlink property ---
-static PyObject* PyLAppModel_getAutoBlink(PyLAppModelObject* self, void*) {
-    return PyBool_FromLong(self->model->AutoBlinkEnabled() ? 1 : 0);
-}
-static int PyLAppModel_setAutoBlink(PyLAppModelObject* self, PyObject* value, void*) {
-    if (!value) {
-        PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
-        return -1;
-    }
-    int ok = PyObject_IsTrue(value);
-    if (ok < 0)
-        return -1;
-    self->model->SetAutoBlink(ok != 0);
-    return 0;
-}
-
-static PyObject* PyLAppModel_CreateRenderer(PyLAppModelObject* self, PyObject* args) {
-    int maskBufferCount = 1;
-    if (!PyArg_ParseTuple(args, "|i", &maskBufferCount))
-        return nullptr;
-    self->model->CreateRenderer(maskBufferCount);
-    Py_RETURN_NONE;
-}
-
-static PyObject* PyLAppModel_ReleaseRenderer(PyLAppModelObject* self, PyObject*) {
-    self->model->DestroyRenderer();
-    Py_RETURN_NONE;
-}
-
-// ============================================================================
-// v3 fine-grained API（IModel 已全部实现，与 live2d.v3.Model 对齐）
-// ============================================================================
-
-static PyObject* PyLAppModel_Version(PyLAppModelObject* self, PyObject*) {
-    return PyLong_FromLong(self->model->Version());
-}
-
-static PyObject* PyLAppModel_IsV2(PyLAppModelObject* self, PyObject*) {
-    return PyBool_FromLong(self->model->IsV2() ? 1 : 0);
-}
-
-static PyObject* PyLAppModel_IsV3(PyLAppModelObject* self, PyObject*) {
-    return PyBool_FromLong(self->model->IsV3() ? 1 : 0);
-}
-
-static PyObject* PyLAppModel_GetModelHomeDir(PyLAppModelObject* self, PyObject*) {
-    return PyUnicode_FromString(self->model->GetModelHomeDir());
-}
-
-static PyObject* PyLAppModel_GetParameterIds(PyLAppModelObject* self, PyObject*) {
-    const int count = self->model->GetParameterCount();
-    PyObject* list = PyList_New(count);
-    int index = 0;
-    void* collector[2] = {list, &index};
-    self->model->GetParameterIds(collector, [](void* collector, const char* id) {
-        PyObject* list = (PyObject*)(((void**)collector)[0]);
-        int* index = (int*)(((void**)collector)[1]);
-        PyList_SetItem(list, (*index)++, PyUnicode_FromString(id));
-    });
-    return list;
-}
-
-static PyObject* PyLAppModel_GetDrawableIds(PyLAppModelObject* self, PyObject*) {
-    const int count = self->model->GetDrawableCount();
-    PyObject* list = PyList_New(count);
-    int index = 0;
-    void* collector[2] = {list, &index};
-    self->model->GetDrawableIds(collector, [](void* collector, const char* id) {
-        PyObject* list = (PyObject*)(((void**)collector)[0]);
-        int* index = (int*)(((void**)collector)[1]);
-        PyList_SetItem(list, (*index)++, PyUnicode_FromString(id));
-    });
-    return list;
-}
-
-static PyObject* PyLAppModel_GetExpressions(PyLAppModelObject* self, PyObject*) {
-    const int count = self->model->GetExpressionCount();
-    PyObject* list = PyList_New(count);
-    int index = 0;
-    void* collector[2] = {list, &index};
-    self->model->GetExpressions(collector, [](void* collector, const char* id, const char* file) {
-        PyObject* list = (PyObject*)(((void**)collector)[0]);
-        int* index = (int*)(((void**)collector)[1]);
-        PyList_SetItem(list, (*index)++, PyUnicode_FromString(id));
-    });
-    return list;
-}
-
-static PyObject* PyLAppModel_AddExpression(PyLAppModelObject* self, PyObject* args) {
-    const char* id;
-    if (!PyArg_ParseTuple(args, "s", &id))
-        return nullptr;
-    self->model->AddExpression(id);
-    Py_RETURN_NONE;
-}
-
-static PyObject* PyLAppModel_RemoveExpression(PyLAppModelObject* self, PyObject* args) {
-    const char* id;
-    if (!PyArg_ParseTuple(args, "s", &id))
-        return nullptr;
-    self->model->RemoveExpression(id);
-    Py_RETURN_NONE;
-}
-
-static PyObject* PyLAppModel_ResetExpressions(PyLAppModelObject* self, PyObject*) {
-    self->model->ResetExpressions();
-    Py_RETURN_NONE;
-}
-
-static PyObject* PyLAppModel_LoadExtraExpression(PyLAppModelObject* self, PyObject* args) {
-    const char *id, *path;
-    if (!PyArg_ParseTuple(args, "ss", &id, &path))
-        return nullptr;
-    self->model->LoadExtraExpression(id, path);
-    Py_RETURN_NONE;
+    return PyUnicode_FromString(self->model->GetMotionSound(group, no));
 }
 
 static PyObject* PyLAppModel_GetMotions(PyLAppModelObject* self, PyObject*) {
@@ -558,19 +593,117 @@ static PyObject* PyLAppModel_GetMotions(PyLAppModelObject* self, PyObject*) {
     return motions;
 }
 
-static PyObject* PyLAppModel_LoadExtraMotion(PyLAppModelObject* self, PyObject* args) {
-    const char *group, *path;
-    if (!PyArg_ParseTuple(args, "ss", &group, &path))
-        return nullptr;
-    return PyLong_FromLong(self->model->LoadExtraMotion(group, path));
+static PyObject* PyLAppModel_GetMotionGroups(PyLAppModelObject* self, PyObject*) {
+    PyObject* groups = PyDict_New();
+    self->model->GetMotions(
+        groups,
+        [](void* collector, const char* group, int no, const char* file, const char* sound) {
+            PyObject* dict = (PyObject*)collector;
+            PyObject* key = PyUnicode_FromString(group);
+            PyObject* count = PyDict_GetItem(dict, key);   // borrowed
+            if (count == NULL) {
+                count = PyLong_FromLong(1);
+                PyDict_SetItem(dict, key, count);
+                Py_DECREF(count);
+            } else {
+                PyDict_SetItem(dict, key, PyLong_FromLong(PyLong_AsLong(count) + 1));
+            }
+            Py_DECREF(key);
+        });
+    return groups;
 }
 
-static PyObject* PyLAppModel_IsAreaHit(PyLAppModelObject* self, PyObject* args) {
-    const char* area;
-    float x, y;
-    if (!PyArg_ParseTuple(args, "sff", &area, &x, &y))
+// ---- 表情 ----
+
+static PyObject* PyLAppModel_SetExpression(PyLAppModelObject* self, PyObject* args,
+                                              PyObject* kwargs) {
+    const char* name;
+    float fadeoutMs = -1.0f;
+    static const char* kwlist[] = {"expressionId", "fadeoutMs", nullptr};
+    if (!PyArg_ParseTupleAndKeywords(
+            args, kwargs, "s|f", const_cast<char**>(kwlist), &name, &fadeoutMs))
         return nullptr;
-    return PyBool_FromLong(self->model->IsAreaHit(area, x, y) ? 1 : 0);
+    self->model->SetExpression(name, fadeoutMs);
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_SetRandomExpression(PyLAppModelObject* self, PyObject* args,
+                                                      PyObject* kwargs) {
+    float fadeoutMs = -1.0f;
+    static const char* kwlist[] = {"fadeoutMs", nullptr};
+    if (!PyArg_ParseTupleAndKeywords(
+            args, kwargs, "|f", const_cast<char**>(kwlist), &fadeoutMs))
+        return nullptr;
+    const char* id = self->model->SetRandomExpression(fadeoutMs);
+    if (id)
+        return PyUnicode_FromString(id);
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_AddExpression(PyLAppModelObject* self, PyObject* args) {
+    const char* id;
+    if (!PyArg_ParseTuple(args, "s", &id))
+        return nullptr;
+    self->model->AddExpression(id);
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_RemoveExpression(PyLAppModelObject* self, PyObject* args) {
+    const char* id;
+    if (!PyArg_ParseTuple(args, "s", &id))
+        return nullptr;
+    self->model->RemoveExpression(id);
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_ResetExpressions(PyLAppModelObject* self, PyObject*) {
+    self->model->ResetExpressions();
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_ResetExpression(PyLAppModelObject* self, PyObject*) {
+    self->model->ResetExpression();
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_GetExpressions(PyLAppModelObject* self, PyObject*) {
+    const int count = self->model->GetExpressionCount();
+    PyObject* list = PyList_New(count);
+    int index = 0;
+    void* collector[2] = {list, &index};
+    self->model->GetExpressions(collector, [](void* collector, const char* id, const char* file) {
+        PyObject* list = (PyObject*)(((void**)collector)[0]);
+        int* index = (int*)(((void**)collector)[1]);
+        PyList_SetItem(list, (*index)++, PyUnicode_FromString(id));
+    });
+    return list;
+}
+
+static PyObject* PyLAppModel_LoadExtraExpression(PyLAppModelObject* self, PyObject* args) {
+    const char *id, *path;
+    if (!PyArg_ParseTuple(args, "ss", &id, &path))
+        return nullptr;
+    self->model->LoadExtraExpression(id, path);
+    Py_RETURN_NONE;
+}
+
+// ---- 命中测试 ----
+
+static PyObject* PyLAppModel_HitPart(PyLAppModelObject* self, PyObject* args) {
+    float x, y;
+    int topOnly = 0;
+    if (!PyArg_ParseTuple(args, "ff|p", &x, &y, &topOnly))
+        return nullptr;
+    PyObject* lst = PyList_New(0);
+    self->model->HitPart(
+        x,
+        y,
+        lst,
+        [](void* collector, const char* id) {
+            PyList_Append((PyObject*)collector, PyUnicode_FromString(id));
+        },
+        topOnly != 0);
+    return lst;
 }
 
 static PyObject* PyLAppModel_HitDrawable(PyLAppModelObject* self, PyObject* args) {
@@ -590,13 +723,96 @@ static PyObject* PyLAppModel_HitDrawable(PyLAppModelObject* self, PyObject* args
     return lst;
 }
 
-static PyObject* PyLAppModel_LoadParameters(PyLAppModelObject* self, PyObject*) {
-    self->model->LoadParameters();
+static PyObject* PyLAppModel_IsAreaHit(PyLAppModelObject* self, PyObject* args) {
+    const char* area;
+    float x, y;
+    if (!PyArg_ParseTuple(args, "sff", &area, &x, &y))
+        return nullptr;
+    return PyBool_FromLong(self->model->IsAreaHit(area, x, y) ? 1 : 0);
+}
+
+static PyObject* PyLAppModel_IsPartHit(PyLAppModelObject* self, PyObject* args) {
+    int index;
+    float x, y;
+    if (!PyArg_ParseTuple(args, "iff", &index, &x, &y))
+        return nullptr;
+    return PyBool_FromLong(self->model->IsPartHit(index, x, y) ? 1 : 0);
+}
+
+static PyObject* PyLAppModel_IsDrawableHit(PyLAppModelObject* self, PyObject* args) {
+    int index;
+    float x, y;
+    if (!PyArg_ParseTuple(args, "iff", &index, &x, &y))
+        return nullptr;
+    return PyBool_FromLong(self->model->IsDrawableHit(index, x, y) ? 1 : 0);
+}
+
+// ---- 画布 ----
+
+static PyObject* PyLAppModel_GetCanvasSize(PyLAppModelObject* self, PyObject*) {
+    float w, h;
+    self->model->GetCanvasSize(w, h);
+    return Py_BuildValue("(ff)", w, h);
+}
+
+static PyObject* PyLAppModel_GetCanvasSizePixel(PyLAppModelObject* self, PyObject*) {
+    float w, h;
+    self->model->GetCanvasSizePixel(w, h);
+    return Py_BuildValue("(ff)", w, h);
+}
+
+static PyObject* PyLAppModel_GetPixelsPerUnit(PyLAppModelObject* self, PyObject*) {
+    return PyLong_FromLong((long)self->model->GetPixelsPerUnit());
+}
+
+// ---- 自动机制 ----
+
+static PyObject* PyLAppModel_SetAutoBreath(PyLAppModelObject* self, PyObject* args) {
+    int v;
+    if (!PyArg_ParseTuple(args, "p", &v))
+        return nullptr;
+    self->model->SetAutoBreath(v != 0);
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_SaveParameters(PyLAppModelObject* self, PyObject*) {
-    self->model->SaveParameters();
+static PyObject* PyLAppModel_SetAutoBlink(PyLAppModelObject* self, PyObject* args) {
+    int v;
+    if (!PyArg_ParseTuple(args, "p", &v))
+        return nullptr;
+    self->model->SetAutoBlink(v != 0);
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_HasMocConsistencyFromFile(PyLAppModelObject* self, PyObject* args) {
+    const char* name;
+    if (!PyArg_ParseTuple(args, "s", &name))
+        return nullptr;
+    return PyBool_FromLong(self->model->HasMocConsistencyFromFile(name) ? 1 : 0);
+}
+
+// ---- 渲染 ----
+
+static PyObject* PyLAppModel_CreateRenderer(PyLAppModelObject* self, PyObject* args) {
+    int maskBufferCount = 1;
+    if (!PyArg_ParseTuple(args, "|i", &maskBufferCount))
+        return nullptr;
+    self->model->CreateRenderer(maskBufferCount);
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_DestroyRenderer(PyLAppModelObject* self, PyObject*) {
+    self->model->DestroyRenderer();
+    Py_RETURN_NONE;
+}
+
+// ---- 更新 ----
+
+static PyObject* PyLAppModel_Update(PyLAppModelObject* self, PyObject* args) {
+    // 可选 dt: 不传 = 墙钟自适配（哨兵 -1），传入 = delta 驱动
+    float dt = -1.0f;
+    if (!PyArg_ParseTuple(args, "|f", &dt))
+        return nullptr;
+    self->model->Update(dt);
     Py_RETURN_NONE;
 }
 
@@ -655,79 +871,110 @@ static PyObject* PyLAppModel_UpdatePose(PyLAppModelObject* self, PyObject* args)
     Py_RETURN_NONE;
 }
 
-static PyGetSetDef PyLAppModel_getset[] = {
-    {"autoBreath",
-     (getter)PyLAppModel_getAutoBreath,
-     (setter)PyLAppModel_setAutoBreath,
-     "",
-     nullptr},
-    {"autoBlink", (getter)PyLAppModel_getAutoBlink, (setter)PyLAppModel_setAutoBlink, "", nullptr},
-    {nullptr}};
+static PyObject* PyLAppModel_ResetPose(PyLAppModelObject* self, PyObject*) {
+    self->model->ResetPose();
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_Draw(PyLAppModelObject* self, PyObject*) {
+    self->model->Draw();
+    Py_RETURN_NONE;
+}
 
 PyMethodDef PyLAppModel_methods[] = {
     {"LoadModelJson", (PyCFunction)PyLAppModel_LoadModelJson, METH_VARARGS | METH_KEYWORDS, ""},
+    {"GetModelHomeDir", (PyCFunction)PyLAppModel_GetModelHomeDir, METH_NOARGS, ""},
+    {"Version", (PyCFunction)PyLAppModel_Version, METH_NOARGS, ""},
+    {"IsV2", (PyCFunction)PyLAppModel_IsV2, METH_NOARGS, ""},
+    {"IsV3", (PyCFunction)PyLAppModel_IsV3, METH_NOARGS, ""},
     {"Resize", (PyCFunction)PyLAppModel_Resize, METH_VARARGS, ""},
     {"Drag", (PyCFunction)PyLAppModel_Drag, METH_VARARGS, ""},
     {"IsMotionFinished", (PyCFunction)PyLAppModel_IsMotionFinished, METH_NOARGS, ""},
     {"SetOffset", (PyCFunction)PyLAppModel_SetOffset, METH_VARARGS, ""},
+    {"SetOffsetX", (PyCFunction)PyLAppModel_SetOffsetX, METH_VARARGS, ""},
+    {"SetOffsetY", (PyCFunction)PyLAppModel_SetOffsetY, METH_VARARGS, ""},
     {"SetScale", (PyCFunction)PyLAppModel_SetScale, METH_VARARGS, ""},
-    {"SetParameterValue", (PyCFunction)PyLAppModel_SetParameterValue, METH_VARARGS, ""},
-    {"AddParameterValue", (PyCFunction)PyLAppModel_AddParameterValue, METH_VARARGS, ""},
-    {"SetAutoBreathEnable", (PyCFunction)PyLAppModel_SetAutoBreathEnable, METH_VARARGS, ""},
-    {"SetAutoBlinkEnable", (PyCFunction)PyLAppModel_SetAutoBlinkEnable, METH_VARARGS, ""},
-    {"GetParameterCount", (PyCFunction)PyLAppModel_GetParameterCount, METH_NOARGS, ""},
+    {"SetScaleX", (PyCFunction)PyLAppModel_SetScaleX, METH_VARARGS, ""},
+    {"SetScaleY", (PyCFunction)PyLAppModel_SetScaleY, METH_VARARGS, ""},
+    {"Rotate", (PyCFunction)PyLAppModel_Rotate, METH_VARARGS, ""},
+    {"GetMvp", (PyCFunction)PyLAppModel_GetMvp, METH_NOARGS, ""},
+    {"SetParamByIndex", (PyCFunction)PyLAppModel_SetParamByIndex, METH_VARARGS, ""},
+    {"SetParamById", (PyCFunction)PyLAppModel_SetParamById, METH_VARARGS, ""},
+    {"AddParamByIndex", (PyCFunction)PyLAppModel_AddParamByIndex, METH_VARARGS, ""},
+    {"AddParamById", (PyCFunction)PyLAppModel_AddParamById, METH_VARARGS, ""},
+    {"SetSaveParamByIndex", (PyCFunction)PyLAppModel_SetSaveParamByIndex, METH_VARARGS, ""},
+    {"SetSaveParamById",
+     (PyCFunction)PyLAppModel_SetSaveParamById,
+     METH_VARARGS,
+     ""},
+    {"AddSaveParamByIndex", (PyCFunction)PyLAppModel_AddSaveParamByIndex, METH_VARARGS, ""},
+    {"AddSaveParamById",
+     (PyCFunction)PyLAppModel_AddSaveParamById,
+     METH_VARARGS,
+     ""},
+    {"GetParamCount", (PyCFunction)PyLAppModel_GetParamCount, METH_NOARGS, ""},
+    {"GetParamIds", (PyCFunction)PyLAppModel_GetParamIds, METH_NOARGS, ""},
+    {"GetParamValueByIndex", (PyCFunction)PyLAppModel_GetParamValueByIndex, METH_VARARGS, ""},
+    {"GetParamMaxByIndex", (PyCFunction)PyLAppModel_GetParamMaxByIndex, METH_VARARGS, ""},
+    {"GetParamMinByIndex", (PyCFunction)PyLAppModel_GetParamMinByIndex, METH_VARARGS, ""},
+    {"GetParamDefaultByIndex", (PyCFunction)PyLAppModel_GetParamDefaultByIndex, METH_VARARGS, ""},
+    {"GetParamValueById", (PyCFunction)PyLAppModel_GetParamValueById, METH_VARARGS, ""},
+    {"GetParamMaxById", (PyCFunction)PyLAppModel_GetParamMaxById, METH_VARARGS, ""},
+    {"GetParamMinById", (PyCFunction)PyLAppModel_GetParamMinById, METH_VARARGS, ""},
+    {"GetParamDefaultById", (PyCFunction)PyLAppModel_GetParamDefaultById, METH_VARARGS, ""},
+
+    {"LoadParameters", (PyCFunction)PyLAppModel_LoadParameters, METH_NOARGS, ""},
+    {"SaveParameters", (PyCFunction)PyLAppModel_SaveParameters, METH_NOARGS, ""},
+    {"ResetAllParameters", (PyCFunction)PyLAppModel_ResetAllParameters, METH_NOARGS, ""},
     {"GetPartCount", (PyCFunction)PyLAppModel_GetPartCount, METH_NOARGS, ""},
     {"GetPartId", (PyCFunction)PyLAppModel_GetPartId, METH_VARARGS, ""},
     {"GetPartIds", (PyCFunction)PyLAppModel_GetPartIds, METH_NOARGS, ""},
     {"SetPartOpacity", (PyCFunction)PyLAppModel_SetPartOpacity, METH_VARARGS, ""},
-    {"Update", (PyCFunction)PyLAppModel_Update, METH_VARARGS, ""},
-    {"Draw", (PyCFunction)PyLAppModel_Draw, METH_NOARGS, ""},
-    {"HitTest", (PyCFunction)PyLAppModel_HitTest, METH_VARARGS, ""},
-    {"HitPart", (PyCFunction)PyLAppModel_HitPart, METH_VARARGS, ""},
-    {"GetParameter", (PyCFunction)PyLAppModel_GetParameter, METH_VARARGS, ""},
     {"SetPartScreenColor", (PyCFunction)PyLAppModel_SetPartScreenColor, METH_VARARGS, ""},
-    {"setPartScreenColor", (PyCFunction)PyLAppModel_SetPartScreenColor, METH_VARARGS, ""},
     {"GetPartScreenColor", (PyCFunction)PyLAppModel_GetPartScreenColor, METH_VARARGS, ""},
     {"SetPartMultiplyColor", (PyCFunction)PyLAppModel_SetPartMultiplyColor, METH_VARARGS, ""},
     {"GetPartMultiplyColor", (PyCFunction)PyLAppModel_GetPartMultiplyColor, METH_VARARGS, ""},
-    {"Rotate", (PyCFunction)PyLAppModel_Rotate, METH_VARARGS, ""},
-    {"GetPixelsPerUnit", (PyCFunction)PyLAppModel_GetPixelsPerUnit, METH_NOARGS, ""},
-    {"GetCanvasSizePixel", (PyCFunction)PyLAppModel_GetCanvasSizePixel, METH_NOARGS, ""},
-    {"SetExpression", (PyCFunction)PyLAppModel_SetExpression, METH_VARARGS, ""},
-    {"SetRandomExpression", (PyCFunction)PyLAppModel_SetRandomExpression, METH_NOARGS, ""},
-    {"StartMotion", (PyCFunction)PyLAppModel_StartMotion, METH_VARARGS | METH_KEYWORDS, ""},
-    {"StartRandomMotion",
-     (PyCFunction)PyLAppModel_StartRandomMotion,
-     METH_VARARGS | METH_KEYWORDS,
-     ""},
-    {"GetCanvasWidth", (PyCFunction)PyLAppModel_GetCanvasWidth, METH_NOARGS, ""},
-    {"GetCanvasHeight", (PyCFunction)PyLAppModel_GetCanvasHeight, METH_NOARGS, ""},
-    {"GetCanvasSize", (PyCFunction)PyLAppModel_GetCanvasSize, METH_NOARGS, ""},
-    {"ClearMotions", (PyCFunction)PyLAppModel_ClearMotions, METH_NOARGS, ""},
-    {"StopAllMotions", (PyCFunction)PyLAppModel_StopAllMotions, METH_NOARGS, ""},
-    {"ResetPose", (PyCFunction)PyLAppModel_ResetPose, METH_NOARGS, ""},
-    {"ResetExpression", (PyCFunction)PyLAppModel_ResetExpression, METH_NOARGS, ""},
-    {"CreateRenderer", (PyCFunction)PyLAppModel_CreateRenderer, METH_VARARGS, ""},
-    {"ReleaseRenderer", (PyCFunction)PyLAppModel_ReleaseRenderer, METH_NOARGS, ""},
-
-    // ---- v3 fine-grained API ----
-    {"Version", (PyCFunction)PyLAppModel_Version, METH_NOARGS, ""},
-    {"IsV2", (PyCFunction)PyLAppModel_IsV2, METH_NOARGS, ""},
-    {"IsV3", (PyCFunction)PyLAppModel_IsV3, METH_NOARGS, ""},
-    {"GetModelHomeDir", (PyCFunction)PyLAppModel_GetModelHomeDir, METH_NOARGS, ""},
-    {"GetParameterIds", (PyCFunction)PyLAppModel_GetParameterIds, METH_NOARGS, ""},
     {"GetDrawableIds", (PyCFunction)PyLAppModel_GetDrawableIds, METH_NOARGS, ""},
-    {"GetExpressions", (PyCFunction)PyLAppModel_GetExpressions, METH_NOARGS, ""},
+    {"GetDrawableVertices", (PyCFunction)PyLAppModel_GetDrawableVertices, METH_VARARGS, ""},
+    {"GetDrawableVertexCount", (PyCFunction)PyLAppModel_GetDrawableVertexCount, METH_VARARGS, ""},
+    {"GetDrawableVertexIndexCount",
+     (PyCFunction)PyLAppModel_GetDrawableVertexIndexCount,
+     METH_VARARGS,
+     ""},
+    {"GetDrawableIndices", (PyCFunction)PyLAppModel_GetDrawableIndices, METH_VARARGS, ""},
+    {"SetDrawableMultiplyColor", (PyCFunction)PyLAppModel_SetDrawableMultiplyColor, METH_VARARGS, ""},
+    {"SetDrawableScreenColor", (PyCFunction)PyLAppModel_SetDrawableScreenColor, METH_VARARGS, ""},
+    {"StartMotion", (PyCFunction)PyLAppModel_StartMotion, METH_VARARGS | METH_KEYWORDS, ""},
+    {"StartRandomMotion", (PyCFunction)PyLAppModel_StartRandomMotion, METH_VARARGS | METH_KEYWORDS, ""},
+    {"StopAllMotions", (PyCFunction)PyLAppModel_StopAllMotions, METH_NOARGS, ""},
+    {"LoadExtraMotion", (PyCFunction)PyLAppModel_LoadExtraMotion, METH_VARARGS, ""},
+    {"GetMotionGroupCount", (PyCFunction)PyLAppModel_GetMotionGroupCount, METH_NOARGS, ""},
+    {"GetMotionCount", (PyCFunction)PyLAppModel_GetMotionCount, METH_VARARGS, ""},
+    {"GetMotionSound", (PyCFunction)PyLAppModel_GetMotionSound, METH_VARARGS, ""},
+    {"GetMotions", (PyCFunction)PyLAppModel_GetMotions, METH_NOARGS, ""},
+    {"GetMotionGroups", (PyCFunction)PyLAppModel_GetMotionGroups, METH_NOARGS, ""},
+    {"SetExpression", (PyCFunction)PyLAppModel_SetExpression, METH_VARARGS | METH_KEYWORDS, ""},
+    {"SetRandomExpression", (PyCFunction)PyLAppModel_SetRandomExpression, METH_VARARGS | METH_KEYWORDS, ""},
     {"AddExpression", (PyCFunction)PyLAppModel_AddExpression, METH_VARARGS, ""},
     {"RemoveExpression", (PyCFunction)PyLAppModel_RemoveExpression, METH_VARARGS, ""},
     {"ResetExpressions", (PyCFunction)PyLAppModel_ResetExpressions, METH_NOARGS, ""},
+    {"ResetExpression", (PyCFunction)PyLAppModel_ResetExpression, METH_NOARGS, ""},
+    {"GetExpressions", (PyCFunction)PyLAppModel_GetExpressions, METH_NOARGS, ""},
     {"LoadExtraExpression", (PyCFunction)PyLAppModel_LoadExtraExpression, METH_VARARGS, ""},
-    {"GetMotions", (PyCFunction)PyLAppModel_GetMotions, METH_NOARGS, ""},
-    {"LoadExtraMotion", (PyCFunction)PyLAppModel_LoadExtraMotion, METH_VARARGS, ""},
-    {"IsAreaHit", (PyCFunction)PyLAppModel_IsAreaHit, METH_VARARGS, ""},
+    {"HitPart", (PyCFunction)PyLAppModel_HitPart, METH_VARARGS, ""},
     {"HitDrawable", (PyCFunction)PyLAppModel_HitDrawable, METH_VARARGS, ""},
-    {"LoadParameters", (PyCFunction)PyLAppModel_LoadParameters, METH_NOARGS, ""},
-    {"SaveParameters", (PyCFunction)PyLAppModel_SaveParameters, METH_NOARGS, ""},
+    {"IsAreaHit", (PyCFunction)PyLAppModel_IsAreaHit, METH_VARARGS, ""},
+    {"IsPartHit", (PyCFunction)PyLAppModel_IsPartHit, METH_VARARGS, ""},
+    {"IsDrawableHit", (PyCFunction)PyLAppModel_IsDrawableHit, METH_VARARGS, ""},
+    {"GetCanvasSize", (PyCFunction)PyLAppModel_GetCanvasSize, METH_NOARGS, ""},
+    {"GetCanvasSizePixel", (PyCFunction)PyLAppModel_GetCanvasSizePixel, METH_NOARGS, ""},
+    {"GetPixelsPerUnit", (PyCFunction)PyLAppModel_GetPixelsPerUnit, METH_NOARGS, ""},
+    {"SetAutoBreath", (PyCFunction)PyLAppModel_SetAutoBreath, METH_VARARGS, ""},
+    {"SetAutoBlink", (PyCFunction)PyLAppModel_SetAutoBlink, METH_VARARGS, ""},
+    {"HasMocConsistencyFromFile", (PyCFunction)PyLAppModel_HasMocConsistencyFromFile, METH_VARARGS, ""},
+    {"CreateRenderer", (PyCFunction)PyLAppModel_CreateRenderer, METH_VARARGS, ""},
+    {"DestroyRenderer", (PyCFunction)PyLAppModel_DestroyRenderer, METH_NOARGS, ""},
+    {"Update", (PyCFunction)PyLAppModel_Update, METH_VARARGS, ""},
     {"UpdateMotion", (PyCFunction)PyLAppModel_UpdateMotion, METH_VARARGS, ""},
     {"UpdateDrag", (PyCFunction)PyLAppModel_UpdateDrag, METH_VARARGS, ""},
     {"UpdateBreath", (PyCFunction)PyLAppModel_UpdateBreath, METH_VARARGS, ""},
@@ -735,11 +982,12 @@ PyMethodDef PyLAppModel_methods[] = {
     {"UpdateExpression", (PyCFunction)PyLAppModel_UpdateExpression, METH_VARARGS, ""},
     {"UpdatePhysics", (PyCFunction)PyLAppModel_UpdatePhysics, METH_VARARGS, ""},
     {"UpdatePose", (PyCFunction)PyLAppModel_UpdatePose, METH_VARARGS, ""},
+    {"ResetPose", (PyCFunction)PyLAppModel_ResetPose, METH_NOARGS, ""},
+    {"Draw", (PyCFunction)PyLAppModel_Draw, METH_NOARGS, ""},
     {NULL, NULL, 0, NULL}};
 
 PyType_Slot PyLAppModel_slots[] = {{Py_tp_new, (void*)PyLAppModel_new},
                                    {Py_tp_init, (void*)PyLAppModel_init},
                                    {Py_tp_dealloc, (void*)PyLAppModel_dealloc},
                                    {Py_tp_methods, (void*)PyLAppModel_methods},
-                                   {Py_tp_getset, (void*)PyLAppModel_getset},
                                    {0, nullptr}};

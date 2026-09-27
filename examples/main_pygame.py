@@ -40,7 +40,7 @@ def main():
 
     live2d.glInit()
 
-    model = live2d.LAppModel()
+    model = live2d.Model()
 
 
     if live2d.LIVE2D_VERSION == 3:
@@ -72,9 +72,9 @@ def main():
     scale: float = 1.0
 
     # 关闭自动眨眼
-    model.SetAutoBlinkEnable(False)
+    model.SetAutoBlink(False)
     # 关闭自动呼吸
-    model.SetAutoBreathEnable(False)
+    model.SetAutoBreath(False)
 
     wavHandler = WavHandler()
     lipSyncN = 3
@@ -94,10 +94,11 @@ def main():
         log.LOGI("motion finished")
 
     # 获取全部可用参数
-    for i in range(model.GetParameterCount()):
-        param = model.GetParameter(i)
+    paramIds = model.GetParamIds()
+    for i in range(model.GetParamCount()):
         log.LOGD(
-            param.id, param.type, param.value, param.max, param.min, param.default
+            paramIds[i], 0, model.GetParamValueByIndex(i), model.GetParamMaxByIndex(i),
+            model.GetParamMinByIndex(i), model.GetParamDefaultByIndex(i)
         )
 
     # 设置 part 透明度
@@ -210,7 +211,7 @@ def main():
 
         if wavHandler.Update():
             # 利用 wav 响度更新 嘴部张合
-            model.SetParameterValue(
+            model.SetParamById(
                 StandardParams.ParamMouthOpenY, wavHandler.GetRms() * lipSyncN
             )
 

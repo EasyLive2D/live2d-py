@@ -20,7 +20,7 @@ from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 class Live2DCanvas(QOpenGLWidget):
     def __init__(self):
         super().__init__()
-        self.model: None | live2d.LAppModel = None
+        self.model: None | live2d.Model = None
 
         # tool for controlling model opacity
         self.canvas: None | Canvas = None
@@ -33,7 +33,7 @@ class Live2DCanvas(QOpenGLWidget):
 
     def initializeGL(self):
         live2d.glInit()
-        self.model = live2d.LAppModel()
+        self.model = live2d.Model()
         if live2d.LIVE2D_VERSION == 3:
             self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3", "llny/llny.model3.json"))
         else:

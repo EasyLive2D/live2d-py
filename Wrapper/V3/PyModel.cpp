@@ -34,12 +34,19 @@ static void PyModel_Dealloc(PyModelObject* self, PyObject* args, PyObject* kwarg
 }
 static PyObject* PyModel_LoadModelJson(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     const char* modelJsonPath;
-    if (!PyArg_ParseTuple(args, "s", &modelJsonPath)) {
+    bool createRenderer = true;
+    static const char* kwlist[] = {"path", "create_renderer", nullptr};
+    if (!PyArg_ParseTupleAndKeywords(args,
+                                     kwargs,
+                                     "s|b",
+                                     const_cast<char**>(kwlist),
+                                     &modelJsonPath,
+                                     &createRenderer)) {
         PyErr_SetString(PyExc_TypeError, "argument 1 must be str");
         return NULL;
     }
 
-    self->model->LoadModelJson(modelJsonPath);
+    self->model->LoadModelJson(modelJsonPath, createRenderer);
     Py_RETURN_NONE;
 }
 static PyObject* PyModel_GetModelHomeDir(PyModelObject* self, PyObject* args, PyObject* kwargs) {
@@ -131,7 +138,7 @@ static PyObject* PyModel_UpdatePose(PyModelObject* self, PyObject* args, PyObjec
     self->model->UpdatePose(deltaTimeSeconds);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_GetParameterIds(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyModel_GetParamIds(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     const int count = self->model->GetParameterCount();
     PyObject* list = PyList_New(count);
     int index = 0;
@@ -143,10 +150,10 @@ static PyObject* PyModel_GetParameterIds(PyModelObject* self, PyObject* args, Py
     });
     return list;
 }
-static PyObject* PyModel_GetParameterCount(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyModel_GetParamCount(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     return Py_BuildValue("i", self->model->GetParameterCount());
 }
-static PyObject* PyModel_GetParameterValue(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyModel_GetParamValueByIndex(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     int index;
     if (!PyArg_ParseTuple(args, "i", &index)) {
         PyErr_SetString(PyExc_TypeError, "argument 1 must be int");
@@ -154,7 +161,7 @@ static PyObject* PyModel_GetParameterValue(PyModelObject* self, PyObject* args, 
     }
     return PyFloat_FromDouble(self->model->GetParameterValue(index));
 }
-static PyObject* PyModel_GetParameterMaximumValue(PyModelObject* self, PyObject* args,
+static PyObject* PyModel_GetParamMaxByIndex(PyModelObject* self, PyObject* args,
                                                   PyObject* kwargs) {
     int index;
     if (!PyArg_ParseTuple(args, "i", &index)) {
@@ -163,7 +170,7 @@ static PyObject* PyModel_GetParameterMaximumValue(PyModelObject* self, PyObject*
     }
     return PyFloat_FromDouble(self->model->GetParameterMaximumValue(index));
 }
-static PyObject* PyModel_GetParameterMinimumValue(PyModelObject* self, PyObject* args,
+static PyObject* PyModel_GetParamMinByIndex(PyModelObject* self, PyObject* args,
                                                   PyObject* kwargs) {
     int index;
     if (!PyArg_ParseTuple(args, "i", &index)) {
@@ -172,7 +179,7 @@ static PyObject* PyModel_GetParameterMinimumValue(PyModelObject* self, PyObject*
     }
     return PyFloat_FromDouble(self->model->GetParameterMinimumValue(index));
 }
-static PyObject* PyModel_GetParameterDefaultValue(PyModelObject* self, PyObject* args,
+static PyObject* PyModel_GetParamDefaultByIndex(PyModelObject* self, PyObject* args,
                                                   PyObject* kwargs) {
     int index;
     if (!PyArg_ParseTuple(args, "i", &index)) {
@@ -181,7 +188,7 @@ static PyObject* PyModel_GetParameterDefaultValue(PyModelObject* self, PyObject*
     }
     return PyFloat_FromDouble(self->model->GetParameterDefaultValue(index));
 }
-static PyObject* PyModel_SetParameterValue(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyModel_SetParamByIndex(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     int index;
     float value;
     float weight = 1.0f;
@@ -192,7 +199,7 @@ static PyObject* PyModel_SetParameterValue(PyModelObject* self, PyObject* args, 
     self->model->SetParameterValue(index, value, weight);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_SetParameterValueById(PyModelObject* self, PyObject* args,
+static PyObject* PyModel_SetParamById(PyModelObject* self, PyObject* args,
                                                PyObject* kwargs) {
     const char* id;
     float value, weight = 1.0f;
@@ -203,7 +210,7 @@ static PyObject* PyModel_SetParameterValueById(PyModelObject* self, PyObject* ar
     self->model->SetParameterValue(id, value, weight);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_AddParameterValue(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyModel_AddParamByIndex(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     int index;
     float value;
     if (!PyArg_ParseTuple(args, "if", &index, &value)) {
@@ -214,7 +221,7 @@ static PyObject* PyModel_AddParameterValue(PyModelObject* self, PyObject* args, 
     self->model->AddParameterValue(index, value);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_AddParameterValueById(PyModelObject* self, PyObject* args,
+static PyObject* PyModel_AddParamById(PyModelObject* self, PyObject* args,
                                                PyObject* kwargs) {
     const char* id;
     float value;
@@ -225,7 +232,7 @@ static PyObject* PyModel_AddParameterValueById(PyModelObject* self, PyObject* ar
     self->model->AddParameterValue(id, value);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_SetAndSaveParameterValue(PyModelObject* self, PyObject* args,
+static PyObject* PyModel_SetSaveParamByIndex(PyModelObject* self, PyObject* args,
                                                   PyObject* kwargs) {
     int index;
     float value;
@@ -237,7 +244,7 @@ static PyObject* PyModel_SetAndSaveParameterValue(PyModelObject* self, PyObject*
     self->model->SetAndSaveParameterValue(index, value, weight);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_SetAndSaveParameterValueById(PyModelObject* self, PyObject* args,
+static PyObject* PyModel_SetSaveParamById(PyModelObject* self, PyObject* args,
                                                       PyObject* kwargs) {
     const char* id;
     float value, weight = 1.0f;
@@ -248,7 +255,7 @@ static PyObject* PyModel_SetAndSaveParameterValueById(PyModelObject* self, PyObj
     self->model->SetAndSaveParameterValue(id, value, weight);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_AddAndSaveParameterValue(PyModelObject* self, PyObject* args,
+static PyObject* PyModel_AddSaveParamByIndex(PyModelObject* self, PyObject* args,
                                                   PyObject* kwargs) {
     int index;
     float value;
@@ -260,7 +267,7 @@ static PyObject* PyModel_AddAndSaveParameterValue(PyModelObject* self, PyObject*
     self->model->AddAndSaveParameterValue(index, value);
     Py_RETURN_NONE;
 }
-static PyObject* PyModel_AddAndSaveParameterValueById(PyModelObject* self, PyObject* args,
+static PyObject* PyModel_AddSaveParamById(PyModelObject* self, PyObject* args,
                                                       PyObject* kwargs) {
     const char* id;
     float value;
@@ -272,6 +279,71 @@ static PyObject* PyModel_AddAndSaveParameterValueById(PyModelObject* self, PyObj
     Py_RETURN_NONE;
 }
 
+
+static int ParamIndexById(PyModelObject* self, const char* id) {
+    const int count = self->model->GetParameterCount();
+    for (int i = 0; i < count; i++) {
+        if (strcmp(self->model->GetParameterId(i), id) == 0)
+            return i;
+    }
+    return -1;
+}
+
+static PyObject* PyModel_GetParamValueById(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+    const char* id;
+    if (!PyArg_ParseTuple(args, "s", &id)) {
+        PyErr_SetString(PyExc_TypeError, "argument 1 must be str");
+        return NULL;
+    }
+    const int index = ParamIndexById(self, id);
+    if (index < 0) {
+        PyErr_Format(PyExc_ValueError, "parameter not found: %s", id);
+        return NULL;
+    }
+    return PyFloat_FromDouble(self->model->GetParameterValue(index));
+}
+
+static PyObject* PyModel_GetParamMaxById(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+    const char* id;
+    if (!PyArg_ParseTuple(args, "s", &id)) {
+        PyErr_SetString(PyExc_TypeError, "argument 1 must be str");
+        return NULL;
+    }
+    const int index = ParamIndexById(self, id);
+    if (index < 0) {
+        PyErr_Format(PyExc_ValueError, "parameter not found: %s", id);
+        return NULL;
+    }
+    return PyFloat_FromDouble(self->model->GetParameterMaximumValue(index));
+}
+
+static PyObject* PyModel_GetParamMinById(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+    const char* id;
+    if (!PyArg_ParseTuple(args, "s", &id)) {
+        PyErr_SetString(PyExc_TypeError, "argument 1 must be str");
+        return NULL;
+    }
+    const int index = ParamIndexById(self, id);
+    if (index < 0) {
+        PyErr_Format(PyExc_ValueError, "parameter not found: %s", id);
+        return NULL;
+    }
+    return PyFloat_FromDouble(self->model->GetParameterMinimumValue(index));
+}
+
+static PyObject* PyModel_GetParamDefaultById(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+    const char* id;
+    if (!PyArg_ParseTuple(args, "s", &id)) {
+        PyErr_SetString(PyExc_TypeError, "argument 1 must be str");
+        return NULL;
+    }
+    const int index = ParamIndexById(self, id);
+    if (index < 0) {
+        PyErr_Format(PyExc_ValueError, "parameter not found: %s", id);
+        return NULL;
+    }
+    return PyFloat_FromDouble(self->model->GetParameterDefaultValue(index));
+}
 static PyObject* PyModel_LoadParameters(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     self->model->LoadParameters();
     Py_RETURN_NONE;
@@ -296,6 +368,24 @@ static PyObject* PyModel_SetOffset(PyModelObject* self, PyObject* args, PyObject
         return NULL;
     }
     self->model->SetOffset(x, y);
+    Py_RETURN_NONE;
+}
+static PyObject* PyModel_SetOffsetX(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+    float x;
+    if (!PyArg_ParseTuple(args, "f", &x)) {
+        PyErr_SetString(PyExc_TypeError, "argument must be float");
+        return NULL;
+    }
+    self->model->SetOffsetX(x);
+    Py_RETURN_NONE;
+}
+static PyObject* PyModel_SetOffsetY(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+    float y;
+    if (!PyArg_ParseTuple(args, "f", &y)) {
+        PyErr_SetString(PyExc_TypeError, "argument must be float");
+        return NULL;
+    }
+    self->model->SetOffsetY(y);
     Py_RETURN_NONE;
 }
 static PyObject* PyModel_Rotate(PyModelObject* self, PyObject* args, PyObject* kwargs) {
@@ -535,6 +625,17 @@ static PyObject* PyModel_Draw(PyModelObject* self, PyObject* args, PyObject* kwa
     self->model->Draw();
     Py_RETURN_NONE;
 }
+static PyObject* PyModel_GetPartCount(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+    return PyLong_FromLong(self->model->GetPartCount());
+}
+static PyObject* PyModel_GetPartId(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+    int index;
+    if (!PyArg_ParseTuple(args, "i", &index)) {
+        PyErr_SetString(PyExc_TypeError, "argument 1 must be int");
+        return NULL;
+    }
+    return PyUnicode_FromString(self->model->GetPartId(index));
+}
 static PyObject* PyModel_GetPartIds(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     const int count = self->model->GetPartCount();
     PyObject* list = PyList_New(count);
@@ -592,6 +693,60 @@ static PyObject* PyModel_GetDrawableIds(PyModelObject* self, PyObject* args, PyO
     });
     return list;
 }
+
+static PyObject* PyModel_GetDrawableVertices(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+    int index;
+    if (!PyArg_ParseTuple(args, "i", &index)) {
+        PyErr_SetString(PyExc_TypeError, "argument 1 must be int");
+        return NULL;
+    }
+    const float* verts = self->model->GetDrawableVertices(index);
+    const int count = self->model->GetDrawableVertexCount(index) * 2;
+    PyObject* list = PyList_New(count);
+    for (int i = 0; i < count; i++)
+        PyList_SetItem(list, i, PyFloat_FromDouble(verts[i]));
+    return list;
+}
+static PyObject* PyModel_GetDrawableVertexCount(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+    int index;
+    if (!PyArg_ParseTuple(args, "i", &index)) {
+        PyErr_SetString(PyExc_TypeError, "argument 1 must be int");
+        return NULL;
+    }
+    return PyLong_FromLong(self->model->GetDrawableVertexCount(index));
+}
+static PyObject* PyModel_GetDrawableVertexIndexCount(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+    int index;
+    if (!PyArg_ParseTuple(args, "i", &index)) {
+        PyErr_SetString(PyExc_TypeError, "argument 1 must be int");
+        return NULL;
+    }
+    return PyLong_FromLong(self->model->GetDrawableVertexIndexCount(index));
+}
+static PyObject* PyModel_GetDrawableIndices(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+    int index;
+    if (!PyArg_ParseTuple(args, "i", &index)) {
+        PyErr_SetString(PyExc_TypeError, "argument 1 must be int");
+        return NULL;
+    }
+    const unsigned short* indices = self->model->GetDrawableIndices(index);
+    const int count = self->model->GetDrawableVertexIndexCount(index);
+    PyObject* list = PyList_New(count);
+    for (int i = 0; i < count; i++)
+        PyList_SetItem(list, i, PyLong_FromLong(indices[i]));
+    return list;
+}
+static PyObject* PyModel_GetMotionCount(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+    const char* group;
+    if (!PyArg_ParseTuple(args, "s", &group)) {
+        PyErr_SetString(PyExc_TypeError, "argument 1 must be str");
+        return NULL;
+    }
+    return PyLong_FromLong(self->model->GetMotionCount(group));
+}
+static PyObject* PyModel_GetMotionGroupCount(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+    return PyLong_FromLong(self->model->GetMotionGroupCount());
+}
 static PyObject* PyModel_SetDrawableMultiplyColor(PyModelObject* self, PyObject* args,
                                                   PyObject* kwargs) {
     int index;
@@ -634,17 +789,34 @@ static PyObject* PyModel_RemoveExpression(PyModelObject* self, PyObject* args, P
 }
 static PyObject* PyModel_SetExpression(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     const char* expressionId;
-    if (!PyArg_ParseTuple(args, "s", &expressionId)) {
-        PyErr_SetString(PyExc_TypeError, "arguments must be (str)");
+    float fadeoutMs = -1.0f;
+    static const char* kwlist[] = {"expressionId", "fadeoutMs", nullptr};
+    if (!PyArg_ParseTupleAndKeywords(args,
+                                     kwargs,
+                                     "s|f",
+                                     const_cast<char**>(kwlist),
+                                     &expressionId,
+                                     &fadeoutMs)) {
+        PyErr_SetString(PyExc_TypeError, "arguments must be (str, [float])");
         return NULL;
     }
-    self->model->SetExpression(expressionId);
+    self->model->SetExpression(expressionId, fadeoutMs);
     Py_RETURN_NONE;
 }
 
 static PyObject* PyModel_SetRandomExpression(PyModelObject* self, PyObject* args,
                                              PyObject* kwargs) {
-    const char* expId = self->model->SetRandomExpression();
+    float fadeoutMs = -1.0f;
+    static const char* kwlist[] = {"fadeoutMs", nullptr};
+    if (!PyArg_ParseTupleAndKeywords(args,
+                                     kwargs,
+                                     "|f",
+                                     const_cast<char**>(kwlist),
+                                     &fadeoutMs)) {
+        PyErr_SetString(PyExc_TypeError, "argument must be (float)");
+        return NULL;
+    }
+    const char* expId = self->model->SetRandomExpression(fadeoutMs);
     if (expId != nullptr) {
         return Py_BuildValue("s", expId);
     } else {
@@ -683,6 +855,34 @@ static PyObject* PyModel_GetExpressions(PyModelObject* self, PyObject* args, PyO
         PyList_SetItem(list, index[0]++, PyUnicode_FromString(id));
     });
     return list;
+}
+static PyObject* PyModel_GetMotionSound(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+    const char* group;
+    int no;
+    if (!PyArg_ParseTuple(args, "si", &group, &no)) {
+        PyErr_SetString(PyExc_TypeError, "arguments must be (str, int)");
+        return NULL;
+    }
+    return PyUnicode_FromString(self->model->GetMotionSound(group, no));
+}
+static PyObject* PyModel_GetMotionGroups(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+    PyObject* groups = PyDict_New();
+    self->model->GetMotions(
+        groups,
+        [](void* collector, const char* group, int no, const char* file, const char* sound) {
+            PyObject* dict = (PyObject*)collector;
+            PyObject* key = PyUnicode_FromString(group);
+            PyObject* count = PyDict_GetItem(dict, key);   // borrowed
+            if (count == NULL) {
+                count = PyLong_FromLong(1);
+                PyDict_SetItem(dict, key, count);
+                Py_DECREF(count);
+            } else {
+                PyDict_SetItem(dict, key, PyLong_FromLong(PyLong_AsLong(count) + 1));
+            }
+            Py_DECREF(key);
+        });
+    return groups;
 }
 static PyObject* PyModel_StopAllMotions(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     self->model->StopAllMotions();
@@ -791,62 +991,78 @@ static PyMethodDef PyModel_Methods[] = {
     {"UpdatePhysics", (PyCFunction)PyModel_UpdatePhysics, METH_VARARGS | METH_KEYWORDS, nullptr},
     {"UpdatePose", (PyCFunction)PyModel_UpdatePose, METH_VARARGS | METH_KEYWORDS, nullptr},
 
-    {"GetParameterCount",
-     (PyCFunction)PyModel_GetParameterCount,
+    {"GetParamCount",
+     (PyCFunction)PyModel_GetParamCount,
      METH_VARARGS | METH_KEYWORDS,
      nullptr},
-    {"GetParameterIds",
-     (PyCFunction)PyModel_GetParameterIds,
+    {"GetParamIds",
+     (PyCFunction)PyModel_GetParamIds,
      METH_VARARGS | METH_KEYWORDS,
      nullptr},
-    {"GetParameterValue",
-     (PyCFunction)PyModel_GetParameterValue,
+    {"GetParamValueByIndex",
+     (PyCFunction)PyModel_GetParamValueByIndex,
      METH_VARARGS | METH_KEYWORDS,
      nullptr},
-    {"GetParameterMaximumValue",
-     (PyCFunction)PyModel_GetParameterMaximumValue,
+    {"GetParamMaxByIndex",
+     (PyCFunction)PyModel_GetParamMaxByIndex,
      METH_VARARGS | METH_KEYWORDS,
      nullptr},
-    {"GetParameterMinimumValue",
-     (PyCFunction)PyModel_GetParameterMinimumValue,
+    {"GetParamMinByIndex",
+     (PyCFunction)PyModel_GetParamMinByIndex,
      METH_VARARGS | METH_KEYWORDS,
      nullptr},
-    {"GetParameterDefaultValue",
-     (PyCFunction)PyModel_GetParameterDefaultValue,
+    {"GetParamDefaultByIndex",
+     (PyCFunction)PyModel_GetParamDefaultByIndex,
+     METH_VARARGS | METH_KEYWORDS,
+     nullptr},
+    {"GetParamValueById",
+     (PyCFunction)PyModel_GetParamValueById,
+     METH_VARARGS | METH_KEYWORDS,
+     nullptr},
+    {"GetParamMaxById",
+     (PyCFunction)PyModel_GetParamMaxById,
+     METH_VARARGS | METH_KEYWORDS,
+     nullptr},
+    {"GetParamMinById",
+     (PyCFunction)PyModel_GetParamMinById,
+     METH_VARARGS | METH_KEYWORDS,
+     nullptr},
+    {"GetParamDefaultById",
+     (PyCFunction)PyModel_GetParamDefaultById,
      METH_VARARGS | METH_KEYWORDS,
      nullptr},
 
-    {"SetParameterValue",
-     (PyCFunction)PyModel_SetParameterValue,
+    {"SetParamByIndex",
+     (PyCFunction)PyModel_SetParamByIndex,
      METH_VARARGS | METH_KEYWORDS,
      nullptr},
-    {"SetParameterValueById",
-     (PyCFunction)PyModel_SetParameterValueById,
+    {"SetParamById",
+     (PyCFunction)PyModel_SetParamById,
      METH_VARARGS | METH_KEYWORDS,
      nullptr},
-    {"AddParameterValue",
-     (PyCFunction)PyModel_AddParameterValue,
+    {"AddParamByIndex",
+     (PyCFunction)PyModel_AddParamByIndex,
      METH_VARARGS | METH_KEYWORDS,
      nullptr},
-    {"AddParameterValueById",
-     (PyCFunction)PyModel_AddParameterValueById,
+    {"AddParamById",
+     (PyCFunction)PyModel_AddParamById,
      METH_VARARGS | METH_KEYWORDS,
      nullptr},
 
-    {"SetAndSaveParameterValue",
-     (PyCFunction)PyModel_SetAndSaveParameterValue,
+    {"SetSaveParamByIndex",
+     (PyCFunction)PyModel_SetSaveParamByIndex,
      METH_VARARGS | METH_KEYWORDS,
      nullptr},
-    {"SetAndSaveParameterValueById",
-     (PyCFunction)PyModel_SetAndSaveParameterValueById,
+    {"SetSaveParamById",
+     (PyCFunction)PyModel_SetSaveParamById,
      METH_VARARGS | METH_KEYWORDS,
      nullptr},
-    {"AddAndSaveParameterValue",
-     (PyCFunction)PyModel_AddAndSaveParameterValue,
+    {"AddSaveParamByIndex",
+     (PyCFunction)PyModel_AddSaveParamByIndex,
      METH_VARARGS | METH_KEYWORDS,
      nullptr},
-    {"AddAndSaveParameterValueById",
-     (PyCFunction)PyModel_AddAndSaveParameterValueById,
+    {"AddSaveParamById",
+     (PyCFunction)PyModel_AddSaveParamById,
      METH_VARARGS | METH_KEYWORDS,
      nullptr},
 
@@ -854,6 +1070,8 @@ static PyMethodDef PyModel_Methods[] = {
     {"SaveParameters", (PyCFunction)PyModel_SaveParameters, METH_VARARGS | METH_KEYWORDS, nullptr},
     {"Resize", (PyCFunction)PyModel_Resize, METH_VARARGS | METH_KEYWORDS, nullptr},
     {"SetOffset", (PyCFunction)PyModel_SetOffset, METH_VARARGS | METH_KEYWORDS, nullptr},
+    {"SetOffsetX", (PyCFunction)PyModel_SetOffsetX, METH_VARARGS | METH_KEYWORDS, nullptr},
+    {"SetOffsetY", (PyCFunction)PyModel_SetOffsetY, METH_VARARGS | METH_KEYWORDS, nullptr},
     {"Rotate", (PyCFunction)PyModel_Rotate, METH_VARARGS | METH_KEYWORDS, nullptr},
     {"SetScale", (PyCFunction)PyModel_SetScale, METH_VARARGS | METH_KEYWORDS, nullptr},
     {"SetScaleX", (PyCFunction)PyModel_SetScaleX, METH_VARARGS | METH_KEYWORDS, nullptr},
@@ -873,6 +1091,10 @@ static PyMethodDef PyModel_Methods[] = {
      METH_VARARGS | METH_KEYWORDS,
      nullptr},
     {"GetMotions", (PyCFunction)PyModel_GetMotions, METH_VARARGS | METH_KEYWORDS, nullptr},
+    {"GetMotionSound", (PyCFunction)PyModel_GetMotionSound, METH_VARARGS | METH_KEYWORDS, nullptr},
+    {"GetMotionCount", (PyCFunction)PyModel_GetMotionCount, METH_VARARGS | METH_KEYWORDS, nullptr},
+    {"GetMotionGroupCount", (PyCFunction)PyModel_GetMotionGroupCount, METH_VARARGS | METH_KEYWORDS, nullptr},
+    {"GetMotionGroups", (PyCFunction)PyModel_GetMotionGroups, METH_VARARGS | METH_KEYWORDS, nullptr},
     {"StopAllMotions", (PyCFunction)PyModel_StopAllMotions, METH_VARARGS | METH_KEYWORDS, nullptr},
     {"ResetAllParameters",
      (PyCFunction)PyModel_ResetAllParameters,
@@ -894,6 +1116,8 @@ static PyMethodDef PyModel_Methods[] = {
      nullptr},
 
     {"Draw", (PyCFunction)PyModel_Draw, METH_VARARGS | METH_KEYWORDS, nullptr},
+    {"GetPartCount", (PyCFunction)PyModel_GetPartCount, METH_VARARGS | METH_KEYWORDS, nullptr},
+    {"GetPartId", (PyCFunction)PyModel_GetPartId, METH_VARARGS | METH_KEYWORDS, nullptr},
     {"GetPartIds", (PyCFunction)PyModel_GetPartIds, METH_VARARGS | METH_KEYWORDS, nullptr},
     {"SetPartOpacity", (PyCFunction)PyModel_SetPartOpacity, METH_VARARGS | METH_KEYWORDS, nullptr},
     {"SetPartScreenColor",
@@ -913,6 +1137,10 @@ static PyMethodDef PyModel_Methods[] = {
      METH_VARARGS | METH_KEYWORDS,
      nullptr},
     {"GetDrawableIds", (PyCFunction)PyModel_GetDrawableIds, METH_VARARGS | METH_KEYWORDS, nullptr},
+    {"GetDrawableVertices", (PyCFunction)PyModel_GetDrawableVertices, METH_VARARGS | METH_KEYWORDS, nullptr},
+    {"GetDrawableVertexCount", (PyCFunction)PyModel_GetDrawableVertexCount, METH_VARARGS | METH_KEYWORDS, nullptr},
+    {"GetDrawableVertexIndexCount", (PyCFunction)PyModel_GetDrawableVertexIndexCount, METH_VARARGS | METH_KEYWORDS, nullptr},
+    {"GetDrawableIndices", (PyCFunction)PyModel_GetDrawableIndices, METH_VARARGS | METH_KEYWORDS, nullptr},
     {"SetDrawableMultiplyColor",
      (PyCFunction)PyModel_SetDrawableMultiplyColor,
      METH_VARARGS | METH_KEYWORDS,

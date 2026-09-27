@@ -33,10 +33,13 @@ args = parser.parse_args()
 # ---- Import the right SDK ----
 if args.version == "v2cpp":
     import live2d.v2cpp as live2d
+    ModelClass = live2d.LAppModel
 elif args.version == "v2":
     import live2d.v2 as live2d
+    ModelClass = live2d.LAppModel
 else:
     import live2d.v3 as live2d
+    ModelClass = live2d.Model
 
 # ---- Resolve model & resources ----
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -91,11 +94,16 @@ class Win(QOpenGLWidget):
 
     def initializeGL(self):
         live2d.glInit()
-        self.model = live2d.LAppModel()
+        self.model = ModelClass()
         self.model.LoadModelJson(model_json)
         self.model.Resize(args.width, args.height)
-        self.model.SetAutoBlinkEnable(False)
-        self.model.SetAutoBreathEnable(False)
+        if args.version == "v2":
+            # 纯 Python v2 参考实现保留旧命名
+            self.model.SetAutoBlinkEnable(False)
+            self.model.SetAutoBreathEnable(False)
+        else:
+            self.model.SetAutoBlink(False)
+            self.model.SetAutoBreath(False)
 
         if expr_name:
             self.model.SetExpression(expr_name)

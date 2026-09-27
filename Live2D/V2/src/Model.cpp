@@ -185,7 +185,17 @@ bool Model::IsMotionFinished() {
     return mMainMotionMgr->isFinished();
 }
 void Model::SetOffset(float dx, float dy) {
+    mOffsetX = dx;
+    mOffsetY = dy;
     mMatrixManager.setOffset(dx, dy);
+}
+void Model::SetOffsetX(float x) {
+    mOffsetX = x;
+    mMatrixManager.setOffset(mOffsetX, mOffsetY);
+}
+void Model::SetOffsetY(float y) {
+    mOffsetY = y;
+    mMatrixManager.setOffset(mOffsetX, mOffsetY);
 }
 void Model::SetScale(float s) {
     mMatrixManager.setScale(s);
@@ -269,6 +279,15 @@ void Model::Update(float deltaSecs) {
     }
     float dtMs = dt * 1000.0f;
     mBreathTimeMs += dtMs;
+
+    // 表情 fadeout: 到期恢复上一个持久表情
+    if (mFadeoutMs >= 0.0f) {
+        mFadeoutElapsedMs += dtMs;
+        if (mFadeoutElapsedMs >= mFadeoutMs) {
+            mFadeoutMs = -1.0f;
+            SetExpression(mLastExpression.c_str());
+        }
+    }
 
     mDragMgr.update(dt);
     setDrag(mDragMgr.getX(), mDragMgr.getY());
@@ -368,19 +387,35 @@ bool Model::IsAreaHit(const char* area, float x, float y) {
     float sy = (y - h * 0.5f) * -2.0f / h;
     return hitTestSimple(area, sx, sy);
 }
-void Model::SetExpression(const char* name) {
+void Model::SetExpression(const char* name, float fadeoutMs) {
     auto it = mExpressions.find(name);
-    if (it != mExpressions.end()) {
-        LOGI("Set expression: %s", name);
-        mExpressionMgr->startMotion(it->second.get(), false);
+    if (it == mExpressions.end())
+        return;
+    LOGI("Set expression: %s", name);
+    mExpressionMgr->startMotion(it->second.get(), false);
+
+    // fadeout 语义: >=0 为临时表情（到时恢复上一个持久表情），<0 为持久表情
+    if (fadeoutMs >= 0.0f) {
+        mFadeoutMs = fadeoutMs;
+        mFadeoutElapsedMs = 0;
+    } else {
+        mFadeoutMs = -1.0f;
+        mLastExpression = name;
     }
 }
-const char* Model::SetRandomExpression() {
+const char* Model::SetRandomExpression(float fadeoutMs) {
     if (!mExpressions.empty()) {
         auto it = mExpressions.begin();
         std::advance(it, rand() % mExpressions.size());
         LOGI("Start random expression: %s", it->first.c_str());
         mExpressionMgr->startMotion(it->second.get(), false);
+        if (fadeoutMs >= 0.0f) {
+            mFadeoutMs = fadeoutMs;
+            mFadeoutElapsedMs = 0;
+        } else {
+            mFadeoutMs = -1.0f;
+            mLastExpression = it->first;
+        }
         return it->first.c_str();
     }
     return nullptr;
@@ -453,6 +488,9 @@ void Model::StopAllMotions() {
     mClearFlag = true;
 }
 void Model::ResetExpression() {
+    mFadeoutMs = -1.0f;
+    mFadeoutElapsedMs = 0;
+    mLastExpression.clear();
     mExpressionMgr->stopAllMotions();
 }
 void Model::ResetPose() {
@@ -640,7 +678,7 @@ void Model::HitPart(float x, float y, void* collector,
 void Model::CreateRenderer(int maskBufferCount) {
     (void)maskBufferCount;   // v2 固定一个裁剪缓冲
     if (mRenderer) {
-        LOGW("Renderer already exists, releasing it first");
+        LOGW("Renderer already exists, skipping creation");
         return;
     }
     mRenderer = std::make_unique<GLRenderer>(mModelContext.get(), (int)mTexturePaths.size());
@@ -845,6 +883,12 @@ int Model::GetMotionCount(const char* group) {
     auto it = mMotions.find(group);
     return (it != mMotions.end()) ? (int)it->second.size() : 0;
 }
+const char* Model::GetMotionSound(const char* group, int no) {
+    auto it = mMotionInfos.find(group);
+    if (it != mMotionInfos.end() && no >= 0 && no < (int)it->second.size())
+        return it->second[no].sound.c_str();
+    return "";
+}
 void Model::GetMotions(void* collector,
                        void (*collect)(void* collector, const char* group, int no, const char* file,
                                        const char* sound)) {
@@ -956,6 +1000,9 @@ void Model::RemoveExpression(const char* expressionId) {
     mExpressionMgr->stopAllMotions();
 }
 void Model::ResetExpressions() {
+    mFadeoutMs = -1.0f;
+    mFadeoutElapsedMs = 0;
+    mLastExpression.clear();
     mExpressionMgr->stopAllMotions();
 }
 void Model::GetExpressions(void* collector,

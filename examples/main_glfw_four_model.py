@@ -24,8 +24,8 @@ def main():
 
     model_v2 = l2d_v2.LAppModel()
     model_v2cpp = l2d_v2cpp.LAppModel()
-    model_v3 = l2d_v3.LAppModel()
-    model_v3_2 = l2d_v3.LAppModel()
+    model_v3 = l2d_v3.Model()
+    model_v3_2 = l2d_v3.Model()
 
     model_v3.LoadModelJson(
         os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json")

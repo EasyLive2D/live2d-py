@@ -28,8 +28,8 @@ def main():
 
     model_v2 = v2.LAppModel()
     model_v2cpp = v2cpp.LAppModel()
-    model_v3 = v3.LAppModel()
-    model_v3_2 = v3.LAppModel()
+    model_v3 = v3.Model()
+    model_v3_2 = v3.Model()
 
     model_v3.LoadModelJson(
         os.path.join(RESOURCES_DIRECTORY, "v3/llny/llny.model3.json")

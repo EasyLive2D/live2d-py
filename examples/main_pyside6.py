@@ -31,7 +31,7 @@ class Win(QOpenGLWidget):
         self.read = False
         self.clickX = -1
         self.clickY = -1
-        self.model: live2d.LAppModel | None = None
+        self.model: live2d.Model | None = None
         self.systemScale = QGuiApplication.primaryScreen().devicePixelRatio()
 
     def initializeGL(self) -> None:
@@ -40,7 +40,7 @@ class Win(QOpenGLWidget):
         live2d.glInit()
 
         # 创建模型
-        self.model = live2d.LAppModel()
+        self.model = live2d.Model()
 
         if live2d.LIVE2D_VERSION == 3:
             self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))

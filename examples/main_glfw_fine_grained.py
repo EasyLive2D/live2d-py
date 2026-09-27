@@ -4,7 +4,8 @@ fine-grained model example — glfw version
 class: live2d.v3.Model
 """
 import resources
-import live2d.v3 as live2d
+# import live2d.v3 as live2d
+import live2d.v2cpp as live2d
 import os
 import random
 import time
@@ -12,7 +13,7 @@ import time
 # initialize memory allocation for live2d
 live2d.init()
 
-model = live2d.Model()
+model = live2d.LAppModel()
 # LoadModelJson can be called without an OpenGL context
 model.LoadModelJson(
     os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json")
@@ -33,7 +34,7 @@ print("Loaded motion index is", no2)
 
 # Get Basic Model Info
 print("model home dir:", model.GetModelHomeDir())
-print("param ids:", model.GetParameterIds())
+print("param ids:", model.GetParamIds())
 print("part ids:", model.GetPartIds())
 print("drawable ids:", model.GetDrawableIds())
 print("expressions:", model.GetExpressions())

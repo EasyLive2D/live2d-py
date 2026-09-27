@@ -72,13 +72,13 @@ def main():
         match current_model_index:
             case 0:
                 print("v3 => llny/llny.model3.json")
-                current_model = v3.LAppModel()
+                current_model = v3.Model()
                 current_model.LoadModelJson(
                     os.path.join(RESOURCES_DIRECTORY, "v3/llny/llny.model3.json")
                 )
             case 2:
                 print("v3 => Haru/Haru.model3.json")
-                current_model = v3.LAppModel()
+                current_model = v3.Model()
                 current_model.LoadModelJson(
                     os.path.join(RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json")
                 )

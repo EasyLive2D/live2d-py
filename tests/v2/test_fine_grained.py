@@ -47,7 +47,7 @@ print("Loaded motion index is", no2)
 
 # Get Basic Model Info
 print("model home dir:", model.GetModelHomeDir())
-print("param ids:", model.GetParameterIds())
+print("param ids:", model.GetParamIds())
 print("part ids:", model.GetPartIds())
 print("drawable ids:", model.GetDrawableIds())
 print("expressions:", model.GetExpressions())
