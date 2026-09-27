@@ -2,35 +2,51 @@ set(V3_TARGET V3)
 
 include(${CMAKE_CURRENT_LIST_DIR}/Core.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/Framework.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/Main.cmake)
 # 在配置阶段立即执行文件修改脚本
 include(${CMAKE_CURRENT_LIST_DIR}/PatchACubismMotion.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/PatchCubismShader_OpenGLES2.cmake)
 
-# 读 _version.py
-file(READ "${CMAKE_SOURCE_DIR}/package/live2d/__init__.py" _ver_content)
+add_subdirectory(${LIVE2D_ROOT}/V3/src)
 
-# 提取 __version__
-string(REGEX MATCH "__version__ *= *[\"']([^\"']+)[\"']" _ "${_ver_content}")
-set(LIVE2D_PY_VERSION "${CMAKE_MATCH_1}")
+target_compile_definitions(${V3_TARGET} PRIVATE MODULE_LOG_TAG="v3")
 
-# 提取 __csm_version__（注意：正则要匹配带 __ 后缀的名字）
-string(REGEX MATCH "__csm_version__ *= *[\"']([^\"']+)[\"']" _ "${_ver_content}")
-set(CUBISM_SDK_VERSION "${CMAKE_MATCH_1}")
+set_property(TARGET ${V3_TARGET} PROPERTY CXX_STANDARD 17)
+set_property(TARGET ${V3_TARGET} PROPERTY CXX_STANDARD_REQUIRED ON)
 
-# 校验
-if(NOT LIVE2D_PY_VERSION)
-    message(FATAL_ERROR "无法从 _version.py 提取 __version__")
+target_include_directories(${V3_TARGET} 
+  PUBLIC ${LIVE2D_ROOT}/V3/include/V3
+  PUBLIC ${LIVE2D_ROOT}/V3/include
+)
+
+if(APPLE)
+  set(CMAKE_CXX_STANDARD 11)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+  message(${CMAKE_OSX_ARCHITECTURES})
+  find_library(COCOA_LIBRARY Cocoa REQUIRED)
+  find_library(IOKIT_LIBRARY IOKit REQUIRED)
+  find_library(COREVIDEO_LIBRARY CoreVideo REQUIRED)
 endif()
-if(NOT CUBISM_SDK_VERSION)
-    message(FATAL_ERROR "无法从 _version.py 提取 __csm_version__")
+
+target_link_libraries(${V3_TARGET} PUBLIC
+  Framework
+  Common
+  ${OPENGL_LIBRARIES}
+)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  target_link_libraries(${V3_TARGET} stdc++fs)
 endif()
 
-message("[live2d-py]: ${LIVE2D_PY_VERSION}")
-message("[CubismNativeSDK]: ${CUBISM_SDK_VERSION}")
+if(APPLE)
+  target_link_libraries(${V3_TARGET}
+    ${COCOA_LIBRARY}
+    ${IOKIT_LIBRARY}
+    ${COREVIDEO_LIBRARY}
+  )
+endif()
 
-target_compile_definitions(${V3_TARGET} PUBLIC MODULE_LOG_TAG="v3" CUBISM_NATIVE_SDK_VERSION="${CUBISM_SDK_VERSION}")
 
 add_library(Live2D::V3Core ALIAS Live2DCubismCore)
 add_library(Live2D::V3Framework ALIAS Framework)
-add_library(Live2D::V3 ALIAS V3)
+add_library(Live2D::V3 ALIAS ${V3_TARGET})

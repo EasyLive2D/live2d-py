@@ -8,8 +8,9 @@ from pyopengltk import OpenGLFrame
 import resources
 
 from time import sleep
-import live2d.v2 as live2d
-# import live2d.v3 as live2d
+import live2d
+
+LIVE2D_VERSION = 2
 
 class AppOgl(OpenGLFrame):
     def __init__(self, master, **kw):
@@ -26,7 +27,7 @@ class AppOgl(OpenGLFrame):
         live2d.glInit()
 
         self.model = live2d.Model()
-        if live2d.LIVE2D_VERSION == 2:
+        if LIVE2D_VERSION == 2:
             self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
         else:
             self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/haru/haru.model3.json"))

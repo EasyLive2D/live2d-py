@@ -1,10 +1,9 @@
-print("[v2] Pure Python impl, try faster: live2d.v2cpp")
+print("[v2] Pure Python impl, try faster: live2d.Model")
 
 from .core import Live2D
 from .core import log as __log
 from .lapp_define import MotionGroup, MotionPriority, HitArea
 from .lapp_model import Model
-from .params import Parameter, StandardParams
 
 
 def __getattr__(name):

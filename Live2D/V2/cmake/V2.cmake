@@ -4,7 +4,7 @@ set(V2_TARGET V2)
 add_subdirectory(${LIVE2D_ROOT}/V2/src)
 
 target_include_directories(${V2_TARGET}
-    INTERFACE ${LIVE2D_ROOT}/V2/include
+    PUBLIC ${LIVE2D_ROOT}/V2/include
     PUBLIC ${LIVE2D_ROOT}/V2/include/V2
     PUBLIC ${LIVE2D_ROOT}/V2/include/V2/Core
     PUBLIC ${LIVE2D_ROOT}/V2/include/V2/Framework
@@ -15,7 +15,7 @@ if (NOT CMAKE_SYSTEM_NAME MATCHES "Android")
 endif()
 
 target_link_libraries(${V2_TARGET} PUBLIC Common)
-target_compile_definitions(${V2_TARGET} PUBLIC MODULE_LOG_TAG="v2")
+target_compile_definitions(${V2_TARGET} PRIVATE MODULE_LOG_TAG="v2")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_link_libraries(${V2_TARGET} PRIVATE stdc++fs)

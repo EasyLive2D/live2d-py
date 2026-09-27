@@ -62,8 +62,7 @@ target_link_libraries(Live2DViewer
     Qt6::Widgets
     Qt6::Gui
     Qt6::OpenGLWidgets 
-    Live2D::V3
-    Live2D::V2
+    Live2D::Live2D
 )
 
 # Platform-specific output directories

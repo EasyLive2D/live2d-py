@@ -27,6 +27,7 @@ endif()
 
 # ---- import config ----
 include(cmake/Config.cmake)
+include(cmake/VersionCheck.cmake)
 
 # ---- Cubism Native SDK ----
 if (DEBUG_ENABLE_ASAN)
@@ -51,8 +52,7 @@ else()
   # ---- Shared Wrapper config (Python3, output naming) ----
   include(cmake/Wrapper.cmake)
 
-  add_subdirectory(Wrapper/V3 ${CMAKE_CURRENT_BINARY_DIR}/Wrapper/V3)
-  add_subdirectory(Wrapper/V2 ${CMAKE_CURRENT_BINARY_DIR}/Wrapper/V2)
+  add_subdirectory(Wrapper ${CMAKE_CURRENT_BINARY_DIR}/Wrapper/)
 endif()
 
 # testing

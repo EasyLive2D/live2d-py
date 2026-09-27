@@ -4,8 +4,7 @@ fine-grained model example — glfw version
 class: live2d.v3.Model
 """
 import resources
-# import live2d.v3 as live2d
-import live2d.v2cpp as live2d
+import live2d
 import os
 import random
 import time
@@ -16,7 +15,8 @@ live2d.init()
 model = live2d.Model()
 # LoadModelJson can be called without an OpenGL context
 model.LoadModelJson(
-    os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json")
+    os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"), 
+    False
 )
 
 # load extra motion file not defined in model3.json

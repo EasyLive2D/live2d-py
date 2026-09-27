@@ -11,15 +11,13 @@ import numpy as np
 from mediapipe.tasks.python.vision import FaceLandmarker, FaceLandmarkerOptions, RunningMode
 from mediapipe.tasks.python import BaseOptions
 
-# import live2d.v2cpp as live2d
-import live2d.v3 as live2d
-# import live2d.v2 as live2d
-if live2d.LIVE2D_VERSION == 3:
-    from live2d.v3.params import StandardParams
-else:
-    from live2d.v2.params import StandardParams
+import live2d
+from live2d import StandardParamsV3, StandardParamsV2
 
-live2d.enableLog(False)
+LIVE2D_VERSION = 3
+
+live2d.enableLog(True)
+live2d.setLogLevel(live2d.Live2DLogLevels.LV_ERROR)
 
 # ---- 面部特征点索引 ----
 LEFT_EYE   = [362, 385, 387, 263, 373, 380]
@@ -179,7 +177,8 @@ def main():
     live2d.glInit()
 
     model = live2d.Model()
-    if live2d.LIVE2D_VERSION == 3:
+
+    if LIVE2D_VERSION == 3:
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
     else:
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json"))
@@ -204,15 +203,19 @@ def main():
     while not glfw.window_should_close(window):
         glfw.poll_events()
 
-        model.SetParamById(StandardParams.ParamEyeLOpen,  params.EyeLOpen,  1)
-        model.SetParamById(StandardParams.ParamEyeROpen,  params.EyeROpen,  1)
-        model.SetParamById(StandardParams.ParamMouthOpenY,  params.MouthOpenY,  1)
-        model.SetParamById(StandardParams.ParamMouthForm,  params.MouthForm,  1)
-        model.SetParamById(StandardParams.ParamAngleX,  params.AngleX,  1)
-        model.SetParamById(StandardParams.ParamAngleY,  params.AngleY,  1)
-        model.SetParamById(StandardParams.ParamAngleZ,  params.AngleZ,  1)
-        model.SetParamById(StandardParams.ParamEyeBallX,  params.EyeBallX,  1)
-        model.SetParamById("Param14", 1, 1)
+        StandardParams = StandardParamsV3 if model.IsV3() else StandardParamsV2
+
+        # value that is set by *Save* function won't be reset in Model.Update
+        # and can be used in physics effects calculation 
+        model.SetSaveParamById(StandardParams.ParamEyeLOpen,  params.EyeLOpen,  1)
+        model.SetSaveParamById(StandardParams.ParamEyeROpen,  params.EyeROpen,  1)
+        model.SetSaveParamById(StandardParams.ParamMouthOpenY,  params.MouthOpenY,  1)
+        model.SetSaveParamById(StandardParams.ParamMouthForm,  params.MouthForm,  1)
+        model.SetSaveParamById(StandardParams.ParamAngleX,  params.AngleX,  1)
+        model.SetSaveParamById(StandardParams.ParamAngleY,  params.AngleY,  1)
+        model.SetSaveParamById(StandardParams.ParamAngleZ,  params.AngleZ,  1)
+        model.SetSaveParamById(StandardParams.ParamEyeBallX,  params.EyeBallX,  1)
+        model.SetSaveParamById("Param14", 1, 1)
 
         live2d.clearBuffer()
         model.Update()

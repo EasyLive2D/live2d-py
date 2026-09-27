@@ -10,9 +10,8 @@ from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QGuiApplication
 import resources
 
-import live2d.v3 as live2d
-# import live2d.v2 as live2d
-
+import live2d
+LIVE2D_VERSION = 3
 
 def callback(group, no):
     print("motion end")
@@ -42,7 +41,7 @@ class Win(QOpenGLWidget):
         # 创建模型
         self.model = live2d.Model()
 
-        if live2d.LIVE2D_VERSION == 3:
+        if LIVE2D_VERSION == 3:
             self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
         else:
             self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/shizuku/shizuku.model.json"))
@@ -106,7 +105,7 @@ class Win(QOpenGLWidget):
             return
 
         if self.a == 0:  # 测试一次播放动作和回调函数
-            self.model.StartMotion("TapBody", 0, live2d.MotionPriority.FORCE, onFinishMotionHandler=callback)
+            self.model.StartMotion("TapBody", 0, live2d.MotionPriority.FORCE, onFinish=callback)
             self.a += 1
 
         local_x, local_y = QCursor.pos().x() - self.x(), QCursor.pos().y() - self.y()

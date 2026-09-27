@@ -36,7 +36,6 @@ add_library(${V2_TARGET} STATIC
     Framework/L2DBaseModel.cpp
     Framework/MatrixManagerV2.cpp
     Framework/Live2DMotion.cpp
-    Framework/stb_impl.cpp
     Model.cpp
 )
 

@@ -1,4 +1,4 @@
-﻿#include "Model.hpp"
+﻿#include "V3/Model.hpp"
 #include "Motion/ACubismMotion.hpp"
 
 #include <CubismDefaultParameterId.hpp>

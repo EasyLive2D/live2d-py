@@ -12,14 +12,15 @@ import resources
 import pygame
 from pygame.locals import *
 
-import live2d.v3 as live2d
-# import live2d.v2 as live2d
-# import live2d.v2cpp as live2d
+import live2d
+from live2d import StandardParamsV2, StandardParamsV3
 
-if live2d.LIVE2D_VERSION == 3:
-    from live2d.v3 import StandardParams
+LIVE2D_VERSION = 3
+
+if LIVE2D_VERSION == 3:
+    StandardParams = StandardParamsV3
 else:
-    from live2d.v2 import StandardParams
+    StandardParams = StandardParamsV2
 from live2d.utils import log
 
 
@@ -43,7 +44,7 @@ def main():
     model = live2d.Model()
 
 
-    if live2d.LIVE2D_VERSION == 3:
+    if LIVE2D_VERSION == 3:
         model.LoadModelJson(
             # os.path.join(resources.RESOURCES_DIRECTORY, "v3/liveroid/liveroiD_A-Y01/liveroiD_A-Y01.model3.json")
             # os.path.join(resources.RESOURCES_DIRECTORY, "v3/Mao/Mao.model3.json")

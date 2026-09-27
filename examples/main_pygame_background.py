@@ -1,10 +1,13 @@
 import os
 import pygame
 import resources
-import live2d.v3 as live2d
-# import live2d.v2 as live2d
+import live2d
 
 from live2d.utils.image import Image
+
+
+LIVE2D_VERSION = 3
+
 
 def main():
     pygame.init()
@@ -21,7 +24,7 @@ def main():
         os.path.join(resources.RESOURCES_DIRECTORY, "RING.png")
     )
 
-    if live2d.LIVE2D_VERSION == 3:
+    if LIVE2D_VERSION == 3:
         model.LoadModelJson(
             os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json")
         )

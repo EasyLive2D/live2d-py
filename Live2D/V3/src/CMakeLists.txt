@@ -1,5 +1,4 @@
-add_library(${V3_TARGET}
-  STATIC
+add_library(${V3_TARGET} STATIC
   ${CMAKE_CURRENT_SOURCE_DIR}/Model.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/CubismUserModelProxy.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/LAppAllocator.cpp

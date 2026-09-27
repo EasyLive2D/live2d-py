@@ -8,14 +8,12 @@ from live2d.utils.canvas import Canvas
 Example of controlling model opacity using live2d.utils.canvas.Canvas
 """
 
-# import live2d.v2 as live2d
-
-
-import live2d.v3 as live2d
+import live2d
 import math
 from PyQt6.QtCore import Qt
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 
+LIVE2D_VERSION = 3
 
 class Live2DCanvas(QOpenGLWidget):
     def __init__(self):
@@ -34,7 +32,7 @@ class Live2DCanvas(QOpenGLWidget):
     def initializeGL(self):
         live2d.glInit()
         self.model = live2d.Model()
-        if live2d.LIVE2D_VERSION == 3:
+        if LIVE2D_VERSION == 3:
             self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3", "llny/llny.model3.json"))
         else:
             self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2", "kasumi2/kasumi2.model.json"))

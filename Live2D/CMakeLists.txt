@@ -25,14 +25,15 @@ endif()
 
 set(LIVE2D_ROOT ${CMAKE_CURRENT_LIST_DIR})
 
+set(LIVE2D_TARGET Live2D)
+
 message("[Live2D Root]: ${LIVE2D_ROOT}")
 
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/Common)
 
 if(CMAKE_SYSTEM_NAME MATCHES "Android")
     set(OPENGL_LIBRARIES GLESv2)
 else() # Windows, Linux, MacOS
-    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/Glad)
+    add_subdirectory(Glad)
     find_package(OpenGL REQUIRED)
 endif()
 
@@ -41,5 +42,12 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
   add_compile_options(-Werror=delete-incomplete)
 endif()
 
-include(${CMAKE_CURRENT_LIST_DIR}/V3/cmake/V3.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/V2/cmake/V2.cmake)
+add_subdirectory(Common)
+
+include(V3/cmake/V3.cmake)
+include(V2/cmake/V2.cmake)
+
+
+add_library(${LIVE2D_TARGET} INTERFACE)
+target_link_libraries(${LIVE2D_TARGET} INTERFACE Live2D::V2 Live2D::V3)
+add_library(Live2D::Live2D ALIAS ${LIVE2D_TARGET})

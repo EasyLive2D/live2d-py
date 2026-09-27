@@ -1,7 +1,7 @@
 #pragma once
 
 #ifndef MODULE_LOG_TAG
-#define MODULE_LOG_TAG ""
+#define MODULE_LOG_TAG nullptr
 #endif
 
 namespace Live2D {

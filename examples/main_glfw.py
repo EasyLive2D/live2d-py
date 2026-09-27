@@ -11,15 +11,15 @@ if sys.platform.startswith("linux") and not os.environ.get("PYOPENGL_PLATFORM"):
 
 import glfw
 # import live2d.v3 as live2d
-# import live2d.v2 as live2d
-import live2d.v2cpp as live2d
+import live2d
+# import live2d.v2cpp as live2d
 
-if live2d.LIVE2D_VARIANT == "v3":
-    from live2d.v3 import StandardParams
-elif live2d.LIVE2D_VARIANT == "v2":
-    from live2d.v2 import StandardParams
-elif live2d.LIVE2D_VARIANT == "v2cpp":
-    from live2d.v2cpp import StandardParams
+# if live2d.LIVE2D_VARIANT == "v3":
+#     from live2d.v3 import StandardParams
+# elif live2d.LIVE2D_VARIANT == "v2":
+#     from live2d.v2 import StandardParams
+# elif live2d.LIVE2D_VARIANT == "v2cpp":
+#     from live2d.v2cpp import StandardParams
 from live2d.utils import log
 from live2d.utils.lipsync import WavHandler
 
@@ -43,18 +43,18 @@ def main():
     live2d.init()
     live2d.glInit()
 
-    model = live2d.LAppModel()
-    if live2d.LIVE2D_VARIANT == "v3":
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
-    elif live2d.LIVE2D_VARIANT == "v2":
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"), create_renderer=False)
-        model.CreateRenderer()
-    elif live2d.LIVE2D_VARIANT == "v2cpp":
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"),
-                            create_renderer=False)  # Load model without creating renderer
-        print("load json")
-        model.CreateRenderer()
-        print("create renderer")
+    model = live2d.Model()
+    # if live2d.LIVE2D_VARIANT == "v3":
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
+    # elif live2d.LIVE2D_VARIANT == "v2":
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"), create_renderer=False)
+        # model.CreateRenderer()
+    # elif live2d.LIVE2D_VARIANT == "v2cpp":
+    model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"),
+                        create_renderer=False)  # Load model without creating renderer
+    print("load json")
+    model.CreateRenderer()
+    print("create renderer")
 
     model.Resize(*display)
 
@@ -163,6 +163,9 @@ def main():
     fps_timer = last_time
 
     glfw.swap_interval(1)
+
+    model.DestroyRenderer()
+    model.CreateRenderer()
 
     while not glfw.window_should_close(window):
         glfw.poll_events()

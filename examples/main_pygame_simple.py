@@ -1,12 +1,15 @@
 import os
 import pygame
 import resources
-# import live2d.v3 as live2d
-import live2d.v2 as live2d
-if live2d.LIVE2D_VERSION == 3:
-    from live2d.v3 import StandardParams
+import live2d
+from live2d import StandardParamsV2, StandardParamsV3
+
+
+LIVE2D_VERSION = 3
+if LIVE2D_VERSION == 3:
+    StandardParams = StandardParamsV3
 else:
-    from live2d.v2 import StandardParams
+    StandardParams = StandardParamsV2
 
 
 def main():
@@ -21,7 +24,7 @@ def main():
 
     model = live2d.Model()
 
-    if live2d.LIVE2D_VERSION == 3:
+    if LIVE2D_VERSION == 3:
         model.LoadModelJson(
             os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json")
         )

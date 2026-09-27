@@ -8,6 +8,8 @@ from PySide2.QtWidgets import QApplication
 from PySide2.QtWidgets import QOpenGLWidget
 
 
+LIVE2D_VERSION = 2
+
 def callback():
     print("motion end")
 
@@ -26,7 +28,7 @@ class Win(QOpenGLWidget):
         # 图形会被绘制到当前窗口
         self.makeCurrent()
 
-        if live2d.LIVE2D_VERSION == 3:
+        if LIVE2D_VERSION == 3:
             live2d.glInit()
 
         # 创建模型
