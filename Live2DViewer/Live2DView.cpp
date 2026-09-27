@@ -10,8 +10,6 @@
 #include <QTreeWidgetItem>
 
 
-using namespace Live2D::V3;
-
 Live2DView::Live2DView(const QString& filePath, QWidget* parent)
     : QWidget(parent)
     , holder(nullptr)
@@ -26,16 +24,16 @@ Live2DView::Live2DView(const QString& filePath, QWidget* parent)
     ui.scene->LoadModel(filePath);
     holder = &ui.scene->GetModel();
 
-    if (holder->version == Version::V3) {
-        initExpressions(holder->model3);
-        initMotions(holder->model3);
+    // 统一接口: 面板初始化对 V2/V3 通用
+    auto model = holder->model;
+    initExpressions(model);
+    initMotions(model);
 
-        initCdi(holder->model3);
+    initCdi(model);
 
-        initParameters(holder->model3);
-        initParts(holder->model3);
-        initDrawables(holder->model3);
-    }
+    initParameters(model);
+    initParts(model);
+    initDrawables(model);
 
     connect(
         ui.treeWidget, &QTreeWidget::itemDoubleClicked, this, &Live2DView::onTreeItemDoubleClicked);
@@ -64,7 +62,7 @@ Live2DView::Live2DView(const QString& filePath, QWidget* parent)
 
 Live2DView::~Live2DView() {}
 
-void Live2DView::initExpressions(Model* model) {
+void Live2DView::initExpressions(Live2D::IModel* model) {
     QTreeWidgetItem* item = new QTreeWidgetItem(ui.treeWidget);
     item->setText(0, "Expressions");
 
@@ -77,7 +75,7 @@ void Live2DView::initExpressions(Model* model) {
     });
 }
 
-void Live2DView::initMotions(Model* model) {
+void Live2DView::initMotions(Live2D::IModel* model) {
     QTreeWidgetItem* item = new QTreeWidgetItem(ui.treeWidget);
     item->setText(0, "Motions");
     ui.treeWidget->addTopLevelItem(item);
@@ -105,24 +103,22 @@ void Live2DView::initMotions(Model* model) {
 }
 
 void Live2DView::onTreeItemDoubleClicked(QTreeWidgetItem* item, int column) {
-    if (holder->version == Version::V3) {
-        auto model = holder->model3;
-        if (item->parent() == nullptr) {
-            model->ResetExpression();
-            return;
-        }
+    auto model = holder->model;
+    if (item->parent() == nullptr) {
+        model->ResetExpression();
+        return;
+    }
 
-        if (item->parent()->text(0) == "Expressions") {
-            model->SetExpression(item->data(0, Qt::UserRole).toString().toStdString().c_str());
-        } else if (item->parent()->parent() != nullptr &&
-                   item->parent()->parent()->text(0) == "Motions") {
-            model->StartMotion(item->data(0, Qt::UserRole).toString().toStdString().c_str(),
-                               item->data(0, Qt::UserRole + 1).toInt());
-        }
+    if (item->parent()->text(0) == "Expressions") {
+        model->SetExpression(item->data(0, Qt::UserRole).toString().toStdString().c_str());
+    } else if (item->parent()->parent() != nullptr &&
+               item->parent()->parent()->text(0) == "Motions") {
+        model->StartMotion(item->data(0, Qt::UserRole).toString().toStdString().c_str(),
+                           item->data(0, Qt::UserRole + 1).toInt());
     }
 }
 
-void Live2DView::initCdi(Model* model) {
+void Live2DView::initCdi(Live2D::IModel* model) {
     QDir dir(model->GetModelHomeDir());
     QStringList files = dir.entryList(QStringList() << "*.cdi3.json", QDir::Files);
     if (files.size() > 0) {
@@ -137,7 +133,7 @@ void Live2DView::initCdi(Model* model) {
     }
 }
 
-void Live2DView::initParameters(Model* model) {
+void Live2DView::initParameters(Live2D::IModel* model) {
     void* ptrs[4] = {ui.paramTable, nullptr, model};
     QJsonArray parameters;
     if (hasCdi) {
@@ -147,7 +143,7 @@ void Live2DView::initParameters(Model* model) {
     model->GetParameterIds(ptrs, [](void* collector, const char* id) {
         QTableWidget* table = (QTableWidget*)(((void**)collector)[0]);
         QJsonArray* cdiParams = (QJsonArray*)(((void**)collector)[1]);
-        Model* model = (Model*)(((void**)collector)[2]);
+        Live2D::IModel* model = (Live2D::IModel*)(((void**)collector)[2]);
 
         QString name = id;
         const int index = table->rowCount();
@@ -182,7 +178,7 @@ void Live2DView::initParameters(Model* model) {
     });
 }
 
-void Live2DView::initParts(Model* model) {
+void Live2DView::initParts(Live2D::IModel* model) {
     void* ptrs[2] = {ui.partTable, nullptr};
     QJsonArray parts;
     if (hasCdi) {
@@ -207,7 +203,7 @@ void Live2DView::initParts(Model* model) {
     });
 }
 
-void Live2DView::initDrawables(Model* model) {
+void Live2DView::initDrawables(Live2D::IModel* model) {
     model->GetDrawableIds(ui.drawableList, [](void* collector, const char* id) {
         QListWidget* list = (QListWidget*)collector;
         list->addItem(id);
@@ -215,50 +211,41 @@ void Live2DView::initDrawables(Model* model) {
 }
 
 void Live2DView::onParamValuesUpdated() {
-    if (holder->version == Version::V3) {
-        auto model = holder->model3;
-        for (int i = 0; i < ui.paramTable->rowCount(); i++) {
-            QSlider* slider = (QSlider*)ui.paramTable->cellWidget(i, 2);
-            if (slider->isSliderDown()) {
-                return;
-            }
-            slider->setValue(
-                100 * (model->GetParameterValue(i) - model->GetParameterMinimumValue(i)) /
-                (model->GetParameterMaximumValue(i) - model->GetParameterMinimumValue(i)));
+    auto model = holder->model;
+    for (int i = 0; i < ui.paramTable->rowCount(); i++) {
+        QSlider* slider = (QSlider*)ui.paramTable->cellWidget(i, 2);
+        if (slider->isSliderDown()) {
+            return;
         }
+        slider->setValue(
+            100 * (model->GetParameterValue(i) - model->GetParameterMinimumValue(i)) /
+            (model->GetParameterMaximumValue(i) - model->GetParameterMinimumValue(i)));
     }
 }
 
 void Live2DView::onPartTableItemClicked(QTableWidgetItem* item) {
-    if (holder->version == Version::V3) {
-        auto model = holder->model3;
-        if (selectedPartIndex != -1) {
-            model->SetPartMultiplyColor(selectedPartIndex, 1.0f, 1.0f, 1.0f, 1.0f);
-        }
-        const int row = item->row();
-        selectedPartIndex = row;
-        model->SetPartMultiplyColor(row, 0.2f, 0.2f, 1.0f, 0.8f);
+    auto model = holder->model;
+    if (selectedPartIndex != -1) {
+        model->SetPartMultiplyColor(selectedPartIndex, 1.0f, 1.0f, 1.0f, 1.0f);
     }
+    const int row = item->row();
+    selectedPartIndex = row;
+    model->SetPartMultiplyColor(row, 0.2f, 0.2f, 1.0f, 0.8f);
 }
 
 void Live2DView::onDrawableListItemClicked(QListWidgetItem* item) {
-    if (holder->version == Version::V3) {
-        auto model = holder->model3;
-        const int index = ui.drawableList->row(item);
+    const int index = ui.drawableList->row(item);
 
-        ui.scene->selectDrawable(index);
-    }
+    ui.scene->selectDrawable(index);
 }
 
 void Live2DView::onClearSelection() {
-    if (holder->version == Version::V3) {
-        auto model = holder->model3;
-        if (selectedPartIndex != -1) {
-            model->SetPartMultiplyColor(selectedPartIndex, 1.0f, 1.0f, 1.0f, 1.0f);
-        }
-
-        selectedPartIndex = -1;
-        ui.partTable->clearSelection();
-        ui.drawableList->clearSelection();
+    auto model = holder->model;
+    if (selectedPartIndex != -1) {
+        model->SetPartMultiplyColor(selectedPartIndex, 1.0f, 1.0f, 1.0f, 1.0f);
     }
+
+    selectedPartIndex = -1;
+    ui.partTable->clearSelection();
+    ui.drawableList->clearSelection();
 }

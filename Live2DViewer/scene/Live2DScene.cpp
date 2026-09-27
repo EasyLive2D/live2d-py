@@ -1,5 +1,8 @@
 #include "Live2DScene.hpp"
 
+#include <V2/Model.hpp>
+#include <V3/Model.hpp>
+
 #include <QDateTime>
 #include <QMouseEvent>
 
@@ -31,25 +34,22 @@ Live2DScene::Live2DScene(QWidget* parent)
 
 Live2DScene::~Live2DScene()
 {
-    if (holder.version == Version::V2) {
-        delete holder.model2;
-    } else if (holder.version == Version::V3) {
-        delete holder.model3;
-    }
+    delete holder.model;   // IModel 虚析构
     delete program;
 }
 
 void Live2DScene::LoadModel(const QString& filePath)
 {
     if (filePath.endsWith("model3.json")) {
-        holder.version = Version::V3;
-        holder.model3 = new V3::Model();
-        holder.model3->LoadModelJson(filePath.toStdString().c_str());
+        holder.model = new V3::Model();
     } else if (filePath.endsWith("model.json")) {
-        holder.version = Version::V2;
-        holder.model2 = new V2::Model();
-        holder.model2->loadModelJson(filePath.toStdString().c_str(), false);
+        holder.model = new V2::Model();
+    } else {
+        return;
     }
+    // 统一接口: 渲染器由 initializeGL 的 CreateRenderer 创建
+    // （此时还没有 GL 上下文，不能创建渲染器）
+    holder.model->LoadModelJson(filePath.toStdString().c_str(), false);
 }
 
 ModelHolder& Live2DScene::GetModel()
@@ -96,11 +96,7 @@ void Live2DScene::initializeGL()
         gladLoaded = true;
     }
 
-    if (holder.version == Version::V3) {
-        holder.model3->CreateRenderer(2);
-    } else if (holder.version == Version::V2) {
-        holder.model2->CreateRenderer();
-    }
+    holder.model->CreateRenderer(2);   // v2 忽略 maskBufferCount
 
     lastUpdateTime = QDateTime::currentMSecsSinceEpoch();
 
@@ -141,63 +137,59 @@ void Live2DScene::paintGL()
         float(((double)QDateTime::currentMSecsSinceEpoch() - (double)lastUpdateTime) / 1000.0);
     lastUpdateTime = currentTime;
 
-    if (holder.version == Version::V3) {
-        bool motionUpdated = false;
-        auto model = holder.model3;
-        model->LoadParameters();
-        if (!model->IsMotionFinished()) {
-            motionUpdated = model->UpdateMotion(deltaTime);
-        }
-        for (auto& param : paramValues) {
-            model->SetParameterValue(param.index, param.value);
-        }
+    auto model = holder.model;
 
-        model->SaveParameters();
+    // 统一 fine-grained 更新序列（IModel，V2/V3 通用）
+    bool motionUpdated = false;
+    model->LoadParameters();
+    if (!model->IsMotionFinished()) {
+        motionUpdated = model->UpdateMotion(deltaTime);
+    }
+    for (auto& param : paramValues) {
+        model->SetParameterValue(param.index, param.value);
+    }
 
-        if (!motionUpdated && autoBlink) {
-            model->UpdateBlink(deltaTime);
-        }
-        model->UpdateExpression(deltaTime);
+    model->SaveParameters();
 
-        model->UpdateDrag(deltaTime);
+    if (!motionUpdated && autoBlink) {
+        model->UpdateBlink(deltaTime);
+    }
+    model->UpdateExpression(deltaTime);
 
-        if (autoBreath) {
-            model->UpdateBreath(deltaTime);
-        }
+    model->UpdateDrag(deltaTime);
 
-        paramValues.clear();
+    if (autoBreath) {
+        model->UpdateBreath(deltaTime);
+    }
 
-        if (autoPhysics) {
-            model->UpdatePhysics(deltaTime);
-        }
+    paramValues.clear();
 
-        model->UpdatePose(deltaTime);
-        model->Draw();
+    if (autoPhysics) {
+        model->UpdatePhysics(deltaTime);
+    }
 
-        if (selectedDrawableIndex != -1) {
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            program->bind();
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
-            glBufferData(GL_ARRAY_BUFFER,
-                         sizeof(float) * 2 * model->GetDrawableVertexCount(selectedDrawableIndex),
-                         model->GetDrawableVertices(selectedDrawableIndex),
-                         GL_STATIC_DRAW);
-            QMatrix4x4 mvp(model->GetMvp());
-            program->setUniformValue("mvp", mvp);
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*)0);
-            glDrawElements(GL_TRIANGLES,
-                           model->GetDrawableVertexIndexCount(selectedDrawableIndex),
-                           GL_UNSIGNED_SHORT,
-                           model->GetDrawableIndices(selectedDrawableIndex));
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            program->release();
-        }
-    } else if (holder.version == Version::V2) {
-        auto model = holder.model2;
-        model->update();
-        model->draw();
+    model->UpdatePose(deltaTime);
+    model->Draw();
+
+    if (selectedDrawableIndex != -1) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        program->bind();
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER,
+                     sizeof(float) * 2 * model->GetDrawableVertexCount(selectedDrawableIndex),
+                     model->GetDrawableVertices(selectedDrawableIndex),
+                     GL_STATIC_DRAW);
+        QMatrix4x4 mvp(model->GetMvp());
+        program->setUniformValue("mvp", mvp);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*)0);
+        glDrawElements(GL_TRIANGLES,
+                       model->GetDrawableVertexIndexCount(selectedDrawableIndex),
+                       GL_UNSIGNED_SHORT,
+                       model->GetDrawableIndices(selectedDrawableIndex));
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        program->release();
     }
 
     emit paramValuesUpdated();
@@ -205,21 +197,13 @@ void Live2DScene::paintGL()
 
 void Live2DScene::resizeGL(int w, int h)
 {
-    if (holder.version == Version::V3) {
-        holder.model3->Resize(w, h);
-    } else if (holder.version == Version::V2) {
-        holder.model2->resize(w, h);
-    }
+    holder.model->Resize(w, h);
 }
 
 void Live2DScene::mouseMoveEvent(QMouseEvent* event)
 {
     if (event->buttons() & Qt::LeftButton) {
-        if (holder.version == Version::V3) {
-            holder.model3->Drag((float)event->x(), (float)event->y());
-        } else if (holder.version == Version::V2) {
-            holder.model2->drag((float)event->x(), (float)event->y());
-        }
+        holder.model->Drag((float)event->x(), (float)event->y());
     }
 }
 
@@ -234,55 +218,37 @@ void Live2DScene::mouseReleaseEvent(QMouseEvent* event)
 {
     // 复位
     if (event->button() == Qt::LeftButton) {
-        if (holder.version == Version::V3) {
-            holder.model3->Drag(width() / 2, height() / 2);
-        } else if (holder.version == Version::V2) {
-            holder.model2->drag(width() / 2, height() / 2);
-        }
+        holder.model->Drag(width() / 2, height() / 2);
     }
 }
 
 void Live2DScene::keyPressEvent(QKeyEvent* event)
 {
     const float step = 0.1f;
-    auto setOffset = [this](float a, float b) {
-        if (holder.version == Version::V2) {
-            holder.model2->setOffset(a, b);
-        } else if (holder.version == Version::V3) {
-            holder.model3->SetOffset(a, b);
-        }
-    };
-    auto setScale = [this](float s) {
-        if (holder.version == Version::V2) {
-            holder.model2->setScale(s);
-        } else if (holder.version == Version::V3) {
-            holder.model3->SetScale(s);
-        }
-    };
     switch (event->key()) {
         case Qt::Key_Equal:
             modelScale += step;
-            setScale(modelScale);
+            holder.model->SetScale(modelScale);
             break;
         case Qt::Key_Minus:
             modelScale -= step;
-            setScale(modelScale);
+            holder.model->SetScale(modelScale);
             break;
         case Qt::Key_Up:
             modelOffsetY += step;
-            setScale(modelScale);
+            holder.model->SetScale(modelScale);
             break;
         case Qt::Key_Down:
             modelOffsetY -= step;
-            setOffset(modelOffsetX, modelOffsetY);
+            holder.model->SetOffset(modelOffsetX, modelOffsetY);
             break;
         case Qt::Key_Left:
             modelOffsetX -= step;
-            setOffset(modelOffsetX, modelOffsetY);
+            holder.model->SetOffset(modelOffsetX, modelOffsetY);
             break;
         case Qt::Key_Right:
             modelOffsetX += step;
-            setOffset(modelOffsetX, modelOffsetY);
+            holder.model->SetOffset(modelOffsetX, modelOffsetY);
             break;
     }
 }

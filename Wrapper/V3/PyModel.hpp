@@ -1,13 +1,11 @@
 #pragma once
 
-#include <Model.hpp>
+#include <IModel.hpp>
 
 #include "Python.hpp"
 
-using namespace Live2D::V3;
-
 struct PyModelObject {
-    PyObject_HEAD Model* model;
+    PyObject_HEAD Live2D::IModel* model;
 };
 
 extern PyType_Spec PyModel_Spec;

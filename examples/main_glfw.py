@@ -136,7 +136,7 @@ def main():
             x, y = glfw.get_cursor_pos(window)
             currentTopClickedPartId = getHitFeedback(x, y)
             model.SetRandomExpression()
-            model.StartRandomMotion(priority=3, onFinishMotionHandler=on_finish_motion_callback)
+            model.StartRandomMotion(priority=3, onFinish=on_finish_motion_callback)
     glfw.set_mouse_button_callback(window, on_mouse_button)
 
     def on_cursor_pos(window, x, y):

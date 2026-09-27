@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @brief Model.hpp
  * @author Arkueid
  * @date 2025/04/06
@@ -12,7 +12,9 @@
 #include <vector>
 
 
-#include <Model/CubismUserModel.hpp>
+#include <IModel.hpp>
+
+#include <CubismUserModelProxy.hpp>
 #include <Motion/ACubismMotion.hpp>
 
 #include <LAppTextureManager.hpp>
@@ -23,7 +25,7 @@ using namespace Csm;
 namespace Live2D {
 namespace V3 {
 
-class Model : public Csm::CubismUserModel {
+class Model : public IModel {
 public:
     Model();
     ~Model() override;
@@ -32,195 +34,193 @@ public:
      * @brief
      * @param filePath model3.json path
      */
-    void LoadModelJson(const char* filePath);
+    void LoadModelJson(const char* filePath, bool createRenderer = true) override;
 
-    const char* GetModelHomeDir();
+    const char* GetModelHomeDir() override;
 
-    // Hook motion loading to auto-fix meta counts
-    Csm::ACubismMotion* LoadMotion(const Csm::csmByte* buffer, Csm::csmSizeInt size,
-                                   const Csm::csmChar* name,
-                                   Csm::ACubismMotion::FinishedMotionCallback onFinished = NULL,
-                                   Csm::ACubismMotion::BeganMotionCallback onBegan = NULL,
-                                   Csm::ICubismModelSetting* modelSetting = NULL,
-                                   const Csm::csmChar* group = NULL, Csm::csmInt32 index = -1,
-                                   csmBool shouldCheckMotionConsistency = false) override;
+    // 版本
+    int Version() const override;
 
     // update
 
-    void Update(float deltaSecs);
+    void Update(float deltaSecs) override;
 
     /**
      * @brief
      * @param deltaSecs time elapsed since last frame
      * @return true if motion is not finished and motion is updated
      */
-    bool UpdateMotion(float deltaSecs);
+    bool UpdateMotion(float deltaSecs) override;
 
-    void UpdateDrag(float deltaSecs);
+    void UpdateDrag(float deltaSecs) override;
 
-    void UpdateBreath(float deltaSecs);
+    void UpdateBreath(float deltaSecs) override;
 
-    void UpdateBlink(float deltaSecs);
+    void UpdateBlink(float deltaSecs) override;
 
-    void UpdateExpression(float deltaSecs);
+    void UpdateExpression(float deltaSecs) override;
 
-    void UpdatePhysics(float deltaSecs);
+    void UpdatePhysics(float deltaSecs) override;
 
-    void UpdatePose(float deltaSecs);
+    void UpdatePose(float deltaSecs) override;
 
     // param
-    int GetParameterCount();
+    int GetParameterCount() override;
 
-    void GetParameterIds(void* collector, void (*collect)(void* collector, const char* id));
+    void GetParameterIds(void* collector, void (*collect)(void* collector, const char* id)) override;
 
-    float GetParameterValue(int index);
+    const char* GetParameterId(int index) override;
 
-    float GetParameterMaximumValue(int index);
+    float GetParameterValue(int index) override;
 
-    float GetParameterMinimumValue(int index);
+    float GetParameterMaximumValue(int index) override;
 
-    float GetParameterDefaultValue(int index);
+    float GetParameterMinimumValue(int index) override;
 
-    void SetParameterValue(const char* id, float value, float weight = 1.0f);
+    float GetParameterDefaultValue(int index) override;
 
-    void SetParameterValue(int index, float value, float weight = 1.0f);
+    void SetParameterValue(const char* id, float value, float weight = 1.0f) override;
 
-    void AddParameterValue(const char* id, float value);
+    void SetParameterValue(int index, float value, float weight = 1.0f) override;
 
-    void AddParameterValue(int index, float value);
+    void AddParameterValue(const char* id, float value) override;
 
-    void SetAndSaveParameterValue(const char* id, float value, float weight = 1.0f);
+    void AddParameterValue(int index, float value) override;
 
-    void SetAndSaveParameterValue(int index, float value, float weight = 1.0f);
+    void SetAndSaveParameterValue(const char* id, float value, float weight = 1.0f) override;
 
-    void AddAndSaveParameterValue(const char* id, float value);
+    void SetAndSaveParameterValue(int index, float value, float weight = 1.0f) override;
 
-    void AddAndSaveParameterValue(int index, float value);
+    void AddAndSaveParameterValue(const char* id, float value) override;
 
-    void LoadParameters();
+    void AddAndSaveParameterValue(int index, float value) override;
 
-    void SaveParameters();
+    void LoadParameters() override;
+
+    void SaveParameters() override;
 
     // transform
-    void Resize(int width, int height);
+    void Resize(int width, int height) override;
 
-    void SetOffset(float x, float y);
+    void SetOffset(float x, float y) override;
 
-    void Rotate(float angle);
+    void Rotate(float angle) override;
 
-    void SetScale(float scale);
+    void SetScale(float scale) override;
 
-    void SetScaleX(float scaleX);
+    void SetScaleX(float scaleX) override;
 
-    void SetScaleY(float scaleY);
+    void SetScaleY(float scaleY) override;
 
-    const float* GetMvp();
+    const float* GetMvp() override;
 
     // motion
-    void StartMotion(const char* group, int no, int priority = 3, void* startCallee = nullptr,
-                     ACubismMotion::BeganMotionCallback startCalleeHandler = nullptr,
-                     void* finishCallee = nullptr,
-                     ACubismMotion::FinishedMotionCallback finishCalleeHandler = nullptr);
+    void StartMotion(const std::string& group, int no, int priority = 3,
+                     MotionCallback onStart = nullptr, MotionCallback onFinish = nullptr) override;
 
-    void StartRandomMotion(const char* group = nullptr, int priority = 3,
-                           void* startCallee = nullptr,
-                           ACubismMotion::BeganMotionCallback startCalleeHandler = nullptr,
-                           void* finishCallee = nullptr,
-                           ACubismMotion::FinishedMotionCallback finishCalleeHandler = nullptr);
+    void StartRandomMotion(const std::string& group = "", int priority = 3,
+                           MotionCallback onStart = nullptr,
+                           MotionCallback onFinish = nullptr) override;
 
-    bool IsMotionFinished();
+    bool IsMotionFinished() override;
 
-    int LoadExtraMotion(const char* group, const char* motionJsonPath);
+    int LoadExtraMotion(const char* group, const char* motionJsonPath) override;
 
-    int GetMotionGroupCount();
+    int GetMotionGroupCount() override;
 
-    int GetMotionCount(const char* group);
+    int GetMotionCount(const char* group) override;
 
     void GetMotions(void* collector, void (*collect)(void* collector, const char* group, int no,
-                                                     const char* file, const char* sound));
+                                                     const char* file, const char* sound)) override;
 
     // reset motions
-    void StopAllMotions();
+    void StopAllMotions() override;
 
-    void ResetAllParameters();
+    void ResetAllParameters() override;
 
-    void ResetPose();
+    void ResetPose() override;
 
     // mouse interaction
     void HitPart(float x, float y, void* collector,
-                 void (*collect)(void* collector, const char* id), bool topOnly = false);
+                 void (*collect)(void* collector, const char* id), bool topOnly = false) override;
 
     void HitDrawable(float x, float y, void* collector,
-                     void (*collect)(void* collector, const char* id), bool topOnly = false);
+                     void (*collect)(void* collector, const char* id),
+                     bool topOnly = false) override;
 
-    void Drag(float x, float y);
+    void Drag(float x, float y) override;
 
-    bool IsAreaHit(const char* areaName, float x, float y);
+    bool IsAreaHit(const char* areaName, float x, float y) override;
 
-    bool IsPartHit(int index, float x, float y);
+    bool IsPartHit(int index, float x, float y) override;
 
-    bool IsDrawableHit(int index, float x, float y);
+    bool IsDrawableHit(int index, float x, float y) override;
 
     // rendering
-    void CreateRenderer(int maskBufferCount = 1);
+    void CreateRenderer(int maskBufferCount = 1) override;
 
-    void DestroyRenderer();
+    void DestroyRenderer() override;
 
-    void Draw();
+    void Draw() override;
 
     // part
-    const int GetPartCount() const;
-    void GetPartIds(void* collector, void (*collect)(void* collector, const char* id)) const;
-    void SetPartOpacity(int index, float opacity);
-    void SetPartScreenColor(int index, float r, float g, float b, float a);
-    void SetPartMultiplyColor(int index, float r, float g, float b, float a);
-    void GetPartScreenColor(int index, float& r, float& g, float& b, float& a) const;
-    void GetPartMultiplyColor(int index, float& r, float& g, float& b, float& a) const;
+    int GetPartCount() const override;
+    void GetPartIds(void* collector, void (*collect)(void* collector, const char* id)) const override;
+    const char* GetPartId(int index) const override;
+    void SetPartOpacity(int index, float opacity) override;
+    void SetPartScreenColor(int index, float r, float g, float b, float a) override;
+    void SetPartMultiplyColor(int index, float r, float g, float b, float a) override;
+    void GetPartScreenColor(int index, float& r, float& g, float& b, float& a) const override;
+    void GetPartMultiplyColor(int index, float& r, float& g, float& b, float& a) const override;
 
     // drawable
-    int GetDrawableCount();
-    void GetDrawableIds(void* collector, void (*collect)(void* collector, const char* id));
+    int GetDrawableCount() override;
+    void GetDrawableIds(void* collector, void (*collect)(void* collector, const char* id)) override;
 
-    const float* GetDrawableVertices(int index);
-    const int GetDrawableVertexCount(int index);
-    const int GetDrawableVertexIndexCount(int index);
-    const unsigned short* GetDrawableIndices(int index);
+    const float* GetDrawableVertices(int index) override;
+    int GetDrawableVertexCount(int index) override;
+    int GetDrawableVertexIndexCount(int index) override;
+    const unsigned short* GetDrawableIndices(int index) override;
 
-    void SetDrawableMultiColor(int index, float r, float g, float b, float a);
-    void SetDrawableScreenColor(int index, float r, float g, float b, float a);
+    void SetDrawableMultiColor(int index, float r, float g, float b, float a) override;
+    void SetDrawableScreenColor(int index, float r, float g, float b, float a) override;
 
     // expression
-    void AddExpression(const char* expressionId);
+    void AddExpression(const char* expressionId) override;
 
-    void RemoveExpression(const char* expressionId);
+    void RemoveExpression(const char* expressionId) override;
 
-    void SetExpression(const char* expressionId);
+    void SetExpression(const char* expressionId) override;
 
-    const char* SetRandomExpression();
+    const char* SetRandomExpression() override;
 
-    void ResetExpressions();
+    void ResetExpressions() override;
 
-    void ResetExpression();
+    void ResetExpression() override;
 
-    int GetExpressionCount();
+    int GetExpressionCount() override;
 
     void GetExpressions(void* collector,
-                        void (*collect)(void* collector, const char* id, const char* file));
+                        void (*collect)(void* collector, const char* id, const char* file)) override;
 
-    void LoadExtraExpression(const char* expressionId, const char* expressionJsonPath);
+    void LoadExtraExpression(const char* expressionId, const char* expressionJsonPath) override;
 
     // sizes
-    void GetCanvasSize(float& w, float& h);
+    void GetCanvasSize(float& w, float& h) override;
 
-    void GetCanvasSizePixel(float& w, float& h);
+    void GetCanvasSizePixel(float& w, float& h) override;
 
-    float GetPixelsPerUnit();
+    float GetPixelsPerUnit() override;
 
-    void SetAutoBlink(bool on);
+    void SetAutoBlink(bool on) override;
 
-    void SetAutoBreath(bool on);
+    void SetAutoBreath(bool on) override;
 
-    bool HasMocConsistencyFromFile(const char* mocFileName);
+    bool AutoBreathEnabled() const override;
+
+    bool AutoBlinkEnabled() const override;
+
+    bool HasMocConsistencyFromFile(const char* mocFileName) override;
 
 private:
     void ReleaseMotions();
@@ -235,11 +235,10 @@ private:
 
     void SetupModel();
 
-    bool IsHit(CubismIdHandle drawableId, csmFloat32 pointX, csmFloat32 pointY) override;
-
     const int* GetDrawableRenderOrders() const;
 
 private:
+    CubismUserModelProxy mProxy;   // 必须声明在其它成员之前（先构造、后析构，等价原基类顺序）
     ICubismModelSetting* mModelSetting;
     csmVector<CubismIdHandle> mEyeBlinkIds;
     csmVector<CubismIdHandle> mLipSyncIds;

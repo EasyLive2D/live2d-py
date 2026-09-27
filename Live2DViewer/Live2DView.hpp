@@ -1,5 +1,7 @@
 #pragma once
 
+#include <IModel.hpp>
+
 #include "scene/Live2DScene.hpp"
 #include "ui_Live2DView.h"
 
@@ -11,14 +13,14 @@ class Live2DView : public QWidget
 {
     Q_OBJECT
 
-    void initExpressions(V3::Model *model);
-    void initMotions(V3::Model *model);
-    
-    void initCdi(V3::Model *model);
+    void initExpressions(Live2D::IModel *model);
+    void initMotions(Live2D::IModel *model);
 
-    void initParameters(V3::Model *model);
-    void initParts(V3::Model *model);
-    void initDrawables(V3::Model *model);
+    void initCdi(Live2D::IModel *model);
+
+    void initParameters(Live2D::IModel *model);
+    void initParts(Live2D::IModel *model);
+    void initDrawables(Live2D::IModel *model);
 
 private slots:
     void onTreeItemDoubleClicked(QTreeWidgetItem *item, int column);

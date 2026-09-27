@@ -14,7 +14,14 @@ void MatrixManagerV2::onResize(int w, int h) {
     mHeight = h;
 }
 void MatrixManagerV2::setScale(float s) {
-    mScale = s;
+    mScaleX = s;
+    mScaleY = s;
+}
+void MatrixManagerV2::setScaleX(float sx) {
+    mScaleX = sx;
+}
+void MatrixManagerV2::setScaleY(float sy) {
+    mScaleY = sy;
 }
 void MatrixManagerV2::setOffset(float dx, float dy) {
     mOffsetX = dx;
@@ -70,8 +77,8 @@ std::array<float, 16> MatrixManagerV2::getMvp(L2DModelMatrix* modelMatrix) const
     }
 
     // Apply user scale
-    proj[0] *= mScale;
-    proj[5] *= mScale;
+    proj[0] *= mScaleX;
+    proj[5] *= mScaleY;
 
     // Apply user offset
     proj[12] = mOffsetX;

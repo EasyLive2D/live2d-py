@@ -28,13 +28,14 @@ cmake --build build --config Release --target Live2DV2Wrapper -j 24
 ```
 Live2D/                    # Live2D SDK (git submodule, see Live2D/README.md)
   CMakeLists.txt           # Top-level entry: Common, Glad, V2, V3 orchestration
-  Common/                  # Shared: Log.hpp/cpp
+  Common/                  # Shared: Log.hpp/cpp, Debug.hpp/cpp, IModel.hpp (统一模型接口)
   Glad/                    # Shared: OpenGL loader (glad)
   V2/
     cmake/V2.cmake         # V2 target: includes, links, alias (Live2D::V2)
+    include/V2/            # headers: Model.hpp (implements Live2D::IModel), Core/, Framework/
     src/                   # v2cpp SDK sources (ported from Python v2)
       CMakeLists.txt
-      LAppModel.cpp/hpp    # High-level model (loading, update, draw, hit test)
+      Model.cpp            # High-level model (loading, update, draw, hit test)
       Core/                # BinaryReader, Id, ParamDef, PivotManager
       Model/               # Live2DModelOpenGL, ModelContext, ALive2DModel
       Draw/                # Mesh, IDrawData
@@ -53,8 +54,10 @@ Live2D/                    # Live2D SDK (git submodule, see Live2D/README.md)
 Wrapper/
   V2/                      # v2cpp CPython bindings
     Init.cpp               # Module init, glInit, clearBuffer
-    PyLAppModel.cpp/hpp    # LAppModel Python wrapper
+    PyModel.cpp/hpp        # LAppModel Python wrapper (holds Live2D::IModel*)
   V3/                      # v3 CPython bindings
+    Init.cpp               # Module init, CubismFramework StartUp
+    PyModel.cpp/hpp        # Model Python wrapper (holds Live2D::IModel*)
 
 package/live2d/
   v2cpp/                   # v2cpp Python package
@@ -82,6 +85,8 @@ cmake/
 - **STL containers** replace Python Array types
 - **`std::filesystem::u8path`** required for Chinese/Unicode file paths
 - **V2CPP_DEBUG macro** (`Debug.hpp`) wraps all debug fprintf, enabled via CMake option
+- **统一模型接口** `Live2D::IModel` (`Common/IModel.hpp`): 以 V3 暴露给 Python 的 API 为基准（PascalCase、const char* 字符串、collector 回调、std::function 动作回调）。含版本接口：`Version()` 纯虚（V2 返回 2、V3 返回 3），`IsV2()`/`IsV3()` 由 Version() 内联推导。两个 Wrapper 持有 `IModel*`。继承链完全单继承：`V2::Model → L2DBaseModel → IModel`；`V3::Model → IModel`，SDK 不修改——`CubismUserModel` 作为组合成员（`CubismUserModelProxy.hpp` 独立文件：用 `using` 导出无 getter 的 protected 成员，`IsHit`/`LoadMotion` 虚函数钩子移入其中；有 getter 的成员如 `_model`/`_modelMatrix`/`_opacity` 直接走 `GetModel()`/`GetModelMatrix()`/`GetOpacity()`；`operator->` 直通 `GetModel()`）。**不要内联 CubismUserModel 的胶水代码**（LoadModel/ctor/dtor 等）——SDK 升级时其内部逻辑会自动跟随，内联副本会静默错过变化。V2 侧 IModel 全部接口已实现：细化 Update*（动作/呼吸走墙钟，忽略 deltaSecs）、参数保存/恢复、drawable 访问（顶点/索引缓存到成员）、动作组枚举（`mMotionInfos` 记录 file/sound）、表情枚举与额外加载；`AddAndSaveParameterValue` 用逐参数保存（非全量 saveParam）；`SetDrawableMultiColor/ScreenColor` 作用于所属 part；`HasMocConsistencyFromFile` 恒返回 false（v2 .moc 无此概念）
+- **陷阱：wrapper 目标没有头文件依赖追踪**（ninja 规则为 unscanned，无 .d depfile）——改了 `Model.hpp` 等头文件后必须手动删 `build/Wrapper/*/CMakeFiles/*.dir/*.obj` 强制重编译，否则 `new Model()` 按旧类尺寸分配导致堆损坏（0xc0000374）
 
 ## v2 vs v2cpp Comparison
 
@@ -90,7 +95,7 @@ v2cpp port must match v2 Python behavior 1:1. Key areas requiring careful alignm
 ### Parameter flow
 - Python `LAppModel.Update()` does NOT call `modelContext.update()` — it only sets params/motion/physics/pose
 - Python `LAppModel.Draw()` calls `live2DModel.update()` → `modelContext.update()`
-- v2cpp `LAppModel::update()` calls `modelContext->update()` directly (different architecture)
+- v2cpp `Model::Update(deltaSecs)` (unified IModel, default 0.016f) sets params/motion/pose; `Model::Draw()` calls `mModelContext->update()` — matches Python flow
 - Both eventually call `modelContext.update()` before drawing
 
 ### Deformer chain

@@ -2,6 +2,7 @@
 #include "ModelImpl.hpp"
 #include "L2DModelMatrix.hpp"
 #include "ModelContext.hpp"
+#include <IModel.hpp>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -13,10 +14,11 @@ class L2DEyeBlink;
 class L2DPose;
 class L2DPhysics;
 class AMotion;
-class L2DBaseModel {
+// 统一模型接口: Model -> L2DBaseModel -> IModel 单继承链
+class L2DBaseModel : public IModel {
 public:
     L2DBaseModel();
-    virtual ~L2DBaseModel();
+    ~L2DBaseModel() override;
     void loadModelData(const std::vector<uint8_t>& data, int version);
     AMotion* loadMotion(const std::string& name, const std::vector<uint8_t>& data);
     AMotion* loadExpression(const std::string& name, const std::vector<uint8_t>& data);

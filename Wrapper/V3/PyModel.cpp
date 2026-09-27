@@ -1,57 +1,28 @@
 #include "PyModel.hpp"
 
+#include <V3/Model.hpp>
 #include <Log.hpp>
 using namespace Live2D::Common::Log;
 
-static void MotionStartCallback(ACubismMotion* motion) {
-    void* callee = motion->GetBeganMotionCustomData();
-    if (callee == nullptr) {
-        return;
-    }
-    PyGILState_STATE state = PyGILState_Ensure();
-    PyObject* s_call = (PyObject*)callee;
-    PyObject* result = PyObject_CallFunction(s_call, "si", motion->group.c_str(), motion->no);
-    if (result != nullptr)
-        Py_XDECREF(result);
-    Py_XDECREF(s_call);
-    PyGILState_Release(state);
-}
-
-static void MotionFinishCallback(ACubismMotion* motion) {
-    void* callee = motion->GetFinishedMotionCustomData();
-    if (callee == nullptr) {
-        return;
-    }
-    PyGILState_STATE state = PyGILState_Ensure();
-    PyObject* f_call = (PyObject*)callee;
-    PyObject* result = PyObject_CallFunction(f_call, "si", motion->group.c_str(), motion->no);
-    if (result != nullptr)
-        Py_XDECREF(result);
-    Py_XDECREF(f_call);
-    PyGILState_Release(state);
-}
-
-
-static PyObject* MakeCallee(PyObject* callback) {
-    if (callback == nullptr)
+// ---- Callback helpers (Python → C++ conversion) ----
+static auto MakeMotionCallback(PyObject* cb) -> std::function<void(const std::string&, int)> {
+    if (!cb || Py_IsNone(cb) || !PyCallable_Check(cb))
         return nullptr;
-
-    if (Py_IsNone(callback)) {
-        return nullptr;
-    }
-
-    if (!PyCallable_Check(callback)) {
-        PyErr_SetString(PyExc_TypeError, "handler must be callable or None");
-        return NULL;
-    }
-
-    Py_XINCREF(callback);
-
-    return callback;
+    Py_INCREF(cb);
+    return [cb](const std::string& g, int n) {
+        PyGILState_STATE s = PyGILState_Ensure();
+        PyObject* r = PyObject_CallFunction(cb, "si", g.c_str(), n);
+        if (r)
+            Py_DECREF(r);
+        else
+            PyErr_Print();
+        Py_XDECREF(cb);
+        PyGILState_Release(s);
+    };
 }
 
 static PyObject* PyModel_Init(PyModelObject* self, PyObject* args, PyObject* kwargs) {
-    self->model = new Model();
+    self->model = new Live2D::V3::Model();
     LOGI("allocate: cpp Model(at=%p)", self->model);
     return 0;
 }
@@ -73,6 +44,18 @@ static PyObject* PyModel_LoadModelJson(PyModelObject* self, PyObject* args, PyOb
 }
 static PyObject* PyModel_GetModelHomeDir(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     return Py_BuildValue("s", self->model->GetModelHomeDir());
+}
+
+static PyObject* PyModel_Version(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+    return PyLong_FromLong(self->model->Version());
+}
+
+static PyObject* PyModel_IsV2(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+    return PyBool_FromLong(self->model->IsV2() ? 1 : 0);
+}
+
+static PyObject* PyModel_IsV3(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+    return PyBool_FromLong(self->model->IsV3() ? 1 : 0);
 }
 
 static PyObject* PyModel_Update(PyModelObject* self, PyObject* args, PyObject* kwargs) {
@@ -380,10 +363,8 @@ static PyObject* PyModel_StartMotion(PyModelObject* self, PyObject* args, PyObje
     self->model->StartMotion(group,
                              no,
                              priority,
-                             MakeCallee(onStartHandler),
-                             MotionStartCallback,
-                             MakeCallee(onFinishHandler),
-                             MotionFinishCallback);
+                             MakeMotionCallback(onStartHandler),
+                             MakeMotionCallback(onFinishHandler));
     Py_RETURN_NONE;
 }
 static PyObject* PyModel_StartRandomMotion(PyModelObject* self, PyObject* args, PyObject* kwargs) {
@@ -406,12 +387,10 @@ static PyObject* PyModel_StartRandomMotion(PyModelObject* self, PyObject* args, 
         return NULL;
     }
 
-    self->model->StartRandomMotion(group,
+    self->model->StartRandomMotion(group ? group : "",
                                    priority,
-                                   MakeCallee(onStartHandler),
-                                   MotionStartCallback,
-                                   MakeCallee(onFinishHandler),
-                                   MotionFinishCallback);
+                                   MakeMotionCallback(onStartHandler),
+                                   MakeMotionCallback(onFinishHandler));
     Py_RETURN_NONE;
 }
 static PyObject* PyModel_IsMotionFinished(PyModelObject* self, PyObject* args, PyObject* kwargs) {
@@ -433,7 +412,6 @@ static PyObject* PyModel_LoadExtraMotion(PyModelObject* self, PyObject* args, Py
 }
 static PyObject* PyModel_GetMotions(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     PyObject* motions = PyDict_New();
-    int* counts = new int[self->model->GetMotionGroupCount()];
     self->model->GetMotions(
         motions,
         [](void* collector, const char* group, int no, const char* filePath, const char* sound) {
@@ -797,6 +775,9 @@ static PyMethodDef PyModel_Methods[] = {
      (PyCFunction)PyModel_GetModelHomeDir,
      METH_VARARGS | METH_KEYWORDS,
      nullptr},
+    {"Version", (PyCFunction)PyModel_Version, METH_VARARGS | METH_KEYWORDS, nullptr},
+    {"IsV2", (PyCFunction)PyModel_IsV2, METH_VARARGS | METH_KEYWORDS, nullptr},
+    {"IsV3", (PyCFunction)PyModel_IsV3, METH_VARARGS | METH_KEYWORDS, nullptr},
     {"Update", (PyCFunction)PyModel_Update, METH_VARARGS | METH_KEYWORDS, nullptr},
     {"UpdateMotion", (PyCFunction)PyModel_UpdateMotion, METH_VARARGS | METH_KEYWORDS, nullptr},
     {"UpdateDrag", (PyCFunction)PyModel_UpdateDrag, METH_VARARGS | METH_KEYWORDS, nullptr},

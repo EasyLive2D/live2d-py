@@ -18,6 +18,7 @@ using namespace Live2D::Common::Debug;
 
 #include "PyModel.hpp"
 
+using namespace Live2D::V3;
 using namespace Live2D::Common::Log;
 
 #ifdef DEBUG_ENABLE_CALLSTACK

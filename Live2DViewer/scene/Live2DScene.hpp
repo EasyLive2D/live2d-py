@@ -1,14 +1,13 @@
 #pragma once
-#include <V2/Model.hpp>
-#include <V3/Model.hpp>
+// make sure OpenGL header is included first by glew 
+#include <GL/glew.h>
+#include <IModel.hpp>
 
 #include <QMenu>
 #include <QOpenGLFunctions>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLWidget>
 #include <optional>
-
-
 
 
 using namespace Live2D;
@@ -19,14 +18,9 @@ struct ParamValue {
     float value;
 };
 
-enum Version { V2 = 2, V3 = 3 };
-
+// 统一模型接口: V2/V3 模型都通过 IModel 访问（版本用 IModel::IsV2()/IsV3()）
 struct ModelHolder {
-    Version version;
-    union {
-        V2::Model* model2;
-        V3::Model* model3;
-    };
+    IModel* model = nullptr;
 };
 
 
