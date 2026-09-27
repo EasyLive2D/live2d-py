@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 class Model(L2DBaseModel):
     """Live2D Cubism 2.x application model (deprecated).
 
-    已废弃: 请改用 live2d.v2cpp.Model（v2 模型）或 live2d.v3.Model（v3 模型）。
+    Deprecated: Use `live2d.Model` instead。
     """
 
     _deprecated_warned = False
@@ -26,8 +26,7 @@ class Model(L2DBaseModel):
         if not Model._deprecated_warned:
             Model._deprecated_warned = True
             import sys
-            print("[deprecated] live2d.v2.Model 已废弃，请改用 live2d.v2cpp.Model "
-                  "（v2 模型）或 live2d.v3.Model（v3 模型）",
+            print("[deprecated] live2d.v2.Model will be deprecated, use `live2d.Model` instead",
                   file=sys.stderr)
         super().__init__()
         self.modelHomeDir = ""

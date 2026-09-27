@@ -1,6 +1,5 @@
+import live2d
 import live2d.v2 as v2
-import live2d.v3 as v3
-import live2d.v2cpp as v2cpp
 
 import os
 import glfw
@@ -9,9 +8,7 @@ import random
 RESOURCES_DIRECTORY = os.path.split(__file__)[0] + "/../Resources"
 
 
-v2.setLogLevel(v2.Live2DLogLevels.LV_ERROR)
-v3.setLogLevel(v3.Live2DLogLevels.LV_ERROR)
-v2cpp.setLogLevel(v2cpp.Live2DLogLevels.LV_ERROR)
+live2d.setLogLevel(live2d.LogLevels.LV_ERROR)
 
 
 from OpenGL.GL import *
@@ -42,12 +39,8 @@ def main():
         return
     glfw.make_context_current(window)
 
-    v3.init()
-    v2.init()
-    v2cpp.init()
-    v3.glInit()
-    v2cpp.glInit()
-    v2.glInit()
+    live2d.init()
+    live2d.glInit()
 
     current_model_index = 1
     current_model = None
@@ -72,19 +65,19 @@ def main():
         match current_model_index:
             case 0:
                 print("v3 => llny/llny.model3.json")
-                current_model = v3.Model()
+                current_model = live2d.Model()
                 current_model.LoadModelJson(
                     os.path.join(RESOURCES_DIRECTORY, "v3/llny/llny.model3.json")
                 )
             case 2:
                 print("v3 => Haru/Haru.model3.json")
-                current_model = v3.Model()
+                current_model = live2d.Model()
                 current_model.LoadModelJson(
                     os.path.join(RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json")
                 )
             case 1:
                 print("v2cpp => 托尔/model0.json")
-                current_model = v2cpp.Model()
+                current_model = live2d.Model()
                 current_model.LoadModelJson(
                     os.path.join(RESOURCES_DIRECTORY, "v2/托尔/model0.json")
                 )
@@ -113,7 +106,7 @@ def main():
     while not glfw.window_should_close(window):
         glfw.poll_events()
 
-        v3.clearBuffer()
+        live2d.clearBuffer()
 
         if current_model:
             current_frame += 1
@@ -125,9 +118,7 @@ def main():
 
         glfw.swap_buffers(window)
 
-    v3.dispose()
-    v2.dispose()
-    v2cpp.dispose()
+    live2d.dispose()
     glfw.terminate()
 
 

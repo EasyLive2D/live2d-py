@@ -17,7 +17,7 @@ from live2d import StandardParamsV3, StandardParamsV2
 LIVE2D_VERSION = 3
 
 live2d.enableLog(True)
-live2d.setLogLevel(live2d.Live2DLogLevels.LV_ERROR)
+live2d.setLogLevel(live2d.LogLevels.LV_ERROR)
 
 # ---- 面部特征点索引 ----
 LEFT_EYE   = [362, 385, 387, 263, 373, 380]

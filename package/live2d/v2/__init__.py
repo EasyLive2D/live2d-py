@@ -14,7 +14,7 @@ def __getattr__(name):
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-class Live2DLogLevels:
+class LogLevels:
     LV_DEBUG: int = 0
     LV_INFO: int = 1
     LV_WARN: int = 2

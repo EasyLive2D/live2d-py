@@ -8,7 +8,7 @@ from PySide6.QtWidgets import QApplication
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from PySide6.QtCore import Qt
 
-import live2d.v2cpp as live2d
+import live2d
 import os
 import OpenGL.GL as GL
 

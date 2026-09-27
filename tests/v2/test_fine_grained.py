@@ -16,7 +16,7 @@ import time
 # 让 live2d 包可导入（v3 示例依赖 pip 安装，这里直接指向 package/）
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "package"))
 
-import live2d.v2cpp as live2d
+import live2d
 
 RESOURCES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "Resources")
 

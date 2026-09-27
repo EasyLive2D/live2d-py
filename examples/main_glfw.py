@@ -26,7 +26,7 @@ from live2d.utils.lipsync import WavHandler
 import OpenGL.GL as GL
 
 live2d.enableLog(True)
-live2d.setLogLevel(live2d.Live2DLogLevels.LV_DEBUG)
+live2d.setLogLevel(live2d.LogLevels.LV_DEBUG)
 
 
 def main():

@@ -1,6 +1,5 @@
 import live2d.v2 as v2
-import live2d.v3 as v3
-import live2d.v2cpp as v2cpp
+import live2d
 
 
 import os
@@ -19,17 +18,13 @@ def main():
         return
     glfw.make_context_current(window)
 
-    v3.init()
-    v2.init()
-    v2cpp.init()
-    v3.glInit()
-    v2cpp.glInit()
-    v2.glInit()
+    live2d.init()
+    live2d.glInit()
 
     model_v2 = v2.Model()
-    model_v2cpp = v2cpp.Model()
-    model_v3 = v3.Model()
-    model_v3_2 = v3.Model()
+    model_v2cpp = live2d.Model()
+    model_v3 = live2d.Model()
+    model_v3_2 = live2d.Model()
 
     model_v3.LoadModelJson(
         os.path.join(RESOURCES_DIRECTORY, "v3/llny/llny.model3.json")
@@ -79,16 +74,14 @@ def main():
     while not glfw.window_should_close(window):
         glfw.poll_events()
 
-        v3.clearBuffer()
+        live2d.clearBuffer()
 
         models[current_model_index].Update()
         models[current_model_index].Draw()
 
         glfw.swap_buffers(window)
 
-    v3.dispose()
-    v2.dispose()
-    v2cpp.dispose()
+    live2d.dispose()
     glfw.terminate()
 
 

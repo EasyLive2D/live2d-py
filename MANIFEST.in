@@ -3,7 +3,5 @@ include cmake/Wrapper.cmake
 recursive-include Wrapper *
 include package.live2d
 include CMakeLists.txt
-include build_config.py
-include download_csmsdk.py
-include package/live2d/v3/FrameworkShaders/*.frag
-include package/live2d/v3/FrameworkShaders/*.vert
+include package/live2d/FrameworkShaders/*.frag
+include package/live2d/FrameworkShaders/*.vert
