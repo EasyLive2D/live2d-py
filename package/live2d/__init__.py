@@ -1,4 +1,4 @@
-__version__ = "0.8.1"
+__version__ = "1.0.0"
 __csm_version__ = "5-r.5"
 __official_site__ = "https://www.live2d.com/en/sdk/about/"
 

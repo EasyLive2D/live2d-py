@@ -32,13 +32,13 @@ args = parser.parse_args()
 
 # ---- Import the right SDK ----
 if args.version == "v2cpp":
-    import live2d.v2cpp as live2d
+    import live2d
     ModelClass = live2d.Model
 elif args.version == "v2":
     import live2d.v2 as live2d
     ModelClass = live2d.Model
 else:
-    import live2d.v3 as live2d
+    import live2d
     ModelClass = live2d.Model
 
 # ---- Resolve model & resources ----
