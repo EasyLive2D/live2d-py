@@ -1,6 +1,6 @@
 #pragma once
-#include "../Motion/AMotion.hpp"
-#include "Model/ModelContext.hpp"
+#include "AMotion.hpp"
+#include "ModelContext.hpp"
 #include <vector>
 namespace Live2D {
 namespace V2 {

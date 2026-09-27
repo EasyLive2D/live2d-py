@@ -1,7 +1,7 @@
 #include "L2DPose.hpp"
-#include "../Core/Id.hpp"
-#include "../Model/ModelContext.hpp"
-#include "../Util/UtSystem.hpp"
+#include "Id.hpp"
+#include "ModelContext.hpp"
+#include "UtSystem.hpp"
 #include "L2DPartsParam.hpp"
 #include "nlohmann/json.hpp"
 #include <algorithm>

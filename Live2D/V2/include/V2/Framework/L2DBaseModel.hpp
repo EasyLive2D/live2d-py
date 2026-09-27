@@ -1,7 +1,7 @@
 #pragma once
-#include "Core/ModelImpl.hpp"
+#include "ModelImpl.hpp"
 #include "L2DModelMatrix.hpp"
-#include "Model/ModelContext.hpp"
+#include "ModelContext.hpp"
 #include <memory>
 #include <string>
 #include <unordered_map>

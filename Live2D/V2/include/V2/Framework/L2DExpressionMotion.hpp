@@ -1,7 +1,7 @@
 #pragma once
-#include "../Motion/AMotion.hpp"
+#include "AMotion.hpp"
 #include "L2DExpressionParam.hpp"
-#include "Model/ModelContext.hpp"
+#include "ModelContext.hpp"
 #include <cstdint>
 #include <vector>
 namespace Live2D {

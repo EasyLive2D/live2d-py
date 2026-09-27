@@ -1,8 +1,8 @@
 #pragma once
-#include "Framework/L2DBaseModel.hpp"
-#include "Framework/L2DTargetPoint.hpp"
-#include "Framework/MatrixManager.hpp"
-#include "Graphics/GLRenderer.hpp"
+#include "L2DBaseModel.hpp"
+#include "L2DTargetPoint.hpp"
+#include "MatrixManagerV2.hpp"
+#include "GLRenderer.hpp"
 #include <functional>
 #include <memory>
 #include <string>
@@ -71,7 +71,7 @@ public:
 
 private:
     L2DTargetPoint mDragMgr;
-    MatrixManager mMatrixManager;
+    MatrixManagerV2 mMatrixManager;
     bool mAutoBreath = true, mAutoBlink = true;
     bool mClearFlag = false;
     std::string mModelHomeDir;

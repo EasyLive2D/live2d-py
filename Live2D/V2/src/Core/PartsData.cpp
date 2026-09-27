@@ -1,6 +1,6 @@
 #include "PartsData.hpp"
-#include "../Deformer/Deformer.hpp"
-#include "../Draw/IDrawData.hpp"
+#include "Deformer.hpp"
+#include "IDrawData.hpp"
 #include "BinaryReader.hpp"
 #include "PartsDataContext.hpp"
 

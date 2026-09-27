@@ -16,7 +16,7 @@
 #include <Motion/ACubismMotion.hpp>
 
 #include <LAppTextureManager.hpp>
-#include <MatrixManager.hpp>
+#include <MatrixManagerV3.hpp>
 
 using namespace Csm;
 
@@ -241,46 +241,46 @@ private:
     const int* GetDrawableRenderOrders() const;
 
 private:
-    ICubismModelSetting* _modelSetting;
-    csmVector<CubismIdHandle> _eyeBlinkIds;
-    csmVector<CubismIdHandle> _lipSyncIds;
+    ICubismModelSetting* mModelSetting;
+    csmVector<CubismIdHandle> mEyeBlinkIds;
+    csmVector<CubismIdHandle> mLipSyncIds;
 
-    csmString _modelHomeDir;
-    csmMap<Csm::csmString, ACubismMotion*> _motions;
-    csmMap<Csm::csmString, ACubismMotion*> _expressions;
-    std::unordered_map<std::string, CubismExpressionMotionManager*> _expManagers;
+    csmString mModelHomeDir;
+    csmMap<Csm::csmString, ACubismMotion*> mMotions;
+    csmMap<Csm::csmString, ACubismMotion*> mExpressions;
+    std::unordered_map<std::string, CubismExpressionMotionManager*> mExpManagers;
 
 
-    const Csm::CubismId* _idParamAngleX;
-    const Csm::CubismId* _idParamAngleY;
-    const Csm::CubismId* _idParamAngleZ;
-    const Csm::CubismId* _idParamBodyAngleX;
-    const Csm::CubismId* _idParamEyeBallX;
-    const Csm::CubismId* _idParamEyeBallY;
+    const Csm::CubismId* mIdParamAngleX;
+    const Csm::CubismId* mIdParamAngleY;
+    const Csm::CubismId* mIdParamAngleZ;
+    const Csm::CubismId* mIdParamBodyAngleX;
+    const Csm::CubismId* mIdParamEyeBallX;
+    const Csm::CubismId* mIdParamEyeBallY;
 
-    int _ParamAngleXi;
-    int _ParamAngleYi;
-    int _ParamAngleZi;
-    int _ParamBodyAngleXi;
-    int _ParamEyeBallXi;
-    int _ParamEyeBallYi;
+    int mParamAngleXi;
+    int mParamAngleYi;
+    int mParamAngleZi;
+    int mParamBodyAngleXi;
+    int mParamEyeBallXi;
+    int mParamEyeBallYi;
 
-    LAppTextureManager _textureManager;
+    LAppTextureManager mTextureManager;
 
-    MatrixManager _matrixManager;
+    MatrixManagerV3 mMatrixManager;
 
-    csmFloat32 _dragX;
-    csmFloat32 _dragY;
+    csmFloat32 mDragX;
+    csmFloat32 mDragY;
 
-    int* _tmpOrderedDrawIndice;
-    const float* _parameterDefaultValues;
-    float* _parameterValues;
-    int _parameterCount;
+    int* mTmpOrderedDrawIndice;
+    const float* mParameterDefaultValues;
+    float* mParameterValues;
+    int mParameterCount;
 
-    std::vector<csmString> _motionGroupNames;
-    std::vector<int> _motionCounts;
+    std::vector<csmString> mMotionGroupNames;
+    std::vector<int> mMotionCounts;
 
-    std::vector<float> _savedParameterValues;
+    std::vector<float> mSavedParameterValues;
 
     bool autoBreath;
     bool autoBlink;

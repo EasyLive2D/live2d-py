@@ -1,5 +1,5 @@
 #include "PivotManager.hpp"
-#include "../Model/ModelContext.hpp"
+#include "ModelContext.hpp"
 #include "BinaryReader.hpp"
 #include "DEF.hpp"
 #include "ParamPivots.hpp"

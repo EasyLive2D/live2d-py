@@ -10,18 +10,20 @@ add_library(${V2_TARGET} STATIC
     Core/ModelImpl.cpp
     Core/ParamPivots.cpp
     Core/PivotManager.cpp
-    Model/ModelContext.cpp
-    Deformer/Deformer.cpp
-    Deformer/AffineEnt.cpp
-    Deformer/RotationDeformer.cpp
-    Deformer/RotationContext.cpp
-    Deformer/WarpDeformer.cpp
-    Deformer/WarpContext.cpp
-    Draw/IDrawData.cpp
-    Draw/Mesh.cpp
-    Graphics/GLRenderer.cpp
-    Graphics/ClippingManagerOpenGL.cpp
-    Graphics/ClipContext.cpp
+    Core/ModelContext.cpp
+    Core/Deformer.cpp
+    Core/AffineEnt.cpp
+    Core/RotationDeformer.cpp
+    Core/RotationContext.cpp
+    Core/WarpDeformer.cpp
+    Core/WarpContext.cpp
+    Core/IDrawData.cpp
+    Core/Mesh.cpp
+    Core/GLRenderer.cpp
+    Core/ClippingManagerOpenGL.cpp
+    Core/ClipContext.cpp
+    Core/UtInterpolate.cpp
+    Core/UtSystem.cpp
     Framework/L2DMatrix44.cpp
     Framework/L2DModelMatrix.cpp
     Framework/L2DTargetPoint.cpp
@@ -32,11 +34,9 @@ add_library(${V2_TARGET} STATIC
     Framework/L2DExpressionMotion.cpp
     Framework/L2DMotionManager.cpp
     Framework/L2DBaseModel.cpp
-    Framework/MatrixManager.cpp
-    Motion/Live2DMotion.cpp
-    Util/UtInterpolate.cpp
-    Util/UtSystem.cpp
-    Util/stb_impl.cpp
+    Framework/MatrixManagerV2.cpp
+    Framework/Live2DMotion.cpp
+    Framework/stb_impl.cpp
     Model.cpp
 )
 

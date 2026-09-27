@@ -1,8 +1,8 @@
 #pragma once
 #include <memory>
 
-#include "../Deformer/Deformer.hpp"
-#include "../Draw/IDrawData.hpp"
+#include "Deformer.hpp"
+#include "IDrawData.hpp"
 #include "ISerializable.hpp"
 #include "Id.hpp"
 #include <vector>

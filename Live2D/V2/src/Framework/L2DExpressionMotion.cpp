@@ -1,6 +1,6 @@
 #include "L2DExpressionMotion.hpp"
-#include "../Core/Id.hpp"
-#include "../Model/ModelContext.hpp"
+#include "Id.hpp"
+#include "ModelContext.hpp"
 #include "L2DExpressionParam.hpp"
 #include "nlohmann/json.hpp"
 #include <string>

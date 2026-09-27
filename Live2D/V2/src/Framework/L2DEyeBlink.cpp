@@ -1,7 +1,7 @@
 #include "L2DEyeBlink.hpp"
-#include "../Core/Id.hpp"
-#include "../Model/ModelContext.hpp"
-#include "../Util/UtSystem.hpp"
+#include "Id.hpp"
+#include "ModelContext.hpp"
+#include "UtSystem.hpp"
 #include <cstdlib>
 namespace Live2D {
 namespace V2 {

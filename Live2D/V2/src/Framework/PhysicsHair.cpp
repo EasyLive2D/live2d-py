@@ -1,7 +1,7 @@
 #include "PhysicsHair.hpp"
-#include "../Core/Id.hpp"
-#include "../Model/ModelContext.hpp"
-#include "../Util/UtMath.hpp"
+#include "Id.hpp"
+#include "ModelContext.hpp"
+#include "UtMath.hpp"
 #include <cmath>
 
 namespace Live2D {

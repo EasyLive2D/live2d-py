@@ -1,10 +1,10 @@
-#include "MatrixManager.hpp"
+#include "MatrixManagerV3.hpp"
 #include <cmath>
 
 namespace Live2D {
 namespace V3 {
 
-MatrixManager::MatrixManager()
+MatrixManagerV3::MatrixManagerV3()
     : _offsetX(0.0f)
     , _offsetY(0.0f)
     , _scaleX(1.0f)
@@ -19,14 +19,14 @@ MatrixManager::MatrixManager()
     _rotation[0] = _rotation[5] = _rotation[10] = _rotation[15] = 1.0f;
 }
 
-void MatrixManager::SetModelWH(float mw, float mh)
+void MatrixManagerV3::SetModelWH(float mw, float mh)
 {
     _mw = mw;
     _mh = mh;
 }
 
 // called when window is resized
-void MatrixManager::UpdateScreenToScene(int width, int height)
+void MatrixManagerV3::UpdateScreenToScene(int width, int height)
 {
     _ww = width;
     _wh = height;
@@ -48,13 +48,13 @@ void MatrixManager::UpdateScreenToScene(int width, int height)
     _screenToScene.TranslateRelative(-width * 0.5f, -height * 0.5f);
 }
 
-void MatrixManager::ScreenToScene(float* x, float* y)
+void MatrixManagerV3::ScreenToScene(float* x, float* y)
 {
     *x = _screenToScene.TransformX(*x);
     *y = _screenToScene.TransformY(*y);
 }
 
-Csm::CubismMatrix44& MatrixManager::GetMvp()
+Csm::CubismMatrix44& MatrixManagerV3::GetMvp()
 {
     _p.LoadIdentity();
     _m.LoadIdentity();
@@ -82,23 +82,23 @@ Csm::CubismMatrix44& MatrixManager::GetMvp()
     return _p;
 }
 
-void MatrixManager::SetOffset(float x, float y)
+void MatrixManagerV3::SetOffset(float x, float y)
 {
     _offsetX = x;
     _offsetY = y;
 }
 
-void MatrixManager::SetScaleX(float sx)
+void MatrixManagerV3::SetScaleX(float sx)
 {
     _scaleX = sx;
 }
 
-void MatrixManager::SetScaleY(float sy)
+void MatrixManagerV3::SetScaleY(float sy)
 {
     _scaleY = sy;
 }
 
-void MatrixManager::Rotate(float deg)
+void MatrixManagerV3::Rotate(float deg)
 {
     float r = deg / 180.0f * 3.1415926f;
     _rotation[0] = cosf(r);
@@ -107,7 +107,7 @@ void MatrixManager::Rotate(float deg)
     _rotation[4] = -_rotation[1];
 }
 
-void MatrixManager::InvertTransform(float* x, float* y)
+void MatrixManagerV3::InvertTransform(float* x, float* y)
 {
     // 除 projection 以外的变换需要逆变换
 

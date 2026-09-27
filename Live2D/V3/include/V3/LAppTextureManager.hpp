@@ -105,7 +105,7 @@ public:
     TextureInfo* GetTextureInfoById(GLuint textureId) const;
 
 private:
-    Csm::csmVector<TextureInfo*> _textures;
+    Csm::csmVector<TextureInfo*> mTextures;
 };
 }   // namespace V3
 }   // namespace Live2D
