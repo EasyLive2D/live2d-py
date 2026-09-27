@@ -9,14 +9,12 @@ namespace V2 {
 
 using json = nlohmann::json;
 
-L2DPhysics::L2DPhysics() {
-    mStartTimeMs = (long long)UtSystem::getUserTimeMSec();
-}
+L2DPhysics::L2DPhysics() = default;
 
-void L2DPhysics::updateParam(ModelContext* context) {
-    long long t = (long long)UtSystem::getUserTimeMSec() - mStartTimeMs;
+void L2DPhysics::updateParam(ModelContext* context, long long dtMs) {
+    mElapsedMs += dtMs;
     for (auto& ph : mPhysicsList)
-        ph->update(context, t);
+        ph->update(context, mElapsedMs);
 }
 
 L2DPhysics* L2DPhysics::load(const std::vector<uint8_t>& data) {

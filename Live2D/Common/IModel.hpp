@@ -31,7 +31,9 @@ public:
     virtual const char* GetModelHomeDir() = 0;
 
     // ---- 更新 ----
-    virtual void Update(float deltaSecs = 0.016f) = 0;
+    // deltaSecs 为哨兵: <0（默认，不传）走墙钟自适配（V2 Python 1:1 墙钟路径 / V3 内部自计时），
+    // >=0 全 delta 驱动（可暂停/变速/确定性测试）
+    virtual void Update(float deltaSecs = -1.0f) = 0;
     virtual bool UpdateMotion(float deltaSecs) = 0;
     virtual void UpdateDrag(float deltaSecs) = 0;
     virtual void UpdateBreath(float deltaSecs) = 0;

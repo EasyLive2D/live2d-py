@@ -27,7 +27,8 @@ public:
     // 版本
     int Version() const override;
 
-    void Update(float deltaSecs = 0.016f) override;
+    // 更新（哨兵语义见 IModel::Update）: <0 墙钟（Python 1:1），>=0 全 delta 驱动
+    void Update(float deltaSecs = -1.0f) override;
     bool UpdateMotion(float deltaSecs) override;
     void UpdateDrag(float deltaSecs) override;
     void UpdateBreath(float deltaSecs) override;
@@ -143,6 +144,10 @@ private:
 
     L2DTargetPoint mDragMgr;
     MatrixManagerV2 mMatrixManager;
+    // Model 是唯一读墙钟的地方，且只做一件事: 墙钟路径每帧算一次 dt
+    //（delta 路径直接用传入值）。子系统全部收 dt、内部累计 elapsed。
+    float mBreathTimeMs = 0;       // 呼吸动画累计（Model 自己的逻辑）
+    float mLastFrameTimeMs = 0;    // 墙钟路径上一帧时间戳（算 dt 用）
     bool mAutoBreath = true, mAutoBlink = true;
     bool mClearFlag = false;
     std::string mModelHomeDir;

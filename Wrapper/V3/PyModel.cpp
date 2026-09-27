@@ -59,8 +59,9 @@ static PyObject* PyModel_IsV3(PyModelObject* self, PyObject* args, PyObject* kwa
 }
 
 static PyObject* PyModel_Update(PyModelObject* self, PyObject* args, PyObject* kwargs) {
-    float deltaTimeSeconds;
-    if (!PyArg_ParseTuple(args, "f", &deltaTimeSeconds)) {
+    // 可选 dt: 不传 = 内部自计时（哨兵 -1），传入 = delta 驱动
+    float deltaTimeSeconds = -1.0f;
+    if (!PyArg_ParseTuple(args, "|f", &deltaTimeSeconds)) {
         PyErr_SetString(PyExc_TypeError, "argument 1 must be float");
         return NULL;
     }

@@ -104,15 +104,9 @@ void L2DPose::initParam(ModelContext* context) {
     }
 }
 
-void L2DPose::updateParam(ModelContext* context) {
-    float now = (float)UtSystem::getUserTimeMSec();
-    float dt = (mLastTime > 0) ? (now - mLastTime) / 1000.0f : 0;
-    if (dt < 0)
-        dt = 0;
-    mLastTime = now;
-
+void L2DPose::updateParam(ModelContext* context, float dtSec) {
     for (auto& g : mMGroups) {
-        normalizeGroup(context, g, dt);
+        normalizeGroup(context, g, dtSec);
         copyOpacityOtherParts(context, g);
     }
 }

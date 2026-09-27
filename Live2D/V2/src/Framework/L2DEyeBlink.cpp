@@ -11,9 +11,9 @@ void L2DEyeBlink::setEyeMotion(int closeMs, int closedMs, int openMs) {
     mClosedMs = static_cast<float>(closedMs);
     mOpeningMs = static_cast<float>(openMs);
 }
-void L2DEyeBlink::updateParam(ModelContext* context) {
-    float now = static_cast<float>(UtSystem::getUserTimeMSec());
-    mCurrentTime = now;
+void L2DEyeBlink::updateParam(ModelContext* context, float deltaMs) {
+    mCurrentTime += deltaMs;
+    float now = mCurrentTime;
 
     switch (mState) {
         case FIRST:

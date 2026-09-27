@@ -55,8 +55,10 @@ class LAppModel:
     def SetPartOpacity(self, index: int, opacity: float) -> None:
         """Set part opacity."""
         ...
-    def Update(self) -> None:
-        """Update model state (motion, physics, pose, parameters)."""
+    def Update(self, deltaSecs: float = -1.0) -> None:
+        """Update model state (motion, physics, pose, parameters).
+        deltaSecs < 0（默认）: 墙钟自适配（Python v2 1:1）；deltaSecs >= 0: delta 驱动
+        （可确定性测试/变速/暂停）。"""
         ...
     def Draw(self) -> None:
         """Draw model to current framebuffer."""

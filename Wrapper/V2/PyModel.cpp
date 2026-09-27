@@ -162,8 +162,12 @@ static PyObject* PyLAppModel_SetPartOpacity(PyLAppModelObject* self, PyObject* a
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_Update(PyLAppModelObject* self, PyObject*) {
-    self->model->Update();
+static PyObject* PyLAppModel_Update(PyLAppModelObject* self, PyObject* args) {
+    // 可选 dt: 不传 = 墙钟自适配（哨兵 -1），传入 = delta 驱动
+    float dt = -1.0f;
+    if (!PyArg_ParseTuple(args, "|f", &dt))
+        return nullptr;
+    self->model->Update(dt);
     Py_RETURN_NONE;
 }
 
@@ -676,7 +680,7 @@ PyMethodDef PyLAppModel_methods[] = {
     {"GetPartId", (PyCFunction)PyLAppModel_GetPartId, METH_VARARGS, ""},
     {"GetPartIds", (PyCFunction)PyLAppModel_GetPartIds, METH_NOARGS, ""},
     {"SetPartOpacity", (PyCFunction)PyLAppModel_SetPartOpacity, METH_VARARGS, ""},
-    {"Update", (PyCFunction)PyLAppModel_Update, METH_NOARGS, ""},
+    {"Update", (PyCFunction)PyLAppModel_Update, METH_VARARGS, ""},
     {"Draw", (PyCFunction)PyLAppModel_Draw, METH_NOARGS, ""},
     {"HitTest", (PyCFunction)PyLAppModel_HitTest, METH_VARARGS, ""},
     {"HitPart", (PyCFunction)PyLAppModel_HitPart, METH_VARARGS, ""},

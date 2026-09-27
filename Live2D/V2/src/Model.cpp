@@ -256,7 +256,21 @@ void Model::SetPartOpacity(int index, float val) {
     mModelContext->setPartsOpacity(index, val);
 }
 void Model::Update(float deltaSecs) {
-    mDragMgr.update(deltaSecs);
+    // Model 是唯一读墙钟的地方，且只做一件事: 每帧算一次 dt
+    float dt;
+    if (deltaSecs < 0.0f) {
+        // 墙钟路径（Python v2 1:1）
+        float now = (float)UtSystem::getUserTimeMSec();
+        dt = (mLastFrameTimeMs != 0.0f) ? (now - mLastFrameTimeMs) / 1000.0f : 0.0f;
+        mLastFrameTimeMs = now;
+    } else {
+        // delta 路径
+        dt = deltaSecs;
+    }
+    float dtMs = dt * 1000.0f;
+    mBreathTimeMs += dtMs;
+
+    mDragMgr.update(dt);
     setDrag(mDragMgr.getX(), mDragMgr.getY());
 
     // Match v2 Python update() flow
@@ -271,7 +285,7 @@ void Model::Update(float deltaSecs) {
         mClearFlag = false;
     } else {
         mModelContext->loadParam();
-        updated = mMainMotionMgr->updateParam(mModelContext.get());
+        updated = mMainMotionMgr->updateParam(mModelContext.get(), dtMs);
     }
     mModelContext->saveParam();
 
@@ -293,11 +307,11 @@ void Model::Update(float deltaSecs) {
 
     // Python suppresses eye-blink while a main motion is active
     if (!updated && mAutoBlink && mEyeBlink)
-        mEyeBlink->updateParam(mModelContext.get());
+        mEyeBlink->updateParam(mModelContext.get(), dtMs);
 
     // Python skips expression update when no expressions exist
     if (!mExpressions.empty())
-        mExpressionMgr->updateParam(mModelContext.get());
+        mExpressionMgr->updateParam(mModelContext.get(), dtMs);
 
     // Drag-based parameter updates (match v2 Python)
     auto addParam = [&](const char* id, float value, float weight) {
@@ -314,9 +328,9 @@ void Model::Update(float deltaSecs) {
     addParam("PARAM_EYE_BALL_X", mDragX, 1);
     addParam("PARAM_EYE_BALL_Y", mDragY, 1);
 
-    // Auto-breath animation (wall clock time, match v2 Python periods)
+    // Auto-breath animation (match v2 Python periods)
     if (mAutoBreath) {
-        float t = (float)UtSystem::getUserTimeMSec() / 1000.0f;
+        float t = mBreathTimeMs / 1000.0f;
         addParam("PARAM_ANGLE_X", 15.0f * sinf(t / 6.5345f), 0.5f);
         addParam("PARAM_ANGLE_Y", 8.0f * sinf(t / 3.5345f), 0.5f);
         addParam("PARAM_ANGLE_Z", 10.0f * sinf(t / 5.5345f), 0.5f);
@@ -327,9 +341,9 @@ void Model::Update(float deltaSecs) {
     }
 
     if (mPhysics)
-        mPhysics->updateParam(mModelContext.get());
+        mPhysics->updateParam(mModelContext.get(), (long long)dtMs);
     if (mPose)
-        mPose->updateParam(mModelContext.get());
+        mPose->updateParam(mModelContext.get(), dt);
 }
 void Model::Draw() {
     // Match v2 Python: process deformer chain in draw(), not update()
@@ -696,12 +710,11 @@ const float* Model::GetMvp() {
     return mMvpCache;
 }
 
-// ---- 细化更新（与 Update() 内对应逻辑一致；v2 动作/呼吸走墙钟，忽略 deltaSecs）----
+// ---- 细化更新（dt 由外部传入，与 Update(deltaSecs) 的 delta 路径同构）----
 
 bool Model::UpdateMotion(float deltaSecs) {
-    (void)deltaSecs;
     mModelContext->loadParam();
-    bool updated = mMainMotionMgr->updateParam(mModelContext.get());
+    bool updated = mMainMotionMgr->updateParam(mModelContext.get(), deltaSecs * 1000.0f);
     mModelContext->saveParam();
     return updated;
 }
@@ -725,8 +738,8 @@ void Model::UpdateDrag(float deltaSecs) {
     addParam("PARAM_EYE_BALL_Y", mDragY, 1);
 }
 void Model::UpdateBreath(float deltaSecs) {
-    (void)deltaSecs;
-    // Auto-breath animation (wall clock time, match v2 Python periods)
+    mBreathTimeMs += deltaSecs * 1000.0f;
+    // Auto-breath animation (match v2 Python periods)
     auto addParam = [&](const char* id, float value, float weight) {
         int idx = mModelContext->getParamIndex(&Id::getID(id));
         if (idx >= 0) {
@@ -734,7 +747,7 @@ void Model::UpdateBreath(float deltaSecs) {
             mModelContext->setParamFloat(idx, cur + value * weight);
         }
     };
-    float t = (float)UtSystem::getUserTimeMSec() / 1000.0f;
+    float t = mBreathTimeMs / 1000.0f;
     addParam("PARAM_ANGLE_X", 15.0f * sinf(t / 6.5345f), 0.5f);
     addParam("PARAM_ANGLE_Y", 8.0f * sinf(t / 3.5345f), 0.5f);
     addParam("PARAM_ANGLE_Z", 10.0f * sinf(t / 5.5345f), 0.5f);
@@ -744,24 +757,20 @@ void Model::UpdateBreath(float deltaSecs) {
         mModelContext->setParamFloat(breathIdx, 0.5f + 0.5f * sinf(t / 3.2345f));
 }
 void Model::UpdateBlink(float deltaSecs) {
-    (void)deltaSecs;
     if (mEyeBlink)
-        mEyeBlink->updateParam(mModelContext.get());
+        mEyeBlink->updateParam(mModelContext.get(), deltaSecs * 1000.0f);
 }
 void Model::UpdateExpression(float deltaSecs) {
-    (void)deltaSecs;
     if (!mExpressions.empty())
-        mExpressionMgr->updateParam(mModelContext.get());
+        mExpressionMgr->updateParam(mModelContext.get(), deltaSecs * 1000.0f);
 }
 void Model::UpdatePhysics(float deltaSecs) {
-    (void)deltaSecs;
     if (mPhysics)
-        mPhysics->updateParam(mModelContext.get());
+        mPhysics->updateParam(mModelContext.get(), (long long)(deltaSecs * 1000.0f));
 }
 void Model::UpdatePose(float deltaSecs) {
-    (void)deltaSecs;
     if (mPose)
-        mPose->updateParam(mModelContext.get());
+        mPose->updateParam(mModelContext.get(), deltaSecs);
 }
 
 // ---- 参数保存/恢复 ----

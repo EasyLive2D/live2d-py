@@ -106,6 +106,17 @@ int Model::Version() const {
 }
 
 void Model::Update(float deltaSecs) {
+    if (deltaSecs < 0.0f) {
+        // 哨兵: 未传入 delta，内部自计时（clamp 0.1，等价原纯 Python LAppModel.Update）
+        auto now = std::chrono::steady_clock::now();
+        if (mLastUpdatePoint.time_since_epoch().count() != 0) {
+            deltaSecs = (float)std::min(
+                std::chrono::duration<double>(now - mLastUpdatePoint).count(), 0.1);
+        } else {
+            deltaSecs = 0.016f;
+        }
+        mLastUpdatePoint = now;
+    }
     mProxy._dragManager->Update(deltaSecs);
     mDragX = mProxy._dragManager->GetX();
     mDragY = mProxy._dragManager->GetY();

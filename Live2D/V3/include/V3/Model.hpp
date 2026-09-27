@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -282,6 +283,9 @@ private:
 
     bool autoBreath;
     bool autoBlink;
+
+    // Update() 哨兵路径（deltaSecs<0）的内部自计时时间戳
+    std::chrono::steady_clock::time_point mLastUpdatePoint{};
 };
 }   // namespace V3
 }   // namespace Live2D

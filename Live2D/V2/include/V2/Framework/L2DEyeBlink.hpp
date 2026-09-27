@@ -8,7 +8,8 @@ public:
     L2DEyeBlink();
     void setInterval(int ms) { mBlinkIntervalMs = ms; }
     void setEyeMotion(int closeMs, int closedMs, int openMs);
-    void updateParam(ModelContext* context);
+    // 时间由外部传入（时钟只由 Model 管理）: deltaMs 为本次时间步长（毫秒），内部累计 elapsed
+    void updateParam(ModelContext* context, float deltaMs);
     float mBlinkIntervalMs = 5000;
 
 private:
