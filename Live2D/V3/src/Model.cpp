@@ -110,8 +110,8 @@ void Model::Update(float deltaSecs) {
         // 哨兵: 未传入 delta，内部自计时（clamp 0.1）
         auto now = std::chrono::steady_clock::now();
         if (mLastUpdatePoint.time_since_epoch().count() != 0) {
-            deltaSecs = (float)std::min(
-                std::chrono::duration<double>(now - mLastUpdatePoint).count(), 0.1);
+            deltaSecs =
+                (float)std::min(std::chrono::duration<double>(now - mLastUpdatePoint).count(), 0.1);
         } else {
             deltaSecs = 0.016f;
         }
@@ -313,7 +313,8 @@ void Model::SetupModel() {
 
 bool Model::UpdateMotion(float deltaSecs) {
     mProxy.SetOpacity(mProxy->GetModelOpacity());
-    return !mProxy._motionManager->IsFinished() && mProxy._motionManager->UpdateMotion(mProxy.GetModel(), deltaSecs);
+    return !mProxy._motionManager->IsFinished() &&
+           mProxy._motionManager->UpdateMotion(mProxy.GetModel(), deltaSecs);
 }
 
 void Model::UpdateDrag(float deltaSecs) {
@@ -525,6 +526,8 @@ namespace {
 struct MotionCallbackData {
     IModel::MotionCallback onStart;
     IModel::MotionCallback onFinish;
+    std::string group;
+    int no;
 };
 
 void MotionBeganHandler(ACubismMotion* motion) {
@@ -533,7 +536,7 @@ void MotionBeganHandler(ACubismMotion* motion) {
         return;
     }
     if (data->onStart) {
-        data->onStart(motion->group, motion->no);
+        data->onStart(data->group, data->no);
     }
 }
 
@@ -543,7 +546,7 @@ void MotionFinishedHandler(ACubismMotion* motion) {
         return;
     }
     if (data->onFinish) {
-        data->onFinish(motion->group, motion->no);
+        data->onFinish(data->group, data->no);
     }
     delete data;
 }
@@ -599,9 +602,7 @@ void Model::StartMotion(const std::string& group, int no, int priority, MotionCa
     }
 
     if (motion) {
-        motion->group = group.c_str();
-        motion->no = no;
-        auto* data = new MotionCallbackData{std::move(onStart), std::move(onFinish)};
+        auto* data = new MotionCallbackData{std::move(onStart), std::move(onFinish), group, no};
         motion->SetBeganMotionCustomData(data);
         motion->SetFinishedMotionCustomData(data);
         motion->SetBeganMotionHandler(MotionBeganHandler);
@@ -675,8 +676,8 @@ int Model::LoadExtraMotion(const char* group, const char* motionJsonPath) {
 
         const csmString name = Utils::CubismString::GetFormatedString("%s_%d", group, no);
 
-        CubismMotion* tmpMotion = static_cast<CubismMotion*>(
-            mProxy.LoadMotion(buffer, size, name.GetRawString(), NULL, NULL, mModelSetting, group, no));
+        CubismMotion* tmpMotion = static_cast<CubismMotion*>(mProxy.LoadMotion(
+            buffer, size, name.GetRawString(), NULL, NULL, mModelSetting, group, no));
 
         if (tmpMotion) {
             tmpMotion->SetEffectIds(mEyeBlinkIds, mLipSyncIds);
@@ -971,8 +972,7 @@ void Model::CreateRenderer(int maskBufferCount) {
         return;
     }
     mTextureManager.ReleaseTextures();
-    mProxy.CreateRenderer(
-        mMatrixManager.GetWidth(), mMatrixManager.GetHeight(), maskBufferCount);
+    mProxy.CreateRenderer(mMatrixManager.GetWidth(), mMatrixManager.GetHeight(), maskBufferCount);
     SetupTextures();
 }
 
@@ -1312,7 +1312,7 @@ void Model::SetupTextures() {
 
         // OpenGL
         mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>()->BindTexture(modelTextureNumber,
-                                                                        glTextueNumber);
+                                                                               glTextueNumber);
     }
 
 #ifdef PREMULTIPLIED_ALPHA_ENABLE
@@ -1339,8 +1339,8 @@ void Model::PreloadMotionGroup(const csmChar* group) {
         LOGI("load motion: %s => [%s_%d] ", path.GetRawString(), group, i);
 
         LoadAssets(path.GetRawString(), [&](csmByte* buffer, csmInt32 size) {
-            CubismMotion* tmpMotion = static_cast<CubismMotion*>(
-                mProxy.LoadMotion(buffer, size, name.GetRawString(), NULL, NULL, mModelSetting, group, i));
+            CubismMotion* tmpMotion = static_cast<CubismMotion*>(mProxy.LoadMotion(
+                buffer, size, name.GetRawString(), NULL, NULL, mModelSetting, group, i));
             if (tmpMotion) {
                 tmpMotion->SetEffectIds(mEyeBlinkIds, mLipSyncIds);
 

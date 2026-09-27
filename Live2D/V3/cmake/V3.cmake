@@ -3,7 +3,6 @@ set(V3_TARGET V3)
 include(${CMAKE_CURRENT_LIST_DIR}/Core.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/Framework.cmake)
 # 在配置阶段立即执行文件修改脚本
-include(${CMAKE_CURRENT_LIST_DIR}/PatchACubismMotion.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/PatchCubismShader_OpenGLES2.cmake)
 
 add_subdirectory(${LIVE2D_ROOT}/V3/src)
