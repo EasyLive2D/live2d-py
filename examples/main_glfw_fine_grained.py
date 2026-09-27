@@ -13,7 +13,7 @@ import time
 # initialize memory allocation for live2d
 live2d.init()
 
-model = live2d.LAppModel()
+model = live2d.Model()
 # LoadModelJson can be called without an OpenGL context
 model.LoadModelJson(
     os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json")

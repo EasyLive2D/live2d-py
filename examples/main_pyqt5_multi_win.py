@@ -15,7 +15,7 @@ class ClonePet(QOpenGLWidget):
         super().__init__()
         self.setFixedSize(400, 400)
 
-        self.pet_model: live2d.LAppModel | None = None
+        self.pet_model: live2d.Model | None = None
 
     def timerEvent(self, a0):
         x, y = QCursor.pos().x() - self.x(), QCursor.pos().y() - self.y()
@@ -25,7 +25,7 @@ class ClonePet(QOpenGLWidget):
 
     def initializeGL(self):
         live2d.glInit()
-        self.pet_model = live2d.LAppModel()
+        self.pet_model = live2d.Model()
         if live2d.LIVE2D_VERSION == 3:
             self.pet_model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
         else:

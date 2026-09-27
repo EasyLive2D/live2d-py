@@ -72,7 +72,7 @@ class GLWidget(QOpenGLWidget):
         
         # 初始化变量
         self.ctx: Optional[moderngl.Context] = None
-        self.model: Optional[live2d.LAppModel] = None
+        self.model: Optional[live2d.Model] = None
         self.triangle: Optional[DefaultRenderer] = None
         
         # 设置窗口尺寸
@@ -84,7 +84,7 @@ class GLWidget(QOpenGLWidget):
 
         live2d.glInit()
 
-        self.model = live2d.LAppModel()
+        self.model = live2d.Model()
         self.model.LoadModelJson(
             os.path.join(
                 resources.RESOURCES_DIRECTORY, 

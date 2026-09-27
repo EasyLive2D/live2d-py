@@ -23,7 +23,7 @@ RESOURCES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..",
 # initialize memory allocation for live2d
 live2d.init()
 
-model = live2d.LAppModel()
+model = live2d.Model()
 # LoadModelJson can be called without an OpenGL context
 # （v2cpp 默认 create_renderer=True 会在加载时创建渲染器，需要 GL 上下文，
 #   与 v3 示例不同——v3 的渲染器由后面的 CreateRenderer(2) 创建，所以这里显式关掉）

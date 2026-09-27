@@ -84,13 +84,13 @@ def main():
                 )
             case 1:
                 print("v2cpp => 托尔/model0.json")
-                current_model = v2cpp.LAppModel()
+                current_model = v2cpp.Model()
                 current_model.LoadModelJson(
                     os.path.join(RESOURCES_DIRECTORY, "v2/托尔/model0.json")
                 )
             case 3:
                 print("v2 => kasumi2/kasumi2.model.json")
-                current_model = v2.LAppModel()
+                current_model = v2.Model()
                 current_model.LoadModelJson(
                     os.path.join(RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json")
                 )

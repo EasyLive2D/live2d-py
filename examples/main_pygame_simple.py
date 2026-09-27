@@ -19,7 +19,7 @@ def main():
 
     live2d.glInit()
 
-    model = live2d.LAppModel()
+    model = live2d.Model()
 
     if live2d.LIVE2D_VERSION == 3:
         model.LoadModelJson(
@@ -37,8 +37,8 @@ def main():
         )
 
     model.Resize(*display)
-    model.SetAutoBlinkEnable(False)
-    model.SetParameterValue(StandardParams.ParamEyeLOpen, 0)
+    model.SetAutoBlink(False)
+    model.SetParamById(StandardParams.ParamEyeLOpen, 0)
 
     running = True
     while True:

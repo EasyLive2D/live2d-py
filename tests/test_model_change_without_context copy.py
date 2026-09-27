@@ -26,8 +26,8 @@ def main():
     v2cpp.glInit()
     v2.glInit()
 
-    model_v2 = v2.LAppModel()
-    model_v2cpp = v2cpp.LAppModel()
+    model_v2 = v2.Model()
+    model_v2cpp = v2cpp.Model()
     model_v3 = v3.Model()
     model_v3_2 = v3.Model()
 

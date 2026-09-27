@@ -3,7 +3,7 @@ print("[v2] Pure Python impl, try faster: live2d.v2cpp")
 from .core import Live2D
 from .core import log as __log
 from .lapp_define import MotionGroup, MotionPriority, HitArea
-from .lapp_model import LAppModel
+from .lapp_model import Model
 from .params import Parameter, StandardParams
 
 
@@ -62,7 +62,7 @@ def dispose():
 LIVE2D_VARIANT = "v2"
 LIVE2D_VERSION = 2
 
-__all__ = ['LAppModel',
+__all__ = ['Model',
            'MotionPriority',
            'MotionGroup',
            "HitArea",

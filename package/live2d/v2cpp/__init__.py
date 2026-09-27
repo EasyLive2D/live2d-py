@@ -1,5 +1,5 @@
 from . import _v2cpp
-from ._v2cpp import LAppModel
+from ._v2cpp import Model
 
 # Re-export module-level functions from C++ extension
 init = _v2cpp.init
@@ -98,7 +98,7 @@ LIVE2D_VARIANT = "v2cpp"
 LIVE2D_VERSION = 2
 
 __all__ = [
-    "LAppModel",
+    "Model",
     "MotionPriority",
     "MotionGroup",
     "HitArea",

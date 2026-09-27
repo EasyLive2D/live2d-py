@@ -117,7 +117,7 @@ PyMODINIT_FUNC PyInit__v2cpp(void) {
     PyObject* m = PyModule_Create(&v2cpp_module);
     if (!m)
         return nullptr;
-    PyType_Spec spec = {"_v2cpp.LAppModel",
+    PyType_Spec spec = {"_v2cpp.Model",
                         sizeof(PyLAppModelObject),
                         0,
                         Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
@@ -127,7 +127,7 @@ PyMODINIT_FUNC PyInit__v2cpp(void) {
         Py_DECREF(m);
         return nullptr;
     }
-    PyModule_AddObject(m, "LAppModel", t);
+    PyModule_AddObject(m, "Model", t);
 
     printf("[v2cpp] C++ port, Python(%s)\n", PY_VERSION);
     return m;

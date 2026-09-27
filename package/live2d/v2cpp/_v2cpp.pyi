@@ -1,7 +1,7 @@
 from typing import Any, Callable
 
 
-class LAppModel:
+class Model:
     """Live2D Cubism 2.x application model（与 live2d.v3.Model 统一 API）。"""
 
     # ---- 加载 / 版本 ----

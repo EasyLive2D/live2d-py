@@ -71,12 +71,12 @@ class GLWidget(QOpenGLWidget):
         
         # 初始化变量
         self.ctx: Optional[moderngl.Context] = None
-        self.model: Optional[live2d.LAppModel] = None
+        self.model: Optional[live2d.Model] = None
         self.triangle: Optional[DefaultRenderer] = None
         
         # 设置窗口尺寸
         self.setMinimumSize(800, 600)
-        self.model = live2d.LAppModel()
+        self.model = live2d.Model()
     
     def initializeGL(self):
         # 创建ModernGL上下文

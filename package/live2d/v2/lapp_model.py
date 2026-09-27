@@ -14,9 +14,21 @@ if TYPE_CHECKING:
     from .core.draw import MeshContext, Mesh
 
 
-class LAppModel(L2DBaseModel):
+class Model(L2DBaseModel):
+    """Live2D Cubism 2.x application model (deprecated).
+
+    已废弃: 请改用 live2d.v2cpp.Model（v2 模型）或 live2d.v3.Model（v3 模型）。
+    """
+
+    _deprecated_warned = False
 
     def __init__(self):
+        if not Model._deprecated_warned:
+            Model._deprecated_warned = True
+            import sys
+            print("[deprecated] live2d.v2.Model 已废弃，请改用 live2d.v2cpp.Model "
+                  "（v2 模型）或 live2d.v3.Model（v3 模型）",
+                  file=sys.stderr)
         super().__init__()
         self.modelHomeDir = ""
         self.modelSetting = None
@@ -125,7 +137,7 @@ class LAppModel(L2DBaseModel):
     def SetScale(self, scale: float):
         self.matrixManager.setScale(scale)
 
-    def SetParameterValue(self, paramId: str, value: float, weight: float = 1.0):
+    def SetParamById(self, paramId: str, value: float, weight: float = 1.0):
         self.live2DModel.setParamFloat(paramId, value, weight)
         mdc = self.live2DModel.modelContext
         idx = mdc.getParamIndex(paramId)
@@ -133,33 +145,21 @@ class LAppModel(L2DBaseModel):
             mdc.savedParamValues[idx] = mdc.savedParamValues[idx] * (1 - weight) + value * weight
 
 
-    def AddParameterValue(self, paramId: str, value: float, weight: float = 1.0):
-        self.live2DModel.addToParamFloat(paramId, value, weight)
+    def AddParamById(self, paramId: str, value: float):
+        self.live2DModel.addToParamFloat(paramId, value, 1)
         mdc = self.live2DModel.modelContext
         idx = mdc.getParamIndex(paramId)
         if idx < len(mdc.savedParamValues):
-            mdc.savedParamValues[idx] = mdc.savedParamValues[idx] * (1 - weight) + value * weight
+            mdc.savedParamValues[idx] = value
 
-    def SetAutoBreathEnable(self, enable: bool):
+    def SetAutoBreath(self, enable: bool):
         self.autoBreath = enable
 
-    def SetAutoBlinkEnable(self, enable: bool):
+    def SetAutoBlink(self, enable: bool):
         self.autoBlink = enable
 
-    def GetParameterCount(self) -> int:
+    def GetParamCount(self) -> int:
         return len(self.live2DModel.getModelContext().paramIdList)
-
-    def GetParameter(self, index: int) -> Parameter:
-        p = Parameter()
-        p.value = self.live2DModel.getParamFloat(index)
-        p.max = self.live2DModel.getModelContext().getParamMax(index)
-        p.min = self.live2DModel.getModelContext().getParamMin(index)
-        inner_params = self.live2DModel.getModelImpl().paramDefSet.getParamDefFloatList()
-        is_inner = index < len(inner_params)
-        p.type = Parameter.TYPE_INNER if is_inner else Parameter.TYPE_OUTER
-        p.default = inner_params[index].defaultValue if is_inner else 0
-        p.id = self.live2DModel.getModelContext().paramIdList[index]
-        return p
 
     def GetPartCount(self) -> int:
         return len(self.live2DModel.getModelImpl().getPartsDataList())
@@ -241,25 +241,24 @@ class LAppModel(L2DBaseModel):
         no = int(random() * len(tmp))
         self.SetExpression(tmp[no])
 
-    def StartRandomMotion(self, name=None, priority=MotionPriority.IDLE, onStartMotionHandler=None,
-                          onFinishMotionHandler=None):
-        if name is None:
-            names = self.modelSetting.getMotionNames()
-            if names is not None:
-                name = choice(names)
+    def StartRandomMotion(self, group=None, priority=3, onStart=None, onFinish=None):
+        if group is None:
+            groups = self.modelSetting.getMotionNames()
+            if groups is not None:
+                group = choice(groups)
             else:
-                name = MotionPriority.IDLE
-        count = self.modelSetting.getMotionNum(name)
+                group = MotionPriority.IDLE
+        count = self.modelSetting.getMotionNum(group)
         no = int(random() * count)
-        self.StartMotion(name, no, priority, onStartMotionHandler, onFinishMotionHandler)
+        self.StartMotion(group, no, priority, onStart, onFinish)
 
-    def StartMotion(self, name, no, priority, onStartMotionHandler=None, onFinishMotionHandler=None):
-        motion_name = self.modelSetting.getMotionFile(name, no)
+    def StartMotion(self, group, no, priority=3, onStart=None, onFinish=None):
+        motion_name = self.modelSetting.getMotionFile(group, no)
         if motion_name is None or motion_name == "":
-            if callable(onStartMotionHandler):
-                onStartMotionHandler(name, no)
-            if callable(onFinishMotionHandler):
-                onFinishMotionHandler(name, no)
+            if callable(onStart):
+                onStart(group, no)
+            if callable(onFinish):
+                onFinish(group, no)
             return
 
         if priority == MotionPriority.FORCE:
@@ -267,19 +266,19 @@ class LAppModel(L2DBaseModel):
         elif not self.mainMotionManager.reserveMotion(priority):
             return
 
-        if self.motions.get(name) is None:
+        if self.motions.get(group) is None:
             mtn = self.loadMotion(None, self.modelHomeDir + motion_name)
         else:
-            mtn = self.motions[name]
+            mtn = self.motions[group]
 
-        self.curMotionGroup = name
+        self.curMotionGroup = group
         self.curMotionNo = no
-        self.curMotionFinishHandler = onFinishMotionHandler
+        self.curMotionFinishHandler = onFinish
 
-        if callable(onStartMotionHandler):
-            onStartMotionHandler(name, no)
-        log.LOGI(f"Start motion: {name} {no}")
-        self.__setFadeInFadeOut(name, no, priority, mtn)
+        if callable(onStart):
+            onStart(group, no)
+        log.LOGI(f"Start motion: {group} {no}")
+        self.__setFadeInFadeOut(group, no, priority, mtn)
 
     def SetExpression(self, name: str):
         motion = self.expressions[name]
@@ -294,15 +293,16 @@ class LAppModel(L2DBaseModel):
         self.live2DModel.setMatrix(tmp_matrix)
         self.live2DModel.draw()
 
-    def HitTest(self, hitAreaName: str, testX, testY) -> Union[str, None]:
+    def IsAreaHit(self, hitAreaName: str, testX, testY) -> bool:
         size = self.modelSetting.getHitAreaNum()
         for i in range(size):
             area_id = self.modelSetting.getHitAreaName(i)
+            if area_id != hitAreaName:
+                continue
             draw_id = self.modelSetting.getHitAreaID(i)
             if self.hitTestSimple(draw_id, testX, testY):
-                return area_id
-
-        return None
+                return True
+        return False
 
     def __preloadMotionGroup(self, name):
         for i in range(self.modelSetting.getMotionNum(name)):
@@ -384,7 +384,7 @@ class LAppModel(L2DBaseModel):
             return s <= 0 and t <= 0 and s + t >= D
         return s >= 0 and t >= 0 and s + t <= D
 
-    def setPartScreenColor(self, part_index: int, r: float, g: float, b: float, a: float):
+    def SetPartScreenColor(self, part_index: int, r: float, g: float, b: float, a: float):
         self.live2DModel.modelContext.setPartScreenColor(part_index, r, g, b, a)
 
     def GetPartScreenColor(self, part_index: int) -> List[float]:
@@ -406,7 +406,7 @@ class LAppModel(L2DBaseModel):
         """
         return self.live2DModel.modelContext.getPartMultiplyColor(part_index)
 
-    def ClearMotions(self):
+    def StopAllMotions(self):
         self.__clearFlag = True
     
     def ResetExpression(self):
@@ -432,8 +432,5 @@ class LAppModel(L2DBaseModel):
         self.live2DModel.createRenderer()
         self.flushPendingTextures()
 
-    def ReleaseRenderer(self):
-        self.live2DModel.releaseRenderer()
-
     def DestroyRenderer(self):
-        self.ReleaseRenderer()
+        self.live2DModel.releaseRenderer()

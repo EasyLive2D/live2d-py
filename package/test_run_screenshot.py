@@ -33,10 +33,10 @@ args = parser.parse_args()
 # ---- Import the right SDK ----
 if args.version == "v2cpp":
     import live2d.v2cpp as live2d
-    ModelClass = live2d.LAppModel
+    ModelClass = live2d.Model
 elif args.version == "v2":
     import live2d.v2 as live2d
-    ModelClass = live2d.LAppModel
+    ModelClass = live2d.Model
 else:
     import live2d.v3 as live2d
     ModelClass = live2d.Model
@@ -97,13 +97,8 @@ class Win(QOpenGLWidget):
         self.model = ModelClass()
         self.model.LoadModelJson(model_json)
         self.model.Resize(args.width, args.height)
-        if args.version == "v2":
-            # 纯 Python v2 参考实现保留旧命名
-            self.model.SetAutoBlinkEnable(False)
-            self.model.SetAutoBreathEnable(False)
-        else:
-            self.model.SetAutoBlink(False)
-            self.model.SetAutoBreath(False)
+        self.model.SetAutoBlink(False)
+        self.model.SetAutoBreath(False)
 
         if expr_name:
             self.model.SetExpression(expr_name)

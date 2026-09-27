@@ -13,7 +13,7 @@ def callback():
 
 
 class Win(QOpenGLWidget):
-    model: live2d.LAppModel
+    model: live2d.Model
 
     def __init__(self) -> None:
         super().__init__()

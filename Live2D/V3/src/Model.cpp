@@ -107,7 +107,7 @@ int Model::Version() const {
 
 void Model::Update(float deltaSecs) {
     if (deltaSecs < 0.0f) {
-        // 哨兵: 未传入 delta，内部自计时（clamp 0.1，等价原纯 Python LAppModel.Update）
+        // 哨兵: 未传入 delta，内部自计时（clamp 0.1）
         auto now = std::chrono::steady_clock::now();
         if (mLastUpdatePoint.time_since_epoch().count() != 0) {
             deltaSecs = (float)std::min(

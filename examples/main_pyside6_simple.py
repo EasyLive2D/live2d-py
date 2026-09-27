@@ -16,7 +16,7 @@ class Win(QOpenGLWidget):
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.resize(400, 500)
-        self.model: live2d.LAppModel | None = None
+        self.model: live2d.Model | None = None
 
     def initializeGL(self) -> None:
         # 将当前窗口作为 OpenGL 的上下文

@@ -25,7 +25,7 @@ class AppOgl(OpenGLFrame):
         live2d.init()
         live2d.glInit()
 
-        self.model = live2d.LAppModel()
+        self.model = live2d.Model()
         if live2d.LIVE2D_VERSION == 2:
             self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
         else:
