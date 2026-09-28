@@ -8,6 +8,13 @@ class Model:
     def LoadModelJson(self, path: str, create_renderer: bool = True) -> None:
         """Load model from .model.json file."""
         ...
+    def LoadFromJsonString(self, json_data: str, create_renderer: bool = True, root_path: str = "") -> None:
+        """Load model from an in-memory .model.json string; asset paths inside the json
+        are used as-is (absolute) or resolved against root_path (relative).
+
+        **IMPORTANT: json_data(str) must be indented due to CubismJson parsing defect**
+        """
+        ...
     def GetModelHomeDir(self) -> str:
         """Get model home directory."""
         ...

@@ -37,6 +37,15 @@ public:
      */
     void LoadModelJson(const char* filePath, bool createRenderer = true) override;
 
+    /**
+     * @brief 从内存中的 model3.json 文本加载；moc3/纹理/动作/表情/物理/姿态仍从磁盘读取:
+     *        json 内绝对路径原样使用，相对路径相对 rootPath 解析（rootPath 为空 = 相对 CWD）
+     * @param jsonData model3.json 的完整 UTF-8 文本
+     * @param rootPath 资源根目录（缺少尾部分隔符时自动补 '/'）
+     */
+    void LoadFromJsonString(const char* jsonData, bool createRenderer = true,
+                            const char* rootPath = "") override;
+
     const char* GetModelHomeDir() override;
 
     // 版本
@@ -68,7 +77,8 @@ public:
     // param
     int GetParameterCount() override;
 
-    void GetParameterIds(void* collector, void (*collect)(void* collector, const char* id)) override;
+    void GetParameterIds(void* collector,
+                         void (*collect)(void* collector, const char* id)) override;
 
     const char* GetParameterId(int index) override;
 
@@ -170,7 +180,8 @@ public:
 
     // part
     int GetPartCount() const override;
-    void GetPartIds(void* collector, void (*collect)(void* collector, const char* id)) const override;
+    void GetPartIds(void* collector,
+                    void (*collect)(void* collector, const char* id)) const override;
     const char* GetPartId(int index) const override;
     void SetPartOpacity(int index, float opacity) override;
     void SetPartScreenColor(int index, float r, float g, float b, float a) override;
@@ -205,8 +216,8 @@ public:
 
     int GetExpressionCount() override;
 
-    void GetExpressions(void* collector,
-                        void (*collect)(void* collector, const char* id, const char* file)) override;
+    void GetExpressions(void* collector, void (*collect)(void* collector, const char* id,
+                                                         const char* file)) override;
 
     void LoadExtraExpression(const char* expressionId, const char* expressionJsonPath) override;
 

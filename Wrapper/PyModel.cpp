@@ -77,6 +77,65 @@ static int CheckVersion(const char* jsonPath) {
     return -1;
 }
 
+// ---- 从内存 json 文本探测 moc 版本（rootPath 为资源根目录，可为空 = 相对 CWD）
+// json 内绝对路径原样使用；相对路径相对 rootPath 解析。任何失败返回 -1（不 abort）
+static int CheckVersionFromString(const char* jsonData, const char* rootPath) {
+    if (jsonData == nullptr) {
+        return -1;
+    }
+    json data = json::parse(jsonData, nullptr, false);
+    if (data.is_discarded() || !data.is_object()) {
+        LOGE("invalid model json string");
+        return -1;
+    }
+
+    std::filesystem::path root = std::filesystem::u8path(rootPath ? rootPath : "");
+    auto joinMoc = [&](const std::string& mocPath) -> std::filesystem::path {
+        std::filesystem::path mp = std::filesystem::u8path(mocPath);
+        if (mp.is_absolute() || (!mocPath.empty() && (mocPath[0] == '/' || mocPath[0] == '\\'))) {
+            return mp;
+        }
+        return root / mp;
+    };
+
+    // v2: 顶层 "model" 字段，moc 魔数 3 字节
+    if (auto modelIt = data.find("model"); modelIt != data.end() && modelIt->is_string()) {
+        auto mocPath = modelIt->get<std::string>();
+        std::ifstream mocFile(joinMoc(mocPath), std::ios::binary);
+        if (mocFile) {
+            char moc[3] = {};
+            mocFile.read(moc, 3);
+            if (mocFile.gcount() == 3 && memcmp(moc, "moc", 3) == 0) {
+                return 2;
+            }
+            LOGE("%s is not a valid moc", mocPath.c_str());
+        } else {
+            LOGE("cannot open %s", mocPath.c_str());
+        }
+        return -1;   // v2 判定失败后不再落到 v3 分支
+    }
+
+    // v3: FileReferences.Moc，moc3 魔数 4 字节
+    if (auto frIt = data.find("FileReferences"); frIt != data.end() && frIt->is_object()) {
+        if (auto mocIt = frIt->find("Moc"); mocIt != frIt->end() && mocIt->is_string()) {
+            auto mocPath = mocIt->get<std::string>();
+            std::ifstream mocFile(joinMoc(mocPath), std::ios::binary);
+            if (mocFile) {
+                char moc[4] = {};
+                mocFile.read(moc, 4);
+                if (mocFile.gcount() == 4 && memcmp(moc, "MOC3", 4) == 0) {
+                    return 3;
+                }
+                LOGE("%s is not a valid moc3", mocPath.c_str());
+            } else {
+                LOGE("cannot open %s", mocPath.c_str());
+            }
+        }
+    }
+    LOGE("cannot determine model version from json string");
+    return -1;
+}
+
 // ---- Callback helpers (Python → C++ conversion) ----
 static auto MakeMotionCallback(PyObject* cb, PyModelObject* self, bool isOnStart) -> std::function<void(const std::string&, int)> {
     if (!cb || Py_IsNone(cb) || !PyCallable_Check(cb))
@@ -162,6 +221,39 @@ static PyObject* PyModel_LoadModelJson(PyModelObject* self, PyObject* args, PyOb
     LOGI("allocate: cpp Model(at=%p, version=%d)", self->model, version);
 
     self->model->LoadModelJson(modelJsonPath, createRenderer);
+    Py_RETURN_NONE;
+}
+static PyObject* PyModel_LoadFromJsonString(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+    if (self->model != nullptr) {
+        LOGE("model already loaded: %s", self->model->GetModelHomeDir());
+        Py_RETURN_NONE;
+    }
+
+    const char* jsonData;
+    const char* rootPath = "";
+    bool createRenderer = true;
+    static const char* kwlist[] = {"json_data", "create_renderer", "root_path", nullptr};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s|bs", const_cast<char**>(kwlist), &jsonData,
+                                     &createRenderer, &rootPath)) {
+        PyErr_SetString(PyExc_TypeError, "argument 1 and 2 must be str");
+        return NULL;
+    }
+
+    int version = CheckVersionFromString(jsonData, rootPath);
+    if (version < 0) {
+        PyErr_Format(PyExc_ValueError,
+                     "cannot determine model version from json string (root_path=%s)", rootPath);
+        return NULL;
+    }
+
+    if (version == 2) {
+        self->model = new V2::Model();
+    } else if (version == 3) {
+        self->model = new V3::Model();
+    }
+    LOGI("allocate: cpp Model(at=%p, version=%d)", self->model, version);
+
+    self->model->LoadFromJsonString(jsonData, createRenderer, rootPath);
     Py_RETURN_NONE;
 }
 static PyObject* PyModel_GetModelHomeDir(PyModelObject* self, PyObject* args, PyObject* kwargs) {
@@ -1079,6 +1171,10 @@ static PyObject* PyModel_HasMocConsistencyFromFile(PyModelObject* self, PyObject
 
 static PyMethodDef PyModel_Methods[] = {
     {"LoadModelJson", (PyCFunction)PyModel_LoadModelJson, METH_VARARGS | METH_KEYWORDS, nullptr},
+    {"LoadFromJsonString",
+     (PyCFunction)PyModel_LoadFromJsonString,
+     METH_VARARGS | METH_KEYWORDS,
+     nullptr},
     {"GetModelHomeDir",
      (PyCFunction)PyModel_GetModelHomeDir,
      METH_VARARGS | METH_KEYWORDS,

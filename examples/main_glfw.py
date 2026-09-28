@@ -20,6 +20,46 @@ import OpenGL.GL as GL
 live2d.enableLog(True)
 live2d.setLogLevel(live2d.LogLevels.LV_DEBUG)
 
+LOAD_FROM_JSON = True
+LIVE2D_VERSION = 2
+
+
+def load_from_json_string():
+    from live2d.utils.model_json import Motion, ModelJson
+    m = ModelJson(version=3)
+    m.model = "Haru.moc3"
+    m.textures = [
+        "Haru.2048/texture_00.png",
+        "Haru.2048/texture_01.png",
+    ]
+    m.physics = "Haru.physics3.json"
+    m.pose = "Haru.pose3.json"
+    m.display_info = "Haru.cdi3.json"
+    m.user_data = "Haru.userdata3.json"
+
+    for i in range(1, 3):
+        m.add_expression(f"F{i:02d}", f"expressions/F{i:02d}.exp3.json")
+
+    m.add_motion("Idle", Motion("motions/haru_g_idle.motion3.json", 0.5, 0.5))
+    m.add_motion(
+        "TapBody",
+        Motion(
+            "motions/haru_g_m26.motion3.json",
+            0.5,
+            0.5,
+            sound="sounds/haru_talk_13.wav",
+        ),
+    )
+
+    m.add_group("Parameter", "EyeBlink", ["ParamEyeLOpen", "ParamEyeROpen"])
+    m.add_group("Parameter", "LipSync", ["ParamMouthOpenY"])
+    m.add_hit_area("HitArea", "Head")
+    m.add_hit_area("HitArea2", "Body")
+
+    model = live2d.Model()
+    model.LoadFromJsonString(m.to_string(), root_path=resources.RESOURCES_DIRECTORY + "/v3/Haru", create_renderer=False)
+    return model
+
 
 def main():
     if not glfw.init():
@@ -35,15 +75,18 @@ def main():
     live2d.init()
     live2d.glInit()
 
-    model = live2d.Model()
-    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
-    model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/haru/haru.model3.json"), create_renderer=False)
-    # model.CreateRenderer()
-    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"),
-    #                     create_renderer=False)  # Load model without creating renderer
-    print("load json")
+    model = None
+    if LOAD_FROM_JSON:
+        model = load_from_json_string()
+    elif LIVE2D_VERSION == 3:
+        model = live2d.Model()
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/haru/haru.model3.json"), create_renderer=False)
+    elif LIVE2D_VERSION == 2:
+        model = live2d.Model()
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"),
+                            create_renderer=False)  # Load model without creating renderer
     model.CreateRenderer()
-    print("create renderer")
 
     model.Resize(*display)
 

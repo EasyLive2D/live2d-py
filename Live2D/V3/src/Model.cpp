@@ -17,6 +17,7 @@
 
 
 #include <algorithm>
+#include <cstring>
 #include <filesystem>
 #include <functional>
 #include <unordered_set>
@@ -45,6 +46,25 @@ void LoadAssets(const std::string& filePath,
     afterLoadCallback(buffer, bufferSize);
 
     LAppPal::ReleaseBytes(buffer);
+}
+
+// root_path → 资源根目录（保证以 '/' 结尾；空串原样返回 = 相对当前工作目录）
+std::string NormalizeModelHomeDir(const char* rootPath) {
+    std::string dir(rootPath ? rootPath : "");
+    if (!dir.empty() && dir.back() != '/' && dir.back() != '\\') {
+        dir += '/';
+    }
+    return dir;
+}
+
+// homeDir 已含尾部 '/'；rel 为绝对路径（含 '/' '\' 开头）时原样返回
+csmString JoinPath(const csmString& homeDir, const char* rel) {
+    if (rel == nullptr || rel[0] == '\0')
+        return csmString(rel ? rel : "");
+    std::filesystem::path p = std::filesystem::u8path(rel);
+    if (p.is_absolute() || rel[0] == '/' || rel[0] == '\\')
+        return csmString(rel);
+    return homeDir + rel;
 }
 }   // namespace
 
@@ -90,6 +110,37 @@ void Model::LoadModelJson(const char* filePath, bool createRenderer) {
     LoadAssets(filePath, [&](csmByte* buffer, csmSizeInt size) {
         mModelSetting = new CubismModelSettingJson(buffer, size);
     });
+
+    SetupModel();
+
+    if (createRenderer) {
+        CreateRenderer(1);
+    }
+}
+
+void Model::LoadFromJsonString(const char* jsonData, bool createRenderer, const char* rootPath) {
+    if (mModelSetting != nullptr) {
+        LOGE("model already loaded");
+        return;
+    }
+    if (jsonData == nullptr || jsonData[0] == '\0') {
+        LOGE("model json string is empty");
+        return;
+    }
+
+    const std::string homeDir = NormalizeModelHomeDir(rootPath);
+    mModelHomeDir = homeDir.c_str();   // csmString::operator= 深拷贝，homeDir 可安全析构
+    LOGI("load modelSetting from json string (home: %s)", mModelHomeDir.GetRawString());
+
+    auto* setting = new CubismModelSettingJson(reinterpret_cast<const csmByte*>(jsonData),
+                                               static_cast<csmSizeInt>(strlen(jsonData)));
+    if (!setting->IsValid()) {
+        // 解析失败时 _jsonValue 为空，任何 accessor 都会越界 → 必须在这里拦下
+        LOGE("Failed to parse model json string");
+        delete setting;
+        return;
+    }
+    mModelSetting = setting;
 
     SetupModel();
 
@@ -173,7 +224,7 @@ void Model::SetupModel() {
     // moc3
     if (strcmp(mModelSetting->GetModelFileName(), "") != 0) {
         csmString path = mModelSetting->GetModelFileName();
-        path = mModelHomeDir + path;
+        path = JoinPath(mModelHomeDir, path.GetRawString());
 
         LOGI("create model: %s", mModelSetting->GetModelFileName());
 
@@ -191,7 +242,7 @@ void Model::SetupModel() {
         const csmInt32 count = mModelSetting->GetExpressionCount();
         for (csmInt32 i = 0; i < count; i++) {
             csmString name = mModelSetting->GetExpressionName(i);
-            csmString path = mModelHomeDir + mModelSetting->GetExpressionFileName(i);
+            csmString path = JoinPath(mModelHomeDir, mModelSetting->GetExpressionFileName(i));
 
             LoadAssets(path.GetRawString(), [&](csmByte* buffer, csmSizeInt size) {
                 ACubismMotion* motion = mProxy.LoadExpression(buffer, size, name.GetRawString());
@@ -214,7 +265,7 @@ void Model::SetupModel() {
 
     // physics3.json
     if (strcmp(mModelSetting->GetPhysicsFileName(), "") != 0) {
-        csmString path = mModelHomeDir + mModelSetting->GetPhysicsFileName();
+        csmString path = JoinPath(mModelHomeDir, mModelSetting->GetPhysicsFileName());
 
         LoadAssets(path.GetRawString(),
                    [&](csmByte* buffer, csmSizeInt size) { mProxy.LoadPhysics(buffer, size); });
@@ -222,7 +273,7 @@ void Model::SetupModel() {
 
     // pose3.json
     if (strcmp(mModelSetting->GetPoseFileName(), "") != 0) {
-        csmString path = mModelHomeDir + mModelSetting->GetPoseFileName();
+        csmString path = JoinPath(mModelHomeDir, mModelSetting->GetPoseFileName());
 
         LoadAssets(path.GetRawString(),
                    [&](csmByte* buffer, csmSizeInt size) { mProxy.LoadPose(buffer, size); });
@@ -255,7 +306,7 @@ void Model::SetupModel() {
 
     // UserData
     if (strcmp(mModelSetting->GetUserDataFile(), "") != 0) {
-        csmString path = mModelHomeDir + mModelSetting->GetUserDataFile();
+        csmString path = JoinPath(mModelHomeDir, mModelSetting->GetUserDataFile());
         LoadAssets(path.GetRawString(),
                    [&](csmByte* buffer, csmSizeInt size) { mProxy.LoadUserData(buffer, size); });
     }
@@ -579,7 +630,7 @@ void Model::StartMotion(const std::string& group, int no, int priority, MotionCa
 
         csmString path = fileName;
 
-        path = mModelHomeDir + path;
+        path = JoinPath(mModelHomeDir, path.GetRawString());
 
         LoadAssets(path.GetRawString(), [&](csmByte* buffer, csmSizeInt size) {
             motion = static_cast<CubismMotion*>(mProxy.LoadMotion(buffer, size, NULL));
@@ -1258,7 +1309,7 @@ bool Model::AutoBlinkEnabled() const {
 bool Model::HasMocConsistencyFromFile(const char* mocFileName) {
     if (!mocFileName || !*mocFileName)
         return false;
-    csmString path = mModelHomeDir + mocFileName;
+    csmString path = JoinPath(mModelHomeDir, mocFileName);
     csmSizeInt size;
     csmByte* buffer = LAppPal::LoadFileAsBytes(path.GetRawString(), &size);
     if (!buffer)
@@ -1303,7 +1354,7 @@ void Model::SetupTextures() {
         }
 
         csmString texturePath = mModelSetting->GetTextureFileName(modelTextureNumber);
-        texturePath = mModelHomeDir + texturePath;
+        texturePath = JoinPath(mModelHomeDir, texturePath.GetRawString());
 
         // 已经加载过的纹理会直接复用
         LAppTextureManager::TextureInfo* texture =
@@ -1334,7 +1385,7 @@ void Model::PreloadMotionGroup(const csmChar* group) {
         // ex) idle_0
         csmString name = Utils::CubismString::GetFormatedString("%s_%d", group, i);
         csmString path = mModelSetting->GetMotionFileName(group, i);
-        path = mModelHomeDir + path;
+        path = JoinPath(mModelHomeDir, path.GetRawString());
 
         LOGI("load motion: %s => [%s_%d] ", path.GetRawString(), group, i);
 

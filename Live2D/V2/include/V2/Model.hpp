@@ -22,6 +22,8 @@ public:
 
     // ---- IModel ----
     void LoadModelJson(const char* path, bool createRenderer = true) override;
+    void LoadFromJsonString(const char* jsonData, bool createRenderer = true,
+                            const char* rootPath = "") override;
     const char* GetModelHomeDir() override;
 
     // 版本
@@ -38,7 +40,8 @@ public:
     void UpdatePose(float deltaSecs) override;
 
     int GetParameterCount() override;
-    void GetParameterIds(void* collector, void (*collect)(void* collector, const char* id)) override;
+    void GetParameterIds(void* collector,
+                         void (*collect)(void* collector, const char* id)) override;
     const char* GetParameterId(int index) override;
     float GetParameterValue(int index) override;
     float GetParameterMaximumValue(int index) override;
@@ -66,8 +69,7 @@ public:
     const float* GetMvp() override;
 
     void StartMotion(const std::string& group, int no, int priority = 3,
-                     MotionCallback onStart = nullptr,
-                     MotionCallback onFinish = nullptr) override;
+                     MotionCallback onStart = nullptr, MotionCallback onFinish = nullptr) override;
     void StartRandomMotion(const std::string& group = "", int priority = 3,
                            MotionCallback onStart = nullptr,
                            MotionCallback onFinish = nullptr) override;
@@ -76,15 +78,14 @@ public:
     int GetMotionGroupCount() override;
     int GetMotionCount(const char* group) override;
     const char* GetMotionSound(const char* group, int no) override;
-    void GetMotions(void* collector,
-                    void (*collect)(void* collector, const char* group, int no, const char* file,
-                                    const char* sound)) override;
+    void GetMotions(void* collector, void (*collect)(void* collector, const char* group, int no,
+                                                     const char* file, const char* sound)) override;
     void StopAllMotions() override;
     void ResetAllParameters() override;
     void ResetPose() override;
 
-    void HitPart(float x, float y, void* collector, void (*collect)(void* collector, const char* id),
-                 bool topOnly = false) override;
+    void HitPart(float x, float y, void* collector,
+                 void (*collect)(void* collector, const char* id), bool topOnly = false) override;
     void HitDrawable(float x, float y, void* collector,
                      void (*collect)(void* collector, const char* id),
                      bool topOnly = false) override;
@@ -98,7 +99,8 @@ public:
     void Draw() override;
 
     int GetPartCount() const override;
-    void GetPartIds(void* collector, void (*collect)(void* collector, const char* id)) const override;
+    void GetPartIds(void* collector,
+                    void (*collect)(void* collector, const char* id)) const override;
     const char* GetPartId(int index) const override;
     void SetPartOpacity(int index, float val) override;
     void SetPartScreenColor(int index, float r, float g, float b, float a) override;
@@ -122,8 +124,8 @@ public:
     void ResetExpressions() override;
     void ResetExpression() override;
     int GetExpressionCount() override;
-    void GetExpressions(void* collector,
-                        void (*collect)(void* collector, const char* id, const char* file)) override;
+    void GetExpressions(void* collector, void (*collect)(void* collector, const char* id,
+                                                         const char* file)) override;
     void LoadExtraExpression(const char* expressionId, const char* expressionJsonPath) override;
 
     void GetCanvasSize(float& w, float& h) override;
@@ -145,16 +147,20 @@ private:
     // wantDrawableId=false 返回 part id，true 返回 drawData id
     std::vector<std::string> hitIds(float x, float y, bool topOnly, bool wantDrawableId);
 
+    // jsonText: model json 完整文本；homeDir: 资源根目录（含尾部分隔符，可为空串）
+    void LoadModelJsonImpl(const std::string& jsonText, const std::string& homeDir,
+                           bool createRenderer);
+
     L2DTargetPoint mDragMgr;
     MatrixManagerV2 mMatrixManager;
     // Model 是唯一读墙钟的地方，且只做一件事: 墙钟路径每帧算一次 dt
     //（delta 路径直接用传入值）。子系统全部收 dt、内部累计 elapsed。
-    float mBreathTimeMs = 0;       // 呼吸动画累计（Model 自己的逻辑）
-    float mLastFrameTimeMs = 0;    // 墙钟路径上一帧时间戳（算 dt 用）
-    float mOffsetX = 0, mOffsetY = 0;              // SetOffsetX/Y 跟踪
-    float mFadeoutMs = -1.0f;                      // 表情 fadeout 时长（<0 关闭）
-    float mFadeoutElapsedMs = 0;                   // fadeout 已累计
-    std::string mLastExpression;                   // 持久表情（fadeout 结束后恢复）
+    float mBreathTimeMs = 0;            // 呼吸动画累计（Model 自己的逻辑）
+    float mLastFrameTimeMs = 0;         // 墙钟路径上一帧时间戳（算 dt 用）
+    float mOffsetX = 0, mOffsetY = 0;   // SetOffsetX/Y 跟踪
+    float mFadeoutMs = -1.0f;           // 表情 fadeout 时长（<0 关闭）
+    float mFadeoutElapsedMs = 0;        // fadeout 已累计
+    std::string mLastExpression;        // 持久表情（fadeout 结束后恢复）
     bool mAutoBreath = true, mAutoBlink = true;
     bool mClearFlag = false;
     std::string mModelHomeDir;

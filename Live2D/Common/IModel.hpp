@@ -28,6 +28,10 @@ public:
 
     // ---- 加载 ----
     virtual void LoadModelJson(const char* filePath, bool createRenderer = true) = 0;
+    // json 内容在内存中（UTF-8），其余资源（moc/moc3、纹理、动作、表情、物理、姿态）仍从磁盘读取:
+    // json 内绝对路径原样使用；相对路径相对 rootPath 解析（rootPath 为空/省略 = 相对进程 CWD）
+    virtual void LoadFromJsonString(const char* jsonData,
+                                    bool createRenderer = true, const char* rootPath = "") = 0;
     virtual const char* GetModelHomeDir() = 0;
 
     // ---- 更新 ----

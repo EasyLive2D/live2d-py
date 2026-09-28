@@ -49,6 +49,16 @@ static std::vector<uint8_t> readFile(const std::string& path) {
     return data;
 }
 
+// homeDir 已含尾部分隔符（可为空串）；rel 为绝对路径（含 '/' '\' 开头）时原样返回
+static std::string JoinPath(const std::string& homeDir, const std::string& rel) {
+    if (rel.empty())
+        return rel;
+    std::filesystem::path p = std::filesystem::u8path(rel);
+    if (p.is_absolute() || rel[0] == '/' || rel[0] == '\\')
+        return rel;
+    return homeDir + rel;
+}
+
 // Simple JSON texture path extractor
 static void parseTexturePaths(const json& data, std::vector<std::string>& texPaths) {
     auto textures = data.find("textures");
@@ -62,22 +72,59 @@ Model::Model()
 Model::~Model() = default;
 
 void Model::LoadModelJson(const char* path, bool createRenderer) {
-    const std::string pathStr(path);
+    const std::string pathStr(path ? path : "");
 
-    // Read JSON (use filesystem for Unicode path support)
-    std::filesystem::path fp = std::filesystem::u8path(pathStr);
-    std::ifstream f(fp);
-    auto data = json::parse(f);
-    f.close();
+    // 复用 readFile（u8path + 缺失文件返回空 vector 而不是抛异常）
+    auto bytes = readFile(pathStr);
+    if (bytes.empty()) {
+        LOGE("Failed to read model json: %s", pathStr.c_str());
+        return;
+    }
+    const std::string jsonText(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+
+    // 资源根目录 = json 所在目录（含尾部分隔符）
+    LoadModelJsonImpl(jsonText, pathStr.substr(0, pathStr.find_last_of("/\\") + 1), createRenderer);
+}
+
+void Model::LoadFromJsonString(const char* jsonData, bool createRenderer, const char* rootPath) {
+    if (jsonData == nullptr) {
+        LOGE("model json string is null");
+        return;
+    }
+
+    // root_path → 资源根目录（补尾部分隔符；空串 = 相对当前工作目录）
+    std::string homeDir(rootPath ? rootPath : "");
+    if (!homeDir.empty() && homeDir.back() != '/' && homeDir.back() != '\\') {
+        homeDir += '/';
+    }
+
+    LoadModelJsonImpl(std::string(jsonData), homeDir, createRenderer);
+}
+
+void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& homeDir,
+                              bool createRenderer) {
+    // Read JSON（不抛异常；畸形输入走 discarded）
+    json data = json::parse(jsonText, nullptr, false);
+    if (data.is_discarded() || !data.is_object()) {
+        LOGE("invalid model json");
+        return;
+    }
 
     // Get base directory and load .moc from JSON model field
-    mModelHomeDir = pathStr.substr(0, pathStr.find_last_of("/\\") + 1);
+    mModelHomeDir = homeDir;
     LOGI("Model home directory: %s", mModelHomeDir.c_str());
-    std::string mocPath = mModelHomeDir + data["model"].get<std::string>();
+
+    auto modelIt = data.find("model");
+    if (modelIt == data.end() || !modelIt->is_string()) {
+        LOGE("model json has no \"model\" field");
+        return;
+    }
+    std::string mocPath = JoinPath(mModelHomeDir, modelIt->get<std::string>());
 
     auto mocData = readFile(mocPath);
     if (mocData.empty()) {
         LOGE("Failed to read .moc file: %s", mocPath.c_str());
+        return;
     }
     loadModelData(mocData, 0);
     mModelMatrix.mWidth = (float)mModelImpl->getCanvasWidth();
@@ -91,7 +138,7 @@ void Model::LoadModelJson(const char* path, bool createRenderer) {
     auto physics = data.find("physics");
     if (physics != data.end() && physics->is_string()) {
         auto phyFile = physics->get<std::string>();
-        auto phyData = readFile(mModelHomeDir + phyFile);
+        auto phyData = readFile(JoinPath(mModelHomeDir, phyFile));
         if (!phyData.empty()) {
             LOGI("Load physics: %s", phyFile.c_str());
             loadPhysics(phyData);
@@ -103,7 +150,7 @@ void Model::LoadModelJson(const char* path, bool createRenderer) {
     auto pose = data.find("pose");
     if (pose != data.end() && pose->is_string()) {
         auto poseFile = pose->get<std::string>();
-        auto posePath = mModelHomeDir + poseFile;
+        auto posePath = JoinPath(mModelHomeDir, poseFile);
         auto poseData = readFile(posePath);
         if (!poseData.empty()) {
             LOGI("Load pose: %s", poseFile.c_str());
@@ -122,7 +169,7 @@ void Model::LoadModelJson(const char* path, bool createRenderer) {
             auto& motVec = mMotions[groupName];
             for (auto& motionEntry : motionArray) {
                 auto motFile = motionEntry["file"].get<std::string>();
-                auto motPath = mModelHomeDir + motFile;
+                auto motPath = JoinPath(mModelHomeDir, motFile);
                 auto motData = readFile(motPath);
                 if (!motData.empty()) {
                     auto* motion = Live2DMotion::load(motData);
@@ -146,7 +193,7 @@ void Model::LoadModelJson(const char* path, bool createRenderer) {
     if (expressions != data.end()) {
         for (auto& [index, expEntry] : expressions->items()) {
             auto expFile = expEntry["file"].get<std::string>();
-            auto expPath = mModelHomeDir + expFile;
+            auto expPath = JoinPath(mModelHomeDir, expFile);
             auto expData = readFile(expPath);
             auto expName = expEntry["name"].get<std::string>();
             if (!expData.empty()) {
@@ -683,7 +730,7 @@ void Model::CreateRenderer(int maskBufferCount) {
     }
     mRenderer = std::make_unique<GLRenderer>(mModelContext.get(), (int)mTexturePaths.size());
     for (size_t i = 0; i < mTexturePaths.size(); i++) {
-        std::string texPath = mModelHomeDir + mTexturePaths[i];
+        std::string texPath = JoinPath(mModelHomeDir, mTexturePaths[i]);
         int w, h, n;
         auto texData = readFile(texPath);
         unsigned char* pixels =
