@@ -104,6 +104,7 @@ class Canvas:
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, 6)
         GL.glBindVertexArray(0)
+        GL.glUseProgram(0)
     
     def SetOutputOpacity(self, value):
         self.__canvas_opacity = value

@@ -55,3 +55,4 @@ class Image:
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.texture)
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, 6)
         GL.glBindVertexArray(0)
+        GL.glUseProgram(0)
