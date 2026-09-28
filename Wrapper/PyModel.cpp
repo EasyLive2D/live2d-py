@@ -15,6 +15,18 @@ using namespace nlohmann;
 using namespace Live2D;
 using namespace Live2D::Common::Log;
 
+
+class PyGILGuard {
+public:
+    PyGILGuard() : mGILState(PyGILState_Ensure()) {}
+    ~PyGILGuard() { PyGILState_Release(mGILState); }
+
+    PyGILGuard(const PyGILGuard&) = delete;
+    PyGILGuard& operator=(const PyGILGuard&) = delete;
+private:
+    PyGILState_STATE mGILState;
+};
+
 // ---- Check moc file version
 static int CheckVersion(const char* jsonPath) {
     std::filesystem::path jp = std::filesystem::u8path(jsonPath);
@@ -66,29 +78,64 @@ static int CheckVersion(const char* jsonPath) {
 }
 
 // ---- Callback helpers (Python → C++ conversion) ----
-static auto MakeMotionCallback(PyObject* cb) -> std::function<void(const std::string&, int)> {
+static auto MakeMotionCallback(PyObject* cb, PyModelObject* self, bool isOnStart) -> std::function<void(const std::string&, int)> {
     if (!cb || Py_IsNone(cb) || !PyCallable_Check(cb))
         return nullptr;
     Py_INCREF(cb);
-    return [cb](const std::string& g, int n) {
-        PyGILState_STATE s = PyGILState_Ensure();
+    PyObject* lastCb;
+    if (isOnStart) {
+        lastCb = self->onStart;
+        self->onStart = cb;
+    } else {
+        lastCb = self->onFinish;
+        self->onFinish = cb;
+    }
+    if (lastCb) {
+        Py_XDECREF(lastCb);
+    }
+
+    return [self, isOnStart](const std::string& g, int n) {
+        PyGILGuard GIL;
+        PyObject* cb;
+        if (isOnStart) {
+            cb = self->onStart;
+            self->onStart = nullptr;
+        } else {
+            cb = self->onFinish;
+            self->onFinish = nullptr;
+        }
+        if (!cb) {
+            return;
+        }
         PyObject* r = PyObject_CallFunction(cb, "si", g.c_str(), n);
         if (r)
             Py_DECREF(r);
         else
             PyErr_Print();
         Py_XDECREF(cb);
-        PyGILState_Release(s);
     };
 }
 
 static PyObject* PyModel_Init(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     self->model = nullptr;
+    self->onStart = nullptr;
+    self->onFinish = nullptr;
     return 0;
 }
 static void PyModel_Dealloc(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     LOGI("deallocate: cpp Model(at=%p)", self->model);
     delete self->model;
+    // fix uncalled callback leak
+    if (self->onStart != nullptr) {
+        Py_XDECREF(self->onStart);
+        self->onStart = nullptr;
+        LOGI("release uncalled onStart");
+    }
+    if (self->onFinish != nullptr) {
+        Py_XDECREF(self->onFinish);
+        self->onFinish = nullptr;
+        LOGI("release uncalled onFinish");
+    }
     LOGI("deallocate: PyModelObject(at=%p)", self);
     PyObject_Free(self);
 }
@@ -518,8 +565,8 @@ static PyObject* PyModel_StartMotion(PyModelObject* self, PyObject* args, PyObje
     self->model->StartMotion(group,
                              no,
                              priority,
-                             MakeMotionCallback(onStartHandler),
-                             MakeMotionCallback(onFinishHandler));
+                             MakeMotionCallback(onStartHandler, self, true),
+                             MakeMotionCallback(onFinishHandler, self, false));
     Py_RETURN_NONE;
 }
 static PyObject* PyModel_StartRandomMotion(PyModelObject* self, PyObject* args, PyObject* kwargs) {
@@ -544,8 +591,8 @@ static PyObject* PyModel_StartRandomMotion(PyModelObject* self, PyObject* args, 
 
     self->model->StartRandomMotion(group ? group : "",
                                    priority,
-                                   MakeMotionCallback(onStartHandler),
-                                   MakeMotionCallback(onFinishHandler));
+                                   MakeMotionCallback(onStartHandler, self, true),
+                                   MakeMotionCallback(onFinishHandler, self, false));
     Py_RETURN_NONE;
 }
 static PyObject* PyModel_IsMotionFinished(PyModelObject* self, PyObject* args, PyObject* kwargs) {

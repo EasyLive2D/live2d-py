@@ -77,6 +77,12 @@ class GLWidget(QOpenGLWidget):
         # 设置窗口尺寸
         self.setMinimumSize(800, 600)
         self.model = live2d.Model()
+
+    def closeEvent(self, event):
+        if self.model:
+            del self.model
+            self.model = None
+        return super().closeEvent(event)
     
     def initializeGL(self):
         # 创建ModernGL上下文

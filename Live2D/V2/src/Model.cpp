@@ -454,10 +454,10 @@ void Model::StartMotion(const std::string& group, int no, int priority, MotionCa
         mCurrentMotionNo = no;
         if (mOnStartMotion)
             mOnStartMotion(group, no);
-        LOGI("Start motion: group=%s no=%d priority=%d", group.c_str(), no, priority);
+        LOGD("Start motion: group=%s no=%d priority=%d", group.c_str(), no, priority);
         mMainMotionMgr->startMotionPrio(it->second[no].get(), priority);
     } else {
-        LOGI("Start motion: group=%s not found or empty", group.c_str());
+        LOGD("Start motion: group=%s not found or empty", group.c_str());
         if (mOnStartMotion)
             mOnStartMotion(group, no);
         if (mOnFinishMotion)
