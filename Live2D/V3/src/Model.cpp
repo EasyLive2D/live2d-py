@@ -1,4 +1,5 @@
 ﻿#include "V3/Model.hpp"
+#include "IModel.hpp"
 #include "Motion/ACubismMotion.hpp"
 
 #include <CubismDefaultParameterId.hpp>
@@ -11,7 +12,6 @@
 #include <Utils/CubismString.hpp>
 
 
-#include <LAppDefine.hpp>
 #include <LAppPal.hpp>
 #include <Log.hpp>
 
@@ -24,7 +24,6 @@
 
 
 using namespace Live2D::Cubism::Framework;
-using namespace LAppDefine;
 using namespace Live2D::Cubism::Framework::DefaultParameterId;
 using namespace Live2D::Cubism::Core;
 using namespace Live2D::Common::Log;
@@ -605,7 +604,7 @@ void MotionFinishedHandler(ACubismMotion* motion) {
 
 void Model::StartMotion(const std::string& group, int no, int priority, MotionCallback onStart,
                         MotionCallback onFinish) {
-    if (priority == PriorityForce) {
+    if (priority == MotionPriority::Force) {
         mProxy._motionManager->SetReservePriority(priority);
     } else if (!mProxy._motionManager->ReserveMotion(priority)) {
         LOGI("motion priority is too low.");
@@ -671,7 +670,7 @@ handler_label:
         if (onFinish) {
             onFinish(group, no);
         }
-        mProxy._motionManager->SetReservePriority(PriorityNone);
+        mProxy._motionManager->SetReservePriority(MotionPriority::None);
     }
 
     mProxy._motionManager->StartMotionPriority(motion, autoDelete, priority);

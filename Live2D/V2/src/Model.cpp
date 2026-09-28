@@ -1,4 +1,5 @@
 #include "V2/Model.hpp"
+#include "IModel.hpp"
 #include "Id.hpp"
 #include "PartsData.hpp"
 #include "PartsDataContext.hpp"
@@ -477,7 +478,7 @@ void Model::StartMotion(const std::string& group, int no, int priority, MotionCa
             no = 0;
 
         // Priority check (match Python v2)
-        if (priority == 3 /* FORCE */) {
+        if (priority == MotionPriority::Force) {
             LOGI("Start motion (force): group=%s no=%d priority=%d", group.c_str(), no, priority);
             mMainMotionMgr->setReservePriority(priority);
         } else if (!mMainMotionMgr->reserveMotion(priority)) {

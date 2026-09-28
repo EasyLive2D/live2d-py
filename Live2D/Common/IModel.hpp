@@ -12,6 +12,12 @@
 
 namespace Live2D {
 
+namespace MotionPriority {
+constexpr int None = 0;
+constexpr int Normal = 1;
+constexpr int Force = 3;
+};   // namespace MotionPriority
+
 /**
  * @brief V2 / V3 模型统一接口（以 V3 暴露给 Python 的 API 为基准）。
  *
@@ -30,8 +36,8 @@ public:
     virtual void LoadModelJson(const char* filePath, bool createRenderer = true) = 0;
     // json 内容在内存中（UTF-8），其余资源（moc/moc3、纹理、动作、表情、物理、姿态）仍从磁盘读取:
     // json 内绝对路径原样使用；相对路径相对 rootPath 解析（rootPath 为空/省略 = 相对进程 CWD）
-    virtual void LoadFromJsonString(const char* jsonData,
-                                    bool createRenderer = true, const char* rootPath = "") = 0;
+    virtual void LoadFromJsonString(const char* jsonData, bool createRenderer = true,
+                                    const char* rootPath = "") = 0;
     virtual const char* GetModelHomeDir() = 0;
 
     // ---- 更新 ----
@@ -78,13 +84,10 @@ public:
     virtual const float* GetMvp() = 0;
 
     // ---- 动作 ----
-    virtual void StartMotion(const std::string& group,
-                             int no,
-                             int priority = 3,
+    virtual void StartMotion(const std::string& group, int no, int priority = 3,
                              MotionCallback onStart = nullptr,
                              MotionCallback onFinish = nullptr) = 0;
-    virtual void StartRandomMotion(const std::string& group = "",
-                                   int priority = 3,
+    virtual void StartRandomMotion(const std::string& group = "", int priority = 3,
                                    MotionCallback onStart = nullptr,
                                    MotionCallback onFinish = nullptr) = 0;
     virtual bool IsMotionFinished() = 0;
@@ -94,24 +97,17 @@ public:
     // 返回指定动作的音效文件路径（无音效返回 ""）
     virtual const char* GetMotionSound(const char* group, int no) = 0;
     virtual void GetMotions(void* collector,
-                            void (*collect)(void* collector,
-                                            const char* group,
-                                            int no,
-                                            const char* file,
-                                            const char* sound)) = 0;
+                            void (*collect)(void* collector, const char* group, int no,
+                                            const char* file, const char* sound)) = 0;
     virtual void StopAllMotions() = 0;
     virtual void ResetAllParameters() = 0;
     virtual void ResetPose() = 0;
 
     // ---- 鼠标交互 ----
-    virtual void HitPart(float x,
-                         float y,
-                         void* collector,
+    virtual void HitPart(float x, float y, void* collector,
                          void (*collect)(void* collector, const char* id),
                          bool topOnly = false) = 0;
-    virtual void HitDrawable(float x,
-                             float y,
-                             void* collector,
+    virtual void HitDrawable(float x, float y, void* collector,
                              void (*collect)(void* collector, const char* id),
                              bool topOnly = false) = 0;
     virtual void Drag(float x, float y) = 0;
@@ -133,11 +129,7 @@ public:
     virtual void SetPartScreenColor(int index, float r, float g, float b, float a) = 0;
     virtual void SetPartMultiplyColor(int index, float r, float g, float b, float a) = 0;
     virtual void GetPartScreenColor(int index, float& r, float& g, float& b, float& a) const = 0;
-    virtual void GetPartMultiplyColor(int index,
-                                      float& r,
-                                      float& g,
-                                      float& b,
-                                      float& a) const = 0;
+    virtual void GetPartMultiplyColor(int index, float& r, float& g, float& b, float& a) const = 0;
 
     // ---- drawable ----
     virtual int GetDrawableCount() = 0;
@@ -160,10 +152,8 @@ public:
     virtual void ResetExpressions() = 0;
     virtual void ResetExpression() = 0;
     virtual int GetExpressionCount() = 0;
-    virtual void GetExpressions(void* collector,
-                                void (*collect)(void* collector,
-                                                const char* id,
-                                                const char* file)) = 0;
+    virtual void GetExpressions(void* collector, void (*collect)(void* collector, const char* id,
+                                                                 const char* file)) = 0;
     virtual void LoadExtraExpression(const char* expressionId, const char* expressionJsonPath) = 0;
 
     // ---- 尺寸 ----
