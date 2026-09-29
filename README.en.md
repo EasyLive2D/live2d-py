@@ -54,11 +54,9 @@ Theoretically compatible with all UI libraries that can use OpenGL for rendering
 
 | `live2d-py`  | Supported Models       | Implementation            |
 |--------------|----------------------|---------------------------|
-| `live2d.v2`  | Cubism 2.1 and earlier | Pure Python               |
-| `live2d.v2cpp` | Cubism 2.1 and earlier | C++ port (high performance) |
-| `live2d.v3`  | Cubism 3.0 and later   | Python C Extension wrapper |
+| `live2d.v2.Model`  | Cubism 2.1 and earlier | Pure Python               |
+| `live2d.Model` | Cubism 2.1 and earlier/Cubism 3.0 and later | C++ port (Cubism 2.X WebSdk)/Python C Extension wrapper(CubismNativeSdk) |
 
-**Use `live2d.v2cpp` instead of `live2d.v2` for better performance.** The API is fully compatible — just replace `import live2d.v2 as live2d` with `import live2d.v2cpp as live2d`.
 
 ### Python Versions and Platforms
 

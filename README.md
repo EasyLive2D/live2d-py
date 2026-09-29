@@ -56,11 +56,10 @@
 
 | `live2d-py`  | 支持的live2d模型       | 实现                      |
 |--------------|---------------------|-------------------------|
-| `live2d.v2`  | Cubism 2.1 以及更早的版本  | 纯 Python 实现             |
-| `live2d.v2cpp` | Cubism 2.1 以及更早的版本 | C++ 移植 (高性能)            |
-| `live2d.v3`  | Cubism 3.0 及以上版本    | Python C Extension 封装   |
+| `live2d.v2.Model`  | Cubism 2.1 以及更早的版本  | 纯 Python 实现             |
+| `live2d.Model` | Cubism 2.1 以及更早的版本/Cubism 3.0 及以上版本 | C++ 移植 (Cubism 2.X WebSDK) /Python C Extension 封装(CubismNativeSDK)|
 
-**推荐使用 `live2d.v2cpp`** 替代 `live2d.v2` 以获得更好的性能。API 完全兼容，只需将 `import live2d.v2 as live2d` 替换为 `import live2d.v2cpp as live2d`。
+**推荐使用 `live2d.Model`**
 
 ### Python 版本及平台
 
