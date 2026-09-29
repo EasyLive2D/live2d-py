@@ -1165,7 +1165,7 @@ void Model::SetExpression(const char* expressionId, float fadeoutMs) {
     }
 }
 
-const char* Model::SetRandomExpression(float fadeoutMs) {
+std::string Model::SetRandomExpression(float fadeoutMs) {
     const int size = mExpressions.GetSize();
     if (size == 0) {
         return nullptr;

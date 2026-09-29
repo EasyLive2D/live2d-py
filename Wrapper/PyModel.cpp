@@ -1015,9 +1015,9 @@ static PyObject* PyModel_SetRandomExpression(PyModelObject* self, PyObject* args
         PyErr_SetString(PyExc_TypeError, "argument must be (float)");
         return NULL;
     }
-    const char* expId = self->model->SetRandomExpression(fadeoutMs);
-    if (expId != nullptr) {
-        return Py_BuildValue("s", expId);
+    std::string expId = self->model->SetRandomExpression(fadeoutMs);
+    if (!expId.empty()) {
+        return PyUnicode_FromString(expId.c_str());
     } else {
         Py_RETURN_NONE;
     }

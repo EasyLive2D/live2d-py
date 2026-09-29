@@ -148,7 +148,7 @@ public:
     // fadeoutMs >= 0: 临时表情，fadeoutMs 毫秒后自动恢复上一个表情;
     // fadeoutMs < 0（默认）: 持久表情
     virtual void SetExpression(const char* expressionId, float fadeoutMs = -1.0f) = 0;
-    virtual const char* SetRandomExpression(float fadeoutMs = -1.0f) = 0;
+    virtual std::string SetRandomExpression(float fadeoutMs = -1.0f) = 0;
     virtual void ResetExpressions() = 0;
     virtual void ResetExpression() = 0;
     virtual int GetExpressionCount() = 0;

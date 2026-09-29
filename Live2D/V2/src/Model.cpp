@@ -440,7 +440,7 @@ void Model::SetExpression(const char* name, float fadeoutMs) {
         mLastExpression = name;
     }
 }
-const char* Model::SetRandomExpression(float fadeoutMs) {
+std::string Model::SetRandomExpression(float fadeoutMs) {
     if (!mExpressions.empty()) {
         auto it = mExpressions.begin();
         std::advance(it, rand() % mExpressions.size());

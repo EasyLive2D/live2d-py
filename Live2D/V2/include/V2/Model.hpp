@@ -120,7 +120,7 @@ public:
     void AddExpression(const char* expressionId) override;
     void RemoveExpression(const char* expressionId) override;
     void SetExpression(const char* expressionId, float fadeoutMs = -1.0f) override;
-    const char* SetRandomExpression(float fadeoutMs = -1.0f) override;
+    std::string SetRandomExpression(float fadeoutMs = -1.0f) override;
     void ResetExpressions() override;
     void ResetExpression() override;
     int GetExpressionCount() override;

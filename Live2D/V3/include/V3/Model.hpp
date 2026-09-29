@@ -208,7 +208,7 @@ public:
 
     void SetExpression(const char* expressionId, float fadeoutMs = -1.0f) override;
 
-    const char* SetRandomExpression(float fadeoutMs = -1.0f) override;
+    std::string SetRandomExpression(float fadeoutMs = -1.0f) override;
 
     void ResetExpressions() override;
 
