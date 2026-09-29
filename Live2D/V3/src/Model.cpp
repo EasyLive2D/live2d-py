@@ -105,7 +105,7 @@ void Model::LoadModelJson(const char* filePath, bool createRenderer) {
     mModelHomeDir = p.parent_path().generic_u8string().c_str();
     mModelHomeDir += "/";
 
-    LOGI("load modelSetting: %s", filePath);
+    LOGD("load modelSetting: %s", filePath);
     LoadAssets(filePath, [&](csmByte* buffer, csmSizeInt size) {
         mModelSetting = new CubismModelSettingJson(buffer, size);
     });
@@ -129,7 +129,7 @@ void Model::LoadFromJsonString(const char* jsonData, bool createRenderer, const 
 
     const std::string homeDir = NormalizeModelHomeDir(rootPath);
     mModelHomeDir = homeDir.c_str();   // csmString::operator= 深拷贝，homeDir 可安全析构
-    LOGI("load modelSetting from json string (home: %s)", mModelHomeDir.GetRawString());
+    LOGD("load modelSetting from json string (home: %s)", mModelHomeDir.GetRawString());
 
     auto* setting = new CubismModelSettingJson(reinterpret_cast<const csmByte*>(jsonData),
                                                static_cast<csmSizeInt>(strlen(jsonData)));
@@ -166,14 +166,6 @@ void Model::Update(float deltaSecs) {
             deltaSecs = 0.016f;
         }
         mLastUpdatePoint = now;
-    }
-    // 表情 fadeout: 到期恢复上一个持久表情
-    if (mFadeoutMs >= 0.0f) {
-        mFadeoutElapsedMs += deltaSecs * 1000.0f;
-        if (mFadeoutElapsedMs >= mFadeoutMs) {
-            mFadeoutMs = -1.0f;
-            SetExpression(mLastExpression.c_str());
-        }
     }
 
     mProxy._dragManager->Update(deltaSecs);
@@ -225,11 +217,10 @@ void Model::SetupModel() {
         csmString path = mModelSetting->GetModelFileName();
         path = JoinPath(mModelHomeDir, path.GetRawString());
 
-        LOGI("create model: %s", mModelSetting->GetModelFileName());
-
         LoadAssets(path.GetRawString(), [&](csmByte* buffer, csmSizeInt size) {
             mProxy.LoadModel(buffer, size, mProxy._mocConsistency);
         });
+        LOGI("Load model: %s", path.GetRawString());
     }
 
     if (mProxy.GetModel() == nullptr) {
@@ -368,15 +359,6 @@ bool Model::UpdateMotion(float deltaSecs) {
 }
 
 void Model::UpdateDrag(float deltaSecs) {
-    // 表情 fadeout: 到期恢复上一个持久表情
-    if (mFadeoutMs >= 0.0f) {
-        mFadeoutElapsedMs += deltaSecs * 1000.0f;
-        if (mFadeoutElapsedMs >= mFadeoutMs) {
-            mFadeoutMs = -1.0f;
-            SetExpression(mLastExpression.c_str());
-        }
-    }
-
     mProxy._dragManager->Update(deltaSecs);
     mDragX = mProxy._dragManager->GetX();
     mDragY = mProxy._dragManager->GetY();
@@ -413,6 +395,8 @@ void Model::UpdateExpression(float deltaSecs) {
     } else {
         mProxy._expressionManager->UpdateMotion(mProxy.GetModel(), deltaSecs);
     }
+
+    ResumeLastExpressionIfNeeded(deltaSecs);
 }
 
 void Model::UpdatePhysics(float deltaSecs) {
@@ -1164,9 +1148,8 @@ void Model::RemoveExpression(const char* expressionId) {
 void Model::SetExpression(const char* expressionId, float fadeoutMs) {
     ACubismMotion* motion = mExpressions[expressionId];
 
-    LOGI("Set expression: [%s]", expressionId);
-
     if (motion != nullptr) {
+        LOGI("Set expression: [%s]", expressionId);
         mProxy._expressionManager->StartMotion(motion, false);
     } else {
         LOGW("expression[%s] is null ", expressionId);
@@ -1219,6 +1202,7 @@ void Model::ResetExpression() {
     mFadeoutElapsedMs = 0;
     mLastExpression.clear();
     mProxy._expressionManager->StopAllMotions();
+    LOGI("Reset expression");
 }
 
 int Model::GetExpressionCount() {
@@ -1405,6 +1389,21 @@ void Model::PreloadMotionGroup(const csmChar* group) {
 
 const int* Model::GetDrawableRenderOrders() const {
     return mProxy->GetRenderOrders();
+}
+
+void Model::ResumeLastExpressionIfNeeded(float deltaSecs) {
+    // 表情 fadeout: 到期恢复上一个持久表情
+    if (mFadeoutMs >= 0.0f) {
+        mFadeoutElapsedMs += deltaSecs * 1000.0f;
+        if (mFadeoutElapsedMs >= mFadeoutMs) {
+            mFadeoutMs = -1.0f;
+            if (mLastExpression.empty()) {
+                ResetExpression();
+            } else {
+                SetExpression(mLastExpression.c_str());
+            }
+        }
+    }
 }
 }   // namespace V3
 }   // namespace Live2D

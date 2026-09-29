@@ -10,8 +10,60 @@
 		"DisplayInfo": "llny.cdi3.json",
 		"Expressions": [
 			{
+				"Name": "-",
+				"File": "expressions/- -.exp3.json"
+			},
+			{
+				"Name": "阿尼亚",
+				"File": "expressions/阿尼亚.exp3.json"
+			},
+			{
+				"Name": "比心",
+				"File": "expressions/比心.exp3.json"
+			},
+			{
+				"Name": "荷包蛋",
+				"File": "expressions/荷包蛋.exp3.json"
+			},
+			{
 				"Name": "F01",
 				"File": "expressions/口罩.exp3.json"
+			},
+			{
+				"Name": "哭",
+				"File": "expressions/哭.exp3.json"
+			},
+			{
+				"Name": "脸黑",
+				"File": "expressions/脸黑.exp3.json"
+			},
+			{
+				"Name": "脸红",
+				"File": "expressions/脸红.exp3.json"
+			},
+			{
+				"Name": "生气",
+				"File": "expressions/生气.exp3.json"
+			},
+			{
+				"Name": "水印",
+				"File": "expressions/水印.exp3.json"
+			},
+			{
+				"Name": "吐舌",
+				"File": "expressions/吐舌.exp3.json"
+			},
+			{
+				"Name": "外套",
+				"File": "expressions/外套.exp3.json"
+			},
+			{
+				"Name": "星星",
+				"File": "expressions/星星.exp3.json"
+			},
+			{
+				"Name": "眼镜",
+				"File": "expressions/眼镜.exp3.json"
 			}
 		]
 	},

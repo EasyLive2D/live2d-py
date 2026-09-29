@@ -23,6 +23,11 @@ live2d.setLogLevel(live2d.LogLevels.LV_DEBUG)
 LOAD_FROM_JSON = True
 LIVE2D_VERSION = 2
 
+if LIVE2D_VERSION == 2:
+    from live2d import StandardParamsV2 as StandardParams
+else:
+    from live2d import StandardParamsV3 as StandardParams
+
 
 def load_from_json_string():
     from live2d.utils.model_json import Motion, ModelJson

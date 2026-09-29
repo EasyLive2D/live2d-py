@@ -251,6 +251,8 @@ private:
 
     void SetupModel();
 
+    void ResumeLastExpressionIfNeeded(float deltaSecs);
+
     const int* GetDrawableRenderOrders() const;
 
 private:

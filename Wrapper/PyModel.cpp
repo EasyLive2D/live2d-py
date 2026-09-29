@@ -182,7 +182,7 @@ static PyObject* PyModel_Init(PyModelObject* self, PyObject* args, PyObject* kwa
     return 0;
 }
 static void PyModel_Dealloc(PyModelObject* self, PyObject* args, PyObject* kwargs) {
-    LOGI("deallocate: cpp Model(at=%p)", self->model);
+    LOGD("deallocate: cpp Model(at=%p)", self->model);
     delete self->model;
     // fix uncalled callback leak
     if (self->onStart != nullptr) {
@@ -195,7 +195,7 @@ static void PyModel_Dealloc(PyModelObject* self, PyObject* args, PyObject* kwarg
         self->onFinish = nullptr;
         LOGI("release uncalled onFinish");
     }
-    LOGI("deallocate: PyModelObject(at=%p)", self);
+    LOGD("deallocate: PyModelObject(at=%p)", self);
     PyObject_Free(self);
 }
 static PyObject* PyModel_LoadModelJson(PyModelObject* self, PyObject* args, PyObject* kwargs) {
@@ -218,7 +218,7 @@ static PyObject* PyModel_LoadModelJson(PyModelObject* self, PyObject* args, PyOb
     } else if (version == 3) {
         self->model = new V3::Model();
     }
-    LOGI("allocate: cpp Model(at=%p, version=%d)", self->model, version);
+    LOGD("allocate: cpp Model(at=%p, version=%d)", self->model, version);
 
     self->model->LoadModelJson(modelJsonPath, createRenderer);
     Py_RETURN_NONE;

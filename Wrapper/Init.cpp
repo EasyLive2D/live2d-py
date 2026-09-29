@@ -42,10 +42,17 @@ static void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GL
 }
 #endif
 
-static V3::LAppAllocator _cubismAllocator;
-static Csm::CubismFramework::Option _cubismOption;
+static V3::LAppAllocator sCubismAllocator;
+static Csm::CubismFramework::Option sCubismOption;
+static bool sInitialized = false;
+static bool sGLInitialized = false;
 
 static PyObject* live2d_init_internal(PyObject* self, PyObject* args) {
+    if (sInitialized) {
+        LOGE("live2d.init double called");
+        Py_RETURN_NONE;
+    }
+
     const char* path;
     if (PyArg_ParseTuple(args, "s", &path) < 0) {
         PyErr_SetString(PyExc_TypeError, "Invalid params (str)");
@@ -53,13 +60,15 @@ static PyObject* live2d_init_internal(PyObject* self, PyObject* args) {
     }
 
     V3::LAppPal::InitShaderDir(path);
-    _cubismOption.LogFunction = V3::LAppPal::PrintLn;
-    _cubismOption.LoggingLevel = Csm::CubismFramework::Option::LogLevel_Verbose;
-    _cubismOption.LoadFileFunction = V3::LAppPal::LoadFileAsBytes;
-    _cubismOption.ReleaseBytesFunction = V3::LAppPal::ReleaseBytes;
+    sCubismOption.LogFunction = V3::LAppPal::PrintLn;
+    sCubismOption.LoggingLevel = Csm::CubismFramework::Option::LogLevel_Warning;
+    sCubismOption.LoadFileFunction = V3::LAppPal::LoadFileAsBytes;
+    sCubismOption.ReleaseBytesFunction = V3::LAppPal::ReleaseBytes;
 
-    Csm::CubismFramework::StartUp(&_cubismAllocator, &_cubismOption);
+    Csm::CubismFramework::StartUp(&sCubismAllocator, &sCubismOption);
     Csm::CubismFramework::Initialize();
+
+    sInitialized = true;
     Py_RETURN_NONE;
 }
 
@@ -69,6 +78,11 @@ static PyObject* live2d_dispose() {
 }
 
 static PyObject* live2d_glInit() {
+    if (sGLInitialized) {
+        LOGE("live2d.glInit double called");
+        Py_RETURN_NONE;
+    }
+
     if (!gladLoadGL()) {
         LOGE("Can't initilize glad.");
     }

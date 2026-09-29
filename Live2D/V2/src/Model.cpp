@@ -113,7 +113,7 @@ void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& ho
 
     // Get base directory and load .moc from JSON model field
     mModelHomeDir = homeDir;
-    LOGI("Model home directory: %s", mModelHomeDir.c_str());
+    LOGD("Model home directory: %s", mModelHomeDir.c_str());
 
     auto modelIt = data.find("model");
     if (modelIt == data.end() || !modelIt->is_string()) {
@@ -141,7 +141,7 @@ void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& ho
         auto phyFile = physics->get<std::string>();
         auto phyData = readFile(JoinPath(mModelHomeDir, phyFile));
         if (!phyData.empty()) {
-            LOGI("Load physics: %s", phyFile.c_str());
+            LOGD("Load physics: %s", phyFile.c_str());
             loadPhysics(phyData);
         }
     }
@@ -174,7 +174,7 @@ void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& ho
                 auto motData = readFile(motPath);
                 if (!motData.empty()) {
                     auto* motion = Live2DMotion::load(motData);
-                    LOGI("Load motion: %s", motFile.c_str());
+                    LOGD("Load motion: %s", motFile.c_str());
                     motVec.emplace_back(motion);
 
                     std::string sound;
@@ -199,7 +199,7 @@ void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& ho
             auto expName = expEntry["name"].get<std::string>();
             if (!expData.empty()) {
                 auto* expr = L2DExpressionMotion::load(expData);
-                LOGI("Load expression: %s", expName.c_str());
+                LOGD("Load expression: %s", expName.c_str());
                 mExpressions[expName].reset(expr);
                 mExpressionFiles[expName] = expFile;
             }
@@ -328,15 +328,6 @@ void Model::Update(float deltaSecs) {
     float dtMs = dt * 1000.0f;
     mBreathTimeMs += dtMs;
 
-    // 表情 fadeout: 到期恢复上一个持久表情
-    if (mFadeoutMs >= 0.0f) {
-        mFadeoutElapsedMs += dtMs;
-        if (mFadeoutElapsedMs >= mFadeoutMs) {
-            mFadeoutMs = -1.0f;
-            SetExpression(mLastExpression.c_str());
-        }
-    }
-
     mDragMgr.update(dt);
     setDrag(mDragMgr.getX(), mDragMgr.getY());
 
@@ -376,9 +367,7 @@ void Model::Update(float deltaSecs) {
     if (!updated && mAutoBlink && mEyeBlink)
         mEyeBlink->updateParam(mModelContext.get(), dtMs);
 
-    // Python skips expression update when no expressions exist
-    if (!mExpressions.empty())
-        mExpressionMgr->updateParam(mModelContext.get(), dtMs);
+    UpdateExpression(dt);
 
     // Drag-based parameter updates (match v2 Python)
     auto addParam = [&](const char* id, float value, float weight) {
@@ -540,6 +529,7 @@ void Model::ResetExpression() {
     mFadeoutElapsedMs = 0;
     mLastExpression.clear();
     mExpressionMgr->stopAllMotions();
+    LOGI("Reset expression");
 }
 void Model::ResetPose() {
     if (mPose) {
@@ -740,7 +730,7 @@ void Model::CreateRenderer(int maskBufferCount) {
                 : stbi_load_from_memory(texData.data(), (int)texData.size(), &w, &h, &n, 4);
         if (!pixels)
             continue;
-        LOGI("Load texture[%zu/%zu]: %s", i + 1, mTexturePaths.size(), mTexturePaths[i].c_str());
+        LOGD("Load texture[%zu/%zu]: %s", i + 1, mTexturePaths.size(), mTexturePaths[i].c_str());
 
         GLuint texId;
         glGenTextures(1, &texId);
@@ -849,6 +839,18 @@ void Model::UpdateBlink(float deltaSecs) {
 void Model::UpdateExpression(float deltaSecs) {
     if (!mExpressions.empty())
         mExpressionMgr->updateParam(mModelContext.get(), deltaSecs * 1000.0f);
+    // 表情 fadeout: 到期恢复上一个持久表情
+    if (mFadeoutMs >= 0.0f) {
+        mFadeoutElapsedMs += deltaSecs * 1000;
+        if (mFadeoutElapsedMs >= mFadeoutMs) {
+            mFadeoutMs = -1.0f;
+            if (mLastExpression.empty()) {
+                ResetExpression();
+            } else {
+                SetExpression(mLastExpression.c_str());
+            }
+        }
+    }
 }
 void Model::UpdatePhysics(float deltaSecs) {
     if (mPhysics)
