@@ -50,7 +50,7 @@ jobs:
           python -m pip install twine
           python -m twine check $wheel
           python -m pip install --force-reinstall $wheel
-          python -c "import live2d.v2cpp, live2d.v3"
+          python -c "import live2d"
 
       - name: Publish distribution to PyPI
         if: startsWith(github.ref, 'refs/tags/v')

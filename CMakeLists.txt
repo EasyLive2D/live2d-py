@@ -25,6 +25,8 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   execute_process(COMMAND chcp 65001)
 endif()
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # ---- import config ----
 include(cmake/Config.cmake)
 include(cmake/VersionCheck.cmake)

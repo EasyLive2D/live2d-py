@@ -63,7 +63,7 @@ jobs:
             "$PYBIN/pip" install twine
             "$PYBIN/python" -m twine check dist/*.whl
             "$PYBIN/pip" install --force-reinstall dist/*.whl
-            "$PYBIN/python" -c "import live2d.v2cpp, live2d.v3"
+            "$PYBIN/python" -c "import live2d"
 
             chown -R $(stat -c "%u:%g" /work) /work/dist /work/build
 

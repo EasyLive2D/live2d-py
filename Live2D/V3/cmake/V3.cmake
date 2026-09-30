@@ -34,11 +34,11 @@ target_link_libraries(${V3_TARGET} PUBLIC
   ${OPENGL_LIBRARIES}
 )
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  target_link_libraries(${V3_TARGET} stdc++fs)
+  target_link_libraries(${V3_TARGET} PUBLIC stdc++fs)
 endif()
 
 if(APPLE)
-  target_link_libraries(${V3_TARGET}
+  target_link_libraries(${V3_TARGET} PUBLIC
     ${COCOA_LIBRARY}
     ${IOKIT_LIBRARY}
     ${COREVIDEO_LIBRARY}

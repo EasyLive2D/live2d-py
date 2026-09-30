@@ -261,7 +261,7 @@ def run_cmake():
     else:
         print("[cmake] Cubism SDK already present, skipping download.")
 
-    cmake_args = []
+    cmake_args = ["-UFORMAT_UTIL"]
     build_args = ["--config", "Release", "--target", "Live2DWrapper"]
 
     if platform.system() == "Windows":
