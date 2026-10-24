@@ -29,7 +29,7 @@ from live2d.utils import log
 from live2d.utils.lipsync import WavHandler
 
 live2d.enableLog(True)
-live2d.setLogLevel(live2d.LogLevels.LV_WARN)
+live2d.setLogLevel(live2d.LogLevels.LV_INFO)
 
 
 LIVE2D_VERSION = 2
@@ -81,13 +81,17 @@ def main():
     live2d.vkInit(window_handle, display_handle)
 
     model = live2d.Model()
-
-    model = live2d.Model()
-    model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
+    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
     # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"), create_renderer=False)
     # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/绫地宁宁/nn_min.model3.json"), create_renderer=False)
     # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/akane/InariTalk_PSDtool2.model3.json"), create_renderer=False)
-
+    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json"),
+    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"),
+    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"),
+    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/hibiki/hibiki.model.json"),
+    model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/shizuku/shizuku.model.json"),
+    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kana/Kobayaxi.model.json"),
+                        create_renderer=True)  # Load model without creating renderer
     model2 = None
     if MULTI_MODEL:
         model2 = live2d.Model()

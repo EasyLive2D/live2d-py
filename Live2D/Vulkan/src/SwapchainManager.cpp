@@ -87,7 +87,7 @@ VkPresentModeKHR SwapchainManager::ChooseSwapPresentMode(const std::vector<VkPre
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-VkExtent2D SwapchainManager::ChooseSwapExtent(void* window, const VkSurfaceCapabilitiesKHR& capabilities)
+VkExtent2D SwapchainManager::ChooseSwapExtent(void*, const VkSurfaceCapabilitiesKHR& capabilities)
 {
     if (capabilities.currentExtent.width != UINT32_MAX)
     {
@@ -174,7 +174,7 @@ void SwapchainManager::CreateSwapchain(void* window, VkPhysicalDevice physicalDe
         LOGE("failed to create swap chain");
     }
 
-    LOGI("swapchain: presentMode=%d imageCount=%u (min=%u max=%u) format=%d colorSpace=%d "
+    LOGD("swapchain: presentMode=%d imageCount=%u (min=%u max=%u) format=%d colorSpace=%d "
          "extent=%ux%u sharing=%d",
          (int)presentMode, imageCount, swapChainSupport.capabilities.minImageCount,
          swapChainSupport.capabilities.maxImageCount, (int)surfaceFormat.format,

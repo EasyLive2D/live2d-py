@@ -29,7 +29,7 @@ void live2d_log_print(const char* tag, Levels level, const char* fmt, ...);
 #define LOGD(...)                                                                      \
     do {                                                                               \
         if (::Live2D::Common::Log::IsLive2DLogEnabled() &&                             \
-            ::Live2D::Common::Log::Levels::LV_DEBUG <=                                 \
+            ::Live2D::Common::Log::Levels::LV_DEBUG >=                                 \
                 ::Live2D::Common::Log::GetLive2DLogLevel()) {                          \
             ::Live2D::Common::Log::live2d_log_print(                                   \
                 MODULE_LOG_TAG, ::Live2D::Common::Log::Levels::LV_DEBUG, __VA_ARGS__); \
@@ -39,7 +39,7 @@ void live2d_log_print(const char* tag, Levels level, const char* fmt, ...);
 #define LOGI(...)                                                                     \
     do {                                                                              \
         if (::Live2D::Common::Log::IsLive2DLogEnabled() &&                            \
-            ::Live2D::Common::Log::Levels::LV_INFO <=                                 \
+            ::Live2D::Common::Log::Levels::LV_INFO >=                                 \
                 ::Live2D::Common::Log::GetLive2DLogLevel()) {                         \
             ::Live2D::Common::Log::live2d_log_print(                                  \
                 MODULE_LOG_TAG, ::Live2D::Common::Log::Levels::LV_INFO, __VA_ARGS__); \
@@ -49,7 +49,7 @@ void live2d_log_print(const char* tag, Levels level, const char* fmt, ...);
 #define LOGW(...)                                                                     \
     do {                                                                              \
         if (::Live2D::Common::Log::IsLive2DLogEnabled() &&                            \
-            ::Live2D::Common::Log::Levels::LV_WARN <=                                 \
+            ::Live2D::Common::Log::Levels::LV_WARN >=                                 \
                 ::Live2D::Common::Log::GetLive2DLogLevel()) {                         \
             ::Live2D::Common::Log::live2d_log_print(                                  \
                 MODULE_LOG_TAG, ::Live2D::Common::Log::Levels::LV_WARN, __VA_ARGS__); \
@@ -59,7 +59,7 @@ void live2d_log_print(const char* tag, Levels level, const char* fmt, ...);
 #define LOGE(...)                                                                      \
     do {                                                                               \
         if (::Live2D::Common::Log::IsLive2DLogEnabled() &&                             \
-            ::Live2D::Common::Log::Levels::LV_ERROR <=                                 \
+            ::Live2D::Common::Log::Levels::LV_ERROR >=                                 \
                 ::Live2D::Common::Log::GetLive2DLogLevel()) {                          \
             ::Live2D::Common::Log::live2d_log_print(                                   \
                 MODULE_LOG_TAG, ::Live2D::Common::Log::Levels::LV_ERROR, __VA_ARGS__); \

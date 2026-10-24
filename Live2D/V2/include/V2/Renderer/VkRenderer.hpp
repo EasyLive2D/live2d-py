@@ -130,6 +130,10 @@ private:
     void* mUboMapped = nullptr;
     uint32_t mUboIndex = 0;
     uint32_t mUboStride = 256;
+    // arena 容量按模型 drawable 数分配（见构造函数），帧内溢出时丢弃该次 draw
+    VkDeviceSize mVbCapacity = 0;
+    VkDeviceSize mIbCapacity = 0;
+    uint32_t mUboSlots = 0;
 
     // 裁剪遮罩 offscreen
     VkImage mMaskImage = VK_NULL_HANDLE;

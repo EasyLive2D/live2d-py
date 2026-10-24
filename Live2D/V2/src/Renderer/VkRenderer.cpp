@@ -6,6 +6,7 @@
 #include "VulkanManager.hpp"
 #include "VkUtil.hpp"
 #include <FileUtils.hpp>
+#include <algorithm>
 #include <cstring>
 #include <vector>
 
@@ -257,9 +258,68 @@ VkRenderer::VkRenderer(Moc* moc, int textureCount)
     uint32_t align = (uint32_t)props.limits.minUniformBufferOffsetAlignment;
     mUboStride = (uint32_t)((sizeof(UBO) + align - 1) / align * align);
 
-    // 帧级 arena：VBO 4MB / IBO 2MB / UBO (4096 draws)
-    constexpr VkDeviceSize VB_SIZE = 4 << 20, IB_SIZE = 2 << 20;
-    VkDeviceSize UB_SIZE = (VkDeviceSize)mUboStride * 4096;
+    // 帧级 arena：按模型单帧真正会发生的绘制次数精确分配（不再用估倍率）。
+    //  主 pass    ：渲染序列里每项各画一次
+    //  遮罩 pass  ：每个不同的裁剪遮罩集合各画一次，只画该集合内的遮罩源 drawable
+    // 两者相加即为单帧绘制次数的上界，对应顶点/索引字节数与 UBO 槽位数。
+    VkDeviceSize vbMain = 0, ibMain = 0, vbMask = 0, ibMask = 0;
+    uint32_t drawableCount = 0, maskDraws = 0, mainDraws = 0;
+    if (moc) {
+        drawableCount = (uint32_t)moc->GetDrawableCount();
+        // 顶点缓冲里 pos 与 uv 各存一份，故 ×2
+        auto vbBytes = [moc](int idx) -> VkDeviceSize {
+            int vcount = moc->GetDrawableVertexCount(idx);
+            return vcount > 0 ? (VkDeviceSize)vcount * 2 * sizeof(float) * 2 : 0;
+        };
+        auto ibBytes = [moc](int idx) -> VkDeviceSize {
+            int icount = moc->GetDrawableVertexIndexCount(idx);
+            return icount > 0 ? (VkDeviceSize)icount * sizeof(uint16_t) : 0;
+        };
+
+        // 构造期渲染序列尚未解析（Moc::Resolve 在 Draw 时才跑），故按 drawable
+        // 总数累加作为主 pass 上界（含不可见项，偏保守但一定覆盖）。
+        for (uint32_t i = 0; i < drawableCount; ++i) {
+            vbMain += vbBytes((int)i);
+            ibMain += ibBytes((int)i);
+        }
+        mainDraws = drawableCount;
+
+        // 遮罩分组：与 ClippingManagerVulkan 一致——遮罩索引集合相同即同一组，
+        // 该组的 mask pass 只画集合内的 drawable 各一次。
+        std::vector<std::vector<int>> maskSets;
+        for (uint32_t i = 0; i < drawableCount; ++i) {
+            int maskCount = 0;
+            const int* masks = moc->GetDrawableMasks((int)i, maskCount);
+            if (!masks || maskCount <= 0)
+                continue;
+            std::vector<int> key(masks, masks + maskCount);
+            std::sort(key.begin(), key.end());
+            maskSets.push_back(std::move(key));
+        }
+        std::sort(maskSets.begin(), maskSets.end());
+        maskSets.erase(std::unique(maskSets.begin(), maskSets.end()), maskSets.end());
+        for (const auto& set : maskSets) {
+            for (int m : set) {
+                if (m < 0 || (uint32_t)m >= drawableCount)
+                    continue;
+                vbMask += vbBytes(m);
+                ibMask += ibBytes(m);
+                ++maskDraws;
+            }
+        }
+    }
+    // 容量即单帧绘制次数的精确上界，不留余量；超出则 arena exhausted 并丢弃该次 draw。
+    // 极小值仅用于避免 0 字节缓冲（无 drawable 的模型）。
+    const uint32_t maxDraws = std::max<uint32_t>(1, mainDraws + maskDraws);
+    const VkDeviceSize VB_SIZE = std::max<VkDeviceSize>(vbMain + vbMask, 256);
+    const VkDeviceSize IB_SIZE = std::max<VkDeviceSize>(ibMain + ibMask, 256);
+    VkDeviceSize UB_SIZE = (VkDeviceSize)mUboStride * maxDraws;
+    mVbCapacity = VB_SIZE;
+    mIbCapacity = IB_SIZE;
+    mUboSlots = maxDraws;
+    LOGD("v2 arena: drawables=%u mainDraws=%u maskDraws=%u vb=%lluB ib=%lluB uboSlots=%u",
+         drawableCount, mainDraws, maskDraws, (unsigned long long)VB_SIZE,
+         (unsigned long long)IB_SIZE, maxDraws);
     VkUtil::CreateBuffer(mDevice, mPhysicalDevice, VB_SIZE, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                          &mVbBuffer, &mVbMemory);
@@ -588,7 +648,7 @@ void VkRenderer::DrawTexture(int texNo, const std::array<float, 4>& screenColor,
     }
 
     // UBO ring
-    if (mUboIndex * mUboStride + sizeof(UBO) > 4096ull * mUboStride) {
+    if (mUboIndex >= mUboSlots) {
         LOGE("VkRenderer: UBO arena exhausted this frame");
         return;
     }
@@ -600,7 +660,7 @@ void VkRenderer::DrawTexture(int texNo, const std::array<float, 4>& screenColor,
     VkDeviceSize vbBytes = (VkDeviceSize)vertexFloatCount * sizeof(float);
     VkDeviceSize uvBytes = (VkDeviceSize)uvFloatCount * sizeof(float);
     VkDeviceSize ibBytes = (VkDeviceSize)indexCount * sizeof(uint16_t);
-    if (mVbOffset + vbBytes + uvBytes > 4ull << 20 || mIbOffset + ibBytes > 2ull << 20) {
+    if (mVbOffset + vbBytes + uvBytes > mVbCapacity || mIbOffset + ibBytes > mIbCapacity) {
         LOGE("VkRenderer: vertex/index arena exhausted this frame");
         return;
     }
