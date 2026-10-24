@@ -1,5 +1,5 @@
 #include "VulkanManager.hpp"
-#include <climits>
+#include <cstdint>
 #include <iostream>
 #include <cstring>
 #include <algorithm>
@@ -543,7 +543,7 @@ void VulkanManager::UpdateDrawFrame() {
     // 只等待不重置：fence 的重置推迟到 EndFrame 提交前。
     // 若 acquire 失败（OUT_OF_DATE 等）本帧不会提交，fence 保持 signaled，
     // 下一帧同槽等待立即通过，避免“已 reset 但永不 submit”的死锁。
-    vkWaitForFences(_device, 1, &_frameFences[_frameIndex], VK_TRUE, UINT_MAX);
+    vkWaitForFences(_device, 1, &_frameFences[_frameIndex], VK_TRUE, UINT64_MAX /* forever */);
     VkResult result = vkAcquireNextImageKHR(_device,
                                             _swapchainManager->GetSwapchain(),
                                             UINT64_MAX,
