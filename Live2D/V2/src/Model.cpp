@@ -770,8 +770,10 @@ void Model::CreateRenderer(int maskBufferCount) {
     if (Common::Backend::IsOpenGL()) {
         mRenderer = std::make_unique<GLRenderer>(mMoc.get(), (int)mTexturePaths.size());
         SetupTextures();
+        return;
     }
 #endif
+    LOGE("Graphics backend not set, skipping renderer creation");
 }
 void Model::DestroyRenderer() {
     if (!mRenderer) {

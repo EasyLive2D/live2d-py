@@ -4,7 +4,7 @@
 #include <QLibraryInfo>
 #include <QLocale>
 #include <QTranslator>
-
+#include <GraphicsBackend.hpp>
 
 #include "MainWindow.hpp"
 
@@ -30,6 +30,8 @@ int main(int argc, char* argv[])
 
     // LogLevel_Verbose = 0
     Live2D::Init(QDir::current().absolutePath().toStdString().c_str(), 0);
+
+    Live2D::Common::Backend::SetBackend(Live2D::Common::Backend::BACKEND_OPENGL);
 
     QApplication app(argc, argv);
 

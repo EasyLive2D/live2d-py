@@ -69,6 +69,7 @@ bool InitVulkan(GLFWwindow* window) {
 #ifdef _WIN32
     // 获取原生窗口句柄 (HWND) 并传给 VulkanManager。
     // surface 创建由 VulkanManager 内部的 vkCreateWin32SurfaceKHR 完成。
+    surfaceCtx.platform = PLATFORM_WINDOWS;
     surfaceCtx.window = glfwGetWin32Window(window);
 #elif defined(__linux__)
         // 运行时判断 GLFW 当前使用的后端，填充对应的原生句柄。
