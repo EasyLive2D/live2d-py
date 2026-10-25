@@ -21,7 +21,7 @@ live2d.enableLog(True)
 live2d.setLogLevel(live2d.LogLevels.LV_INFO)
 
 LOAD_FROM_JSON = False
-LIVE2D_VERSION = 3
+LIVE2D_VERSION = 2
 
 if LIVE2D_VERSION == 2:
     from live2d import StandardParamsV2 as StandardParams
@@ -90,15 +90,15 @@ def main():
         model = load_from_generated_json()
     elif LIVE2D_VERSION == 3:
         model = live2d.Model()
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"), create_renderer=False)
-        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/绫地宁宁/nn.model3.json"), create_renderer=False)
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/绫地宁宁/nn.model3.json"), create_renderer=False)
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/akane/InariTalk_PSDtool2.model3.json"), create_renderer=False)
 
     elif LIVE2D_VERSION == 2:
         model = live2d.Model()
-        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json"),
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"),
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json"),
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"),
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"),
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/hibiki/hibiki.model.json"),
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/shizuku/shizuku.model.json"),
@@ -124,9 +124,9 @@ def main():
     # Print all parameters
     print(f"Parameter Count: {model.GetParamCount()}")
     paramIds = model.GetParamIds()
-    for i in range(model.GetParamCount()):
-        log.LOGD(paramIds[i], 0, model.GetParamValueByIndex(i), model.GetParamMaxByIndex(i),
-                 model.GetParamMinByIndex(i), model.GetParamDefaultByIndex(i))
+    # for i in range(model.GetParamCount()):
+    #     log.LOGD(paramIds[i], 0, model.GetParamValueByIndex(i), model.GetParamMaxByIndex(i),
+    #              model.GetParamMinByIndex(i), model.GetParamDefaultByIndex(i))
 
     # Print part IDs
     partIds = model.GetPartIds()

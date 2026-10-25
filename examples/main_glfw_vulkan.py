@@ -15,8 +15,6 @@
 import ctypes
 import math
 import os
-import platform
-import sys
 import time
 
 import glfw
@@ -40,21 +38,89 @@ if LIVE2D_VERSION == 2:
 else:
     from live2d import StandardParamsV3 as StandardParams
 
-
 def get_native_window_handle(window):
-    """从 glfw 窗口获取平台原生句柄。
-    Windows 返回 HWND，其他平台未实现（TODO）。
+    """返回 (backend, window, display, connection)。
+
+    - Windows:  (BACKEND_WIN32,   HWND,            None,       None)
+    - X11 Xlib: (BACKEND_XLIB,    Window,         Display*,   None)
+    - Wayland:  (BACKEND_WAYLAND, wl_surface*,    wl_display*, None)
     """
-    sysname = platform.system()
+    import ctypes
+    import platform as _platform
+
+    # 与 C++ 侧 SurfaceBackend 枚举值保持一致
+    BACKEND_WIN32   = 1
+    BACKEND_XLIB    = 2
+    BACKEND_XCB     = 3
+    BACKEND_WAYLAND = 4
+
+    # GLFW 3.4 平台枚举
+    GLFW_PLATFORM_WAYLAND = 0x00060003   # 393219
+    GLFW_PLATFORM_X11     = 0x00060004   # 393220
+
+    # 统一把 Python 侧 window 对象转成整数指针值
+    if isinstance(window, int):
+        win = window
+    elif isinstance(window, ctypes.c_void_p):
+        win = window.value
+    else:
+        win = ctypes.cast(window, ctypes.c_void_p).value
+
+    sysname = _platform.system()
+
+    # ---------------- Windows ----------------
     if sysname == "Windows":
-        # glfwGetWin32Window(GLFWwindow*) -> HWND
         _glfw_lib.glfwGetWin32Window.restype = ctypes.c_void_p
         _glfw_lib.glfwGetWin32Window.argtypes = [ctypes.c_void_p]
-        hwnd = _glfw_lib.glfwGetWin32Window(ctypes.cast(window, ctypes.c_void_p).value)
-        return hwnd, 0  # (window_handle, display_handle)
-    else:
-        # TODO: Linux(X11/Wayland) / macOS 対応
-        raise NotImplementedError(f"native window handle not implemented for {sysname}")
+        hwnd = _glfw_lib.glfwGetWin32Window(win)
+        if not hwnd:
+            raise RuntimeError("failed to get HWND from GLFW")
+        return BACKEND_WIN32, hwnd, 0, 0
+
+    # ---------------- Linux ----------------
+    if sysname == "Linux":
+        # 判断 GLFW 实际初始化的后端；GLFW < 3.4 在 Linux 上只有 X11
+        if hasattr(_glfw_lib, "glfwGetPlatform"):
+            _glfw_lib.glfwGetPlatform.restype = ctypes.c_int
+            _glfw_lib.glfwGetPlatform.argtypes = []
+            plat = _glfw_lib.glfwGetPlatform()
+        else:
+            plat = GLFW_PLATFORM_X11
+
+        # Wayland
+        if plat == GLFW_PLATFORM_WAYLAND:
+            if not hasattr(_glfw_lib, "glfwGetWaylandWindow"):
+                raise RuntimeError(
+                    "GLFW reports Wayland but glfwGetWaylandWindow is missing "
+                    "(GLFW built without Wayland support?)"
+                )
+            _glfw_lib.glfwGetWaylandWindow.restype = ctypes.c_void_p
+            _glfw_lib.glfwGetWaylandWindow.argtypes = [ctypes.c_void_p]
+            _glfw_lib.glfwGetWaylandDisplay.restype = ctypes.c_void_p
+            _glfw_lib.glfwGetWaylandDisplay.argtypes = []
+
+            wl_surface = _glfw_lib.glfwGetWaylandWindow(win)
+            wl_display = _glfw_lib.glfwGetWaylandDisplay()
+            if not wl_surface or not wl_display:
+                raise RuntimeError("failed to get Wayland handles from GLFW")
+            return BACKEND_WAYLAND, wl_surface, wl_display, 0
+
+        # X11（GLFW 默认走 Xlib）
+        if plat == GLFW_PLATFORM_X11:
+            _glfw_lib.glfwGetX11Window.restype = ctypes.c_ulong
+            _glfw_lib.glfwGetX11Window.argtypes = [ctypes.c_void_p]
+            _glfw_lib.glfwGetX11Display.restype = ctypes.c_void_p
+            _glfw_lib.glfwGetX11Display.argtypes = []
+
+            xwin = _glfw_lib.glfwGetX11Window(win)
+            display = _glfw_lib.glfwGetX11Display()
+            if not xwin or not display:
+                raise RuntimeError("failed to get X11 handles from GLFW")
+            return BACKEND_XLIB, xwin, display, 0
+
+        raise RuntimeError(f"unsupported GLFW platform on Linux: {plat}")
+
+    raise NotImplementedError(f"native window handle not implemented for {sysname}")
 
 
 def main():
@@ -77,19 +143,18 @@ def main():
     # Vulkan 实例/设备/交换链初始化。
     # 实例扩展由 native 层 (VulkanManager::GetRequiredExtensions) 自动补齐，
     # 无需从 Python 传入；shader 经 FileUtils 从 SHADER_DIR 加载，无需 chdir。
-    window_handle, display_handle = get_native_window_handle(window)
-    live2d.vkInit(window_handle, display_handle)
+    live2d.vkInit(*get_native_window_handle(window))
 
     model = live2d.Model()
-    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
-    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"), create_renderer=False)
-    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/绫地宁宁/nn_min.model3.json"), create_renderer=False)
-    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/akane/InariTalk_PSDtool2.model3.json"), create_renderer=False)
-    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json"),
+    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"),
+    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"),
+    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/绫地宁宁/nn_min.model3.json"),
+    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/akane/InariTalk_PSDtool2.model3.json"), 
+    model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json"),
     # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"),
     # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"),
     # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/hibiki/hibiki.model.json"),
-    model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/shizuku/shizuku.model.json"),
+    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/shizuku/shizuku.model.json"),
     # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kana/Kobayaxi.model.json"),
                         create_renderer=True)  # Load model without creating renderer
     model2 = None
@@ -123,18 +188,16 @@ def main():
     # Print all parameters
     print(f"Parameter Count: {model.GetParamCount()}")
     paramIds = model.GetParamIds()
-    for i in range(model.GetParamCount()):
-        log.LOGD(paramIds[i], 0, model.GetParamValueByIndex(i), model.GetParamMaxByIndex(i),
-                 model.GetParamMinByIndex(i), model.GetParamDefaultByIndex(i))
+    # print(paramIds)
 
     # Print part IDs
     partIds = model.GetPartIds()
-    print(f"Part Count: {len(partIds)}")
-    print("Part IDs:", partIds)
+    # print(f"Part Count: {len(partIds)}")
+    # print("Part IDs:", partIds)
     if MULTI_MODEL:
         partIds2 = model2.GetPartIds()
-        print(f"Part Count2: {len(partIds2)}")
-        print("Part IDs2:", partIds2)
+    #     print(f"Part Count2: {len(partIds2)}")
+    #     print("Part IDs2:", partIds2)
 
     print("Canvas size:", model.GetCanvasSize())
     print("Canvas size in pixels:", model.GetCanvasSizePixel())
@@ -302,7 +365,9 @@ def main():
             live2d.vkEndFrame()
 
         if model.IsMotionFinished():
-            model.StartRandomMotion(priority=3)
+            # model.StartRandomMotion(priority=3)
+            # no spamming logs
+            pass
 
         fps_frames += 1
         if now - fps_timer >= 1.0:

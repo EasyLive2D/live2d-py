@@ -9,16 +9,6 @@ endif()
 
 add_subdirectory(${LIVE2D_ROOT}/V3/Framework)
 
-if(${GR_BACKEND} MATCHES "Vulkan" OR ${GR_BACKEND} MATCHES "Dual")
-  find_package(Vulkan REQUIRED)
-  set(VULKAN_SDK_INCLUDE "$ENV{VULKAN_SDK}/Include")
-  if(EXISTS "${VULKAN_SDK_INCLUDE}")
-      target_include_directories(Framework PUBLIC "${VULKAN_SDK_INCLUDE}")
-  else()
-      message(FATAL_ERROR "cannot find vulkan include")
-  endif()
-endif()
-
 if(${GR_BACKEND} MATCHES "Dual")
   aux_source_directory(${LIVE2D_ROOT}/V3/Framework/src/Rendering/Vulkan VulkanSources)
   target_sources(Framework PRIVATE ${VulkanSources})

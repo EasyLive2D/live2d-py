@@ -3,7 +3,9 @@
 #include <iostream>
 #include <cstring>
 #include <algorithm>
+#include <string>
 #include <vector>
+#include <vulkan/vulkan.h>
 
 #include "Log.hpp"
 
@@ -17,27 +19,115 @@
 #include <vulkan/vulkan_win32.h>
 #endif
 
+#ifdef CSM_TARGET_LINUX_GL
+#define VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME "VK_KHR_wayland_surface"
+#define VK_KHR_XCB_SURFACE_EXTENSION_NAME "VK_KHR_xcb_surface"
+#define VK_KHR_XLIB_SURFACE_EXTENSION_NAME "VK_KHR_xlib_surface"
+#endif
 /**
  * @brief   平台标准的 surface 创建（未设置外部钩子时使用）
  *          仅支持 Windows；其他平台编译期直接报错
  */
 static VkSurfaceKHR createSurfaceInternal(VkInstance instance, const SurfaceCreateContext* ctx) {
-#if defined(_WIN32)
-    VkWin32SurfaceCreateInfoKHR createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-    createInfo.hinstance = GetModuleHandle(nullptr);
-    createInfo.hwnd = static_cast<HWND>(ctx->window);
+    switch (ctx->platform) {
 
-    VkSurfaceKHR surface = VK_NULL_HANDLE;
-    if (vkCreateWin32SurfaceKHR(instance, &createInfo, nullptr, &surface) != VK_SUCCESS) {
-        LOGE("failed to create Win32 surface!");
-        return VK_NULL_HANDLE;
-    }
-    return surface;
+        case Platform::PLATFORM_WINDOWS: {
+#if defined(_WIN32)
+            if (!ctx->window) {
+                LOGE("Win32 surface: window is null");
+                return VK_NULL_HANDLE;
+            }
+            VkWin32SurfaceCreateInfoKHR createInfo{};
+            createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+            createInfo.hinstance = GetModuleHandle(nullptr);
+            createInfo.hwnd = static_cast<HWND>(ctx->window);
+
+            VkSurfaceKHR surface = VK_NULL_HANDLE;
+            if (vkCreateWin32SurfaceKHR(instance, &createInfo, nullptr, &surface) != VK_SUCCESS) {
+                LOGE("failed to create Win32 surface!");
+                return VK_NULL_HANDLE;
+            }
+            return surface;
 #else
-#error \
-    "createSurfaceInternal: only Windows is implemented; implement vkCreate*Surface for this platform"
+            LOGE("PLATFORM_WINDOWS requested but Win32 surface not compiled");
+            return VK_NULL_HANDLE;
 #endif
+        }
+
+        case Platform::PLATFORM_XCB: {
+#if defined(__linux__)
+            if (!ctx->connection || !ctx->window) {
+                LOGE("XCB surface: connection or window is null");
+                return VK_NULL_HANDLE;
+            }
+            VkXcbSurfaceCreateInfoKHR createInfo{};
+            createInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
+            createInfo.connection = static_cast<xcb_connection_t*>(ctx->connection);
+            createInfo.window = static_cast<xcb_window_t>(reinterpret_cast<uintptr_t>(ctx->window));
+
+            VkSurfaceKHR surface = VK_NULL_HANDLE;
+            if (vkCreateXcbSurfaceKHR(instance, &createInfo, nullptr, &surface) != VK_SUCCESS) {
+                LOGE("failed to create XCB surface!");
+                return VK_NULL_HANDLE;
+            }
+            return surface;
+#else
+            LOGE("PLATFORM_XCB requested but VK_USE_PLATFORM_XCB_KHR not compiled");
+            return VK_NULL_HANDLE;
+#endif
+        }
+
+        case Platform::PLATFORM_XLIB: {
+#if defined(__linux__)
+            LOGI("Platform: xlib");
+            if (!ctx->display || !ctx->window) {
+                LOGE("Xlib surface: display or window is null");
+                return VK_NULL_HANDLE;
+            }
+            VkXlibSurfaceCreateInfoKHR createInfo{};
+            createInfo.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
+            createInfo.dpy = static_cast<Display*>(ctx->display);
+            createInfo.window = static_cast<Window>(reinterpret_cast<uintptr_t>(ctx->window));
+
+            VkSurfaceKHR surface = VK_NULL_HANDLE;
+            if (vkCreateXlibSurfaceKHR(instance, &createInfo, nullptr, &surface) != VK_SUCCESS) {
+                LOGE("failed to create Xlib surface!");
+                return VK_NULL_HANDLE;
+            }
+            return surface;
+#else
+            LOGE("PLATFORM_XLIB requested but VK_USE_PLATFORM_XLIB_KHR not compiled");
+            return VK_NULL_HANDLE;
+#endif
+        }
+
+        case Platform::PLATFORM_WAYLAND: {
+#if defined(__linux__)
+            if (!ctx->display || !ctx->window) {
+                LOGE("Wayland surface: display or surface is null");
+                return VK_NULL_HANDLE;
+            }
+            VkWaylandSurfaceCreateInfoKHR createInfo{};
+            createInfo.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
+            createInfo.display = static_cast<wl_display*>(ctx->display);
+            createInfo.surface = static_cast<wl_surface*>(ctx->window);
+
+            VkSurfaceKHR surface = VK_NULL_HANDLE;
+            if (vkCreateWaylandSurfaceKHR(instance, &createInfo, nullptr, &surface) != VK_SUCCESS) {
+                LOGE("failed to create Wayland surface!");
+                return VK_NULL_HANDLE;
+            }
+            return surface;
+#else
+            LOGE("PLATFORM_WAYLAND requested but VK_USE_PLATFORM_WAYLAND_KHR not compiled");
+            return VK_NULL_HANDLE;
+#endif
+        }
+
+        default:
+            LOGF("unknown platform backend: %u", static_cast<unsigned>(ctx->platform));
+            return VK_NULL_HANDLE;
+    }
 }
 
 /**
@@ -151,9 +241,37 @@ std::vector<const char*> VulkanManager::GetRequiredExtensions() {
     if (!hasExt(VK_KHR_WIN32_SURFACE_EXTENSION_NAME)) {
         extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
     }
+#elif defined(__linux__)
+    bool anySurface = false;
+    auto addExtensionIfNeeded = [&](const char* target) {
+        if (!hasExt(target)) {
+            extensions.push_back(target);
+            anySurface = true;
+            LOGD("surface ext: %s", target);
+        }
+    };
+
+    switch (_surfaceCtx.platform) {
+        case PLATFORM_XLIB:
+            addExtensionIfNeeded(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
+            break;
+        case PLATFORM_WAYLAND:
+            addExtensionIfNeeded(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
+            break;
+        case PLATFORM_XCB:
+            addExtensionIfNeeded(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
+            break;
+    }
+    // 编译了哪个后端，就尝试启用哪个；实例创建时还不知道上层会传什么 backend，
+    // 所以 Wayland 和 X11 只要编译进来了就都尝试启用，为运行期选择铺路。
+
+    if (!anySurface) {
+        LOGE("no platform surface extension available (Wayland/X11)");
+        return {};
+    }
+
 #else
-#error \
-    "GetRequiredExtensions: only Windows is implemented; append the platform surface extension for this platform"
+#error "GetRequiredExtensions: unsupported platform"
 #endif
 
     if (_enableValidationLayers) {
@@ -440,11 +558,11 @@ void VulkanManager::RecreateFinishSemaphores() {
     }
 
     const int newCount = _swapchainManager->GetImageCount();
-    if (!_imageFinishDrawSemaphores.empty() &&
-        (int)_imageFinishDrawSemaphores.size() != newCount) {
+    if (!_imageFinishDrawSemaphores.empty() && (int)_imageFinishDrawSemaphores.size() != newCount) {
         LOGW("swapchain image count changed (%d -> %d); renderer per-image resource "
              "counts are not rebuilt this frame",
-             (int)_imageFinishDrawSemaphores.size(), newCount);
+             (int)_imageFinishDrawSemaphores.size(),
+             newCount);
     }
 
     _imageFinishDrawSemaphores.assign(newCount, VK_NULL_HANDLE);
@@ -496,8 +614,9 @@ void VulkanManager::Initialize() {
     PickPhysicalDevice();
     CreateLogicalDevice();
     ChooseSupportedDepthFormat();
+    ChooseSurfaceFormat();
     _swapchainManager = new SwapchainManager(
-        _window, _physicalDevice, _device, _surface, indices.graphicsFamily, indices.presentFamily);
+        _window, _physicalDevice, _device, _surface, _surfaceFormat, indices.graphicsFamily, indices.presentFamily);
     CreateCommandPool();
     _swapchainManager->ChangeLayout(_device, _commandPool, _graphicQueue);
     CreateSyncObjects();
@@ -864,4 +983,27 @@ void VulkanManager::Destroy() {
     vkDestroySurfaceKHR(_instance, _surface, nullptr);
     vkDestroyInstance(_instance, nullptr);
     _instance = VK_NULL_HANDLE;
+}
+
+void VulkanManager::ChooseSurfaceFormat() {
+    uint32_t count = 0;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice, _surface, &count, nullptr);
+    std::vector<VkSurfaceFormatKHR> formats(count);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice, _surface, &count, formats.data());
+
+    for (auto& format : formats) {
+        LOGD("format => %d", format.format);
+        if (format.format == _surfaceFormat || format.format == VK_FORMAT_B8G8R8A8_UNORM) {
+            _surfaceFormat = format.format;
+            LOGD("selected format: %d", _surfaceFormat);
+            return;
+        }
+    }
+
+    if (!formats.empty()) {
+        _surfaceFormat = formats[0].format;
+        LOGD("selected format: %d", _surfaceFormat);
+    } else {
+        LOGE("No supported surface format");
+    }
 }

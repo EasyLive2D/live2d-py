@@ -1,6 +1,8 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
+#include <vector>
 
 namespace Live2D {
 namespace Common {
@@ -26,6 +28,8 @@ public:
      */
     static unsigned char* LoadFileAsBytes(const std::string filePath, unsigned int* outSize);
 
+    static std::vector<uint8_t> LoadFileAsBytes(const std::string& filePath);
+
     /**
      * @brief 释放 LoadFileAsBytes 返回的字节数据。
      */
@@ -41,6 +45,5 @@ public:
      */
     static void InitShaderDir(const std::string& path);
 };
-
-}  // namespace Common
-}  // namespace Live2D
+}   // namespace Common
+}   // namespace Live2D

@@ -5,6 +5,10 @@
 #include <algorithm>
 #include <cmath>
 
+#ifdef __linux__
+#include <cstring>
+#endif
+
 namespace VkUtil {
 
 uint32_t FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter,

@@ -27,11 +27,13 @@ set(LIVE2D_TARGET Live2D)
 message("[Live2D Root]: ${LIVE2D_ROOT}")
 
 
+if(${GR_BACKEND} MATCHES "OpenGL" OR ${GR_BACKEND} MATCHES "Dual")
 if(CMAKE_SYSTEM_NAME MATCHES "Android")
     set(OPENGL_LIBRARIES GLESv2)
 else() # Windows, Linux, MacOS
     add_subdirectory(Glad)
     find_package(OpenGL REQUIRED)
+endif()
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")

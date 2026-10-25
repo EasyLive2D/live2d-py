@@ -29,8 +29,11 @@ endif()
 target_link_libraries(${V3_TARGET} PUBLIC
   Framework
   Common
-  ${OPENGL_LIBRARIES}
 )
+
+if(${GR_BACKEND} MATCHES "OpenGL")
+  target_link_libraries(${V3_TARGET} PUBLIC ${OPENGL_LIBRARIES})
+endif()
 if (${GR_BACKEND} MATCHES "Vulkan")
   # VulkanManager / SwapchainManager / VkUtil（原 V3 内文件已迁移至此库）
   target_link_libraries(${V3_TARGET} PUBLIC Live2D::Vulkan)

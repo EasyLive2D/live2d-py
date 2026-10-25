@@ -19,34 +19,43 @@ unsigned char* FileUtils::LoadFileAsBytes(const std::string filePath, unsigned i
     interceptShaderLoading(pathStr);
     std::filesystem::path path = std::filesystem::u8path(pathStr);
 
-    size_t size = 0;
-    if (std::filesystem::exists(path)) {
-        size = std::filesystem::file_size(path);
-        if (size == 0) {
-            LOGI("Stat succeeded but file size is zero. path:%s", pathStr.c_str());
-            return NULL;
-        }
-    } else {
-        LOGI("Stat failed. path:%s", pathStr.c_str());
-        return NULL;
-    }
-
-    std::fstream file;
-    file.open(path, std::ios::in | std::ios::binary);
-    if (!file.is_open()) {
+    std::ifstream file;
+    file.open(path, std::ios::binary | std::ios::ate);
+    if (!file) {
         LOGI("File open failed. path:%s", pathStr.c_str());
-        return NULL;
+        return nullptr;
     }
 
+    size_t size = file.tellg();
+    file.seekg(0);
     char* buf = new char[size];
     file.read(buf, size);
-    file.close();
 
     if (outSize) {
         *outSize = static_cast<unsigned int>(size);
     }
 
     return reinterpret_cast<unsigned char*>(buf);
+}
+
+std::vector<uint8_t> FileUtils::LoadFileAsBytes(const std::string& filePath) {
+    std::string pathStr = filePath;
+    interceptShaderLoading(pathStr);
+    std::filesystem::path path = std::filesystem::u8path(pathStr);
+
+    std::ifstream file;
+    file.open(path, std::ios::binary | std::ios::ate);
+    if (!file) {
+        LOGI("File open failed. path:%s", pathStr.c_str());
+        return {};
+    }
+
+    size_t size = file.tellg();
+    file.seekg(0);
+    std::vector<uint8_t> data(size);
+    file.read(reinterpret_cast<char*>(data.data()), size);
+
+    return data;
 }
 
 void FileUtils::ReleaseBytes(unsigned char* byteData) {

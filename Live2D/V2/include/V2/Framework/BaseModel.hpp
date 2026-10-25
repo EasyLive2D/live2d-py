@@ -23,7 +23,7 @@ class BaseModel : public IModel {
 public:
     BaseModel();
     ~BaseModel() override;
-    void LoadModelData(const std::vector<uint8_t>& data, int version);
+    void LoadModelData(const std::vector<uint8_t>& data);
     AMotion* LoadMotion(const std::string& name, const std::vector<uint8_t>& data);
     AMotion* LoadExpression(const std::string& name, const std::vector<uint8_t>& data);
     Pose* LoadPose(const std::vector<uint8_t>& data);

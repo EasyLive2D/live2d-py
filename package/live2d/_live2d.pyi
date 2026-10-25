@@ -171,7 +171,7 @@ def clearBuffer(r: float = 0.0, g: float = 0.0, b: float = 0.0, a: float = 0.0) 
 #   - 当前后端不是 Vulkan（含未初始化/已销毁）时抛 RuntimeError
 #   - 该平台未编译 Vulkan 支持时抛 RuntimeError
 
-def vkInit(window_ptr: int, display_ptr: int = 0) -> None:
+def vkInit(platform: int, window_ptr: int, display_ptr: int, connection: int) -> None:
     """Initialize Vulkan instance/device/swapchain and select the Vulkan backend.
 
     Raises RuntimeError if a backend (OpenGL or Vulkan) is already initialized,

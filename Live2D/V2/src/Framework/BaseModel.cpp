@@ -4,7 +4,6 @@
 #include "Drawable.hpp"
 #include "ExpressionMotion.hpp"
 #include "EyeBlink.hpp"
-#include "GLRenderer.hpp"
 #include "Id.hpp"
 #include "Motion.hpp"
 #include "Moc.hpp"
@@ -26,13 +25,12 @@ BaseModel::BaseModel() :
 
 BaseModel::~BaseModel() = default;
 
-void BaseModel::LoadModelData(const std::vector<uint8_t>& data, int version) {
+void BaseModel::LoadModelData(const std::vector<uint8_t>& data) {
     BinaryReader br(data, mIdPool);
     br.ReadByte();
     br.ReadByte();
     br.ReadByte();
-    version = br.ReadByte();
-    br.SetFormatVersion(version);
+    br.SetFormatVersion(br.ReadByte());
     mMoc.reset(static_cast<Moc*>(br.ReadObjectRaw()));
     mMoc->Init();
 }

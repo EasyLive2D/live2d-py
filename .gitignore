@@ -72,6 +72,7 @@ csmsdk_temp
 .claude
 
 *.png
+!Resources/**/*.png
 !docs/*.png
 
 raw/

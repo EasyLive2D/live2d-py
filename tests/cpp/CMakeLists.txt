@@ -37,6 +37,8 @@ set_target_properties(Live2DTest PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests/cpp
 )
 
+target_compile_definitions(Live2DTest PRIVATE SHADER_DIRECTORY="${CMAKE_SOURCE_DIR}/package/live2d")
+
 # ---- shader files next to the executable ------------------------------------
 # GL / Vulkan 渲染器都在创建时按 CWD 读取 "FrameworkShaders/*"；
 # 把每个已启用后端的 shader 目录拷到 exe 旁（Live2DTest 启动时把 CWD 切到 exe 目录）。

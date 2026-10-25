@@ -4,7 +4,13 @@
 #include <cstdlib>
 #include <atomic>
 
-#ifdef CSM_TARGET_ANDROID_ES2
+// for std::memcpy
+#ifdef __linux__
+#include <cstring>
+#endif
+
+// use render-irrelevant marco
+#ifdef __ANDROID__
 #include <android/log.h>
 #define TAG "live2d-py"
 #endif

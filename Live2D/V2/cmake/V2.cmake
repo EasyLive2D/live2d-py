@@ -11,10 +11,6 @@ target_include_directories(${V2_TARGET}
     PUBLIC ${LIVE2D_ROOT}/V2/include/V2/Renderer
 )
 
-if (NOT CMAKE_SYSTEM_NAME MATCHES "Android")
-    target_link_libraries(${V2_TARGET} PUBLIC glad)
-endif()
-
 target_link_libraries(${V2_TARGET} PUBLIC Common)
 if (${GR_BACKEND} MATCHES "Vulkan" OR ${GR_BACKEND} MATCHES "Dual")
     # Vulkan 渲染后端（VkRenderer 依赖 VulkanManager / VkUtil）
@@ -26,6 +22,9 @@ if (${GR_BACKEND} MATCHES "OpenGL" OR ${GR_BACKEND} MATCHES "Dual")
     # V2 OpenGL shader 源文件目录（.vert/.frag，构建后拷到 package/live2d/FrameworkShaders）
     set_target_properties(${V2_TARGET} PROPERTIES
         LIVE2D_GL_SHADER_DIR "${LIVE2D_ROOT}/V2/shaders/opengl")
+    if (NOT CMAKE_SYSTEM_NAME MATCHES "Android")
+        target_link_libraries(${V2_TARGET} PUBLIC glad)
+    endif()
 endif()
 target_compile_definitions(${V2_TARGET} PRIVATE MODULE_LOG_TAG="v2")
 

@@ -592,7 +592,7 @@ const float* Model::GetMvp() {
 
 void Model::StartMotion(const std::string& group, int no, int priority, MotionCallback onStart,
                         MotionCallback onFinish) {
-    if (priority == MotionPriority::Force) {
+    if (priority == MotionPriority::MotionPrioForce) {
         mProxy._motionManager->SetReservePriority(priority);
     } else if (!mProxy._motionManager->ReserveMotion(priority)) {
         LOGI("motion priority is too low.");
@@ -665,7 +665,7 @@ handler_label:
         if (onFinish) {
             onFinish(group, no);
         }
-        mProxy._motionManager->SetReservePriority(MotionPriority::None);
+        mProxy._motionManager->SetReservePriority(MotionPriority::MotionPrioNone);
     }
 
     mProxy._motionManager->StartMotionPriority(motion, autoDelete, priority);
@@ -1463,7 +1463,7 @@ void Model::SetupTextures() {
             }
             LAppTextureManager::TextureInfo* texture = mTextureManager.CreateTextureFromPngFile(
                 texturePath.GetRawString(),
-                VulkanManager::GetInstance()->GetImageFormat(),
+                VK_FORMAT_R8G8B8A8_UNORM,
                 VK_IMAGE_TILING_OPTIMAL,
                 VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
                     VK_IMAGE_USAGE_SAMPLED_BIT,

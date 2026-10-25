@@ -28,6 +28,8 @@ public:
     GLRenderer(Moc* moc, int textureCount);
     ~GLRenderer() override;
 
+    GLRenderer* GetGLRenderer() override { return this; }
+
     void SetupDraw(Moc* moc);
     void EndDraw();
 

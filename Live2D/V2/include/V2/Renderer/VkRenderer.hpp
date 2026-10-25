@@ -37,6 +37,8 @@ public:
     VkRenderer(Moc* moc, int textureCount);
     ~VkRenderer() override;
 
+    VkRenderer* GetVkRenderer() override { return this; }
+
     bool IsVulkan() const override { return true; }
 
     void PreDraw(Moc* moc) override;
@@ -60,22 +62,20 @@ public:
     void SetCulling(bool cull) { mCulling = cull; }
 
 private:
-    void DrawTexture(int texNo, const std::array<float, 4>& screenColor,
-                     const uint16_t* indices, int indexCount,
-                     const float* vertices, int vertexFloatCount,
-                     const float* uvs, int uvFloatCount,
-                     float opacity, int compositionType,
+    void DrawTexture(int texNo, const std::array<float, 4>& screenColor, const uint16_t* indices,
+                     int indexCount, const float* vertices, int vertexFloatCount, const float* uvs,
+                     int uvFloatCount, float opacity, int compositionType,
                      const std::array<float, 4>& multiplyColor);
 
     // std140 与 shader UBO 块布局一一对应
     struct UBO {
-        float mvp[16];          // 0
-        float clipMatrix[16];   // 64
-        float baseColor[4];     // 128
-        float screenColor[4];   // 144
-        float multiplyColor[4]; // 160
-        float channelFlag[4];   // 176
-        int32_t maskFlag;       // 192
+        float mvp[16];            // 0
+        float clipMatrix[16];     // 64
+        float baseColor[4];       // 128
+        float screenColor[4];     // 144
+        float multiplyColor[4];   // 160
+        float channelFlag[4];     // 176
+        int32_t maskFlag;         // 192
     };
     static_assert(sizeof(UBO) == 196, "UBO layout must match std140 block in v2_*.vert/frag");
 
@@ -97,7 +97,8 @@ private:
 
     VkDevice mDevice = VK_NULL_HANDLE;
     VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
-    VkFormat mColorFormat = VK_FORMAT_R8G8B8A8_UNORM;   // swapchain/mask 通用颜色格式（管线 rendering info）
+    VkFormat mColorFormat =
+        VK_FORMAT_R8G8B8A8_UNORM;   // swapchain/mask 通用颜色格式（管线 rendering info）
 
     std::array<float, 16> mMatrix4x4{};
     std::array<float, 16> mClipMatrix{};

@@ -15,7 +15,12 @@
 #include <GLFW/glfw3.h>
 #ifdef CSM_TARGET_VULKAN
 #include <vulkan/vulkan.h>
+#ifdef _WIN32
 #define GLFW_EXPOSE_NATIVE_WIN32
+#elif __linux__
+#define GLFW_EXPOSE_NATIVE_X11
+#define GLFW_EXPOSE_NATIVE_WAYLAND
+#endif
 #include <GLFW/glfw3native.h>
 #include <Rendering/Vulkan/CubismRenderer_Vulkan.hpp>
 #include <VulkanManager.hpp>
@@ -59,12 +64,33 @@ void windowSizeCallback(GLFWwindow* /*win*/, int width, int height) {
 // device / swapchain / Framework 渲染器常量（CreateRenderer 前必须）
 bool InitVulkan(GLFWwindow* window) {
     VulkanManager* vkManager = VulkanManager::GetInstance();
+    SurfaceCreateContext surfaceCtx{};
 
+#ifdef _WIN32
     // 获取原生窗口句柄 (HWND) 并传给 VulkanManager。
     // surface 创建由 VulkanManager 内部的 vkCreateWin32SurfaceKHR 完成。
-    SurfaceCreateContext surfaceCtx{};
     surfaceCtx.window = glfwGetWin32Window(window);
-    surfaceCtx.display = nullptr;
+#elif defined(__linux__)
+        // 运行时判断 GLFW 当前使用的后端，填充对应的原生句柄。
+    // surface 创建由 VulkanManager 内部根据 platform 分发到
+    // vkCreateXlibSurfaceKHR 或 vkCreateWaylandSurfaceKHR。
+    const auto platform = glfwGetPlatform();
+    if (glfwGetPlatform() == GLFW_PLATFORM_WAYLAND) {
+        surfaceCtx.platform      = PLATFORM_WAYLAND;
+        surfaceCtx.display = glfwGetWaylandDisplay();
+        surfaceCtx.window = glfwGetWaylandWindow(window);
+        LOGI("platform: wayland");
+    } else if (platform == GLFW_PLATFORM_X11) {
+        // GLFW 的 X11 后端，句柄是 Xlib 类型
+        surfaceCtx.platform      = PLATFORM_XLIB;
+        surfaceCtx.display = glfwGetX11Display();
+        surfaceCtx.window = (void*)(uintptr_t)glfwGetX11Window(window);
+        LOGI("platform: x11");
+    } else {
+        LOGF("unsupported platform 0x%x", platform);
+    }
+#endif
+
     vkManager->SetSurfaceCreateContext(surfaceCtx);
 
     // 不调用 SetInstanceExtensions → GetRequiredExtensions() 自动补齐所需扩展
@@ -171,6 +197,9 @@ void RenderFrame(GLFWwindow* window, Live2D::IModel& model) {
 }   // namespace
 
 int RunInteractive(const std::string& modelPath) {
+#if defined(__linux__) && defined(CSM_TARGET_VULKAN) // temp for wsl
+    glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
+#endif
     glfwSetErrorCallback(glfwErrorCallback);
     if (!glfwInit()) {
         fprintf(stderr, "ERROR: glfwInit() failed\n");

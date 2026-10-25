@@ -4,9 +4,11 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
+#include <vulkan/vulkan_core.h>
 
 SwapchainManager::SwapchainManager(void* _window, VkPhysicalDevice physicalDevice, VkDevice device,
-                                   VkSurfaceKHR surface, uint32_t graphicsFamily, uint32_t presentFamily)
+                                   VkSurfaceKHR surface, VkFormat format, uint32_t graphicsFamily, uint32_t presentFamily)
+                                   : swapchainFormat(format)
 {
     CreateSwapchain(_window, physicalDevice, device, surface, graphicsFamily, presentFamily);
 }

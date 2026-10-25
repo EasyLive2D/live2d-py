@@ -34,6 +34,10 @@
 #include "ModelCatalog.hpp"
 #include "SmokeTest.hpp"
 
+#ifndef SHADER_DIRECTORY
+#define SHADER_DIRECTORY ""
+#endif
+
 // Windows 的 main() argv 是 ANSI(GBK) 编码，而库的 readFile 按 UTF-8 解释路径
 // （std::filesystem::u8path）。中文路径（如 托尔）的 GBK 字节不是合法 UTF-8，
 // 直接传给 u8path 会抛异常导致 terminate。重新按宽字符取命令行并转 UTF-8。
@@ -75,7 +79,7 @@ int main(int argc, char* argv[]) {
     if (!ParseOptions(argc, argv, opt))
         return 1;
 
-    Live2D::Init("D:/forDesktop/live2d-py/package/live2d/");
+    Live2D::Init(SHADER_DIRECTORY);
     Live2D::Common::Backend::SetBackend(opt.backend);
     printf("Backend: %s\n", Live2D::Common::Backend::IsVulkan() ? "Vulkan" : "OpenGL");
     if (opt.smokeAll)

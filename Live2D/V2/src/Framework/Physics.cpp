@@ -17,8 +17,6 @@ void Physics::UpdateParam(Moc* moc, long long dtMs) {
 
 Physics* Physics::Load(const std::vector<uint8_t>& data, Id::IdPool& idPool) {
     auto* ret = new Physics();
-    if (data.empty())
-        return ret;
     // Python: pm.jsonParseFromBytes == json.loads (l2d_physics.py:17-69)
     json root = json::parse(std::string((const char*)data.data(), data.size()));
     auto params = root.find("physics_hair");

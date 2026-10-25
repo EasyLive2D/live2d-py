@@ -14,8 +14,10 @@ namespace V2 {
 
 class Moc;
 
-class IRenderer
-{
+
+class VkRenderer;
+class GLRenderer;
+class IRenderer {
 public:
     virtual ~IRenderer() = default;
 
@@ -39,6 +41,9 @@ public:
 
     virtual void SetMatrix(const float m[16]) = 0;
     virtual void Resize(int w, int h) = 0;
+
+    virtual VkRenderer* GetVkRenderer() { return nullptr; }
+    virtual GLRenderer* GetGLRenderer() { return nullptr; }
 };
 
 }   // namespace V2

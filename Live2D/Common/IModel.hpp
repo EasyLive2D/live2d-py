@@ -12,10 +12,11 @@
 
 namespace Live2D {
 
-namespace MotionPriority {
-constexpr int None = 0;
-constexpr int Normal = 1;
-constexpr int Force = 3;
+// `None` conflicts with X11.h header
+enum MotionPriority: int {
+    MotionPrioNone = 0,
+    MotionPrioNormal = 1,
+    MotionPrioForce = 3,
 };   // namespace MotionPriority
 
 /**

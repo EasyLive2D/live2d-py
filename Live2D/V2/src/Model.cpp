@@ -2,7 +2,7 @@
 #include "Drawable.hpp"
 #include "ExpressionMotion.hpp"
 #include "EyeBlink.hpp"
-#include "GLRenderer.hpp"
+#include "FileUtils.hpp"
 #include "GraphicsBackend.hpp"
 #include "IModel.hpp"
 #include "Id.hpp"
@@ -10,6 +10,9 @@
 #include "Part.hpp"
 #include "Physics.hpp"
 #include "Pose.hpp"
+// for linux: memcpy
+#include <memory>
+#include <cstddef>
 #ifdef CSM_TARGET_VULKAN
 #include "VkRenderer.hpp"
 #include "VkUtil.hpp"
@@ -29,6 +32,7 @@
 
 #if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
 #include <GL/glew.h>
+#include "GLRenderer.hpp"
 #endif
 #include <cmath>
 #include <cstdlib>
@@ -43,21 +47,7 @@ namespace V2 {
 
 using json = nlohmann::json;
 using namespace Live2D::Common::Log;
-
-// Helper: read entire file using std::filesystem::u8path for Unicode path
-// support
-static std::vector<uint8_t> readFile(const std::string& path) {
-    std::filesystem::path fp = std::filesystem::u8path(path);
-    std::ifstream f(fp, std::ios::binary | std::ios::ate);
-    if (!f)
-        return {};   // missing file: tellg() would be -1 -> vector((size_t)-1) throws
-    auto sz = f.tellg();
-    f.seekg(0);
-    std::vector<uint8_t> data((size_t)sz);
-    f.read((char*)data.data(), sz);
-    f.close();
-    return data;
-}
+using namespace Live2D::Common;
 
 // homeDir 已含尾部分隔符（可为空串）；rel 为绝对路径（含 '/' '\'
 // 开头）时原样返回
@@ -86,12 +76,12 @@ void Model::LoadModelJson(const char* path, bool createRenderer) {
     const std::string pathStr(path ? path : "");
 
     // 复用 readFile（u8path + 缺失文件返回空 vector 而不是抛异常）
-    auto bytes = readFile(pathStr);
+    auto bytes = FileUtils::LoadFileAsBytes(pathStr);
     if (bytes.empty()) {
         LOGE("Failed to read model json: %s", pathStr.c_str());
         return;
     }
-    const std::string jsonText(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+    const std::string jsonText(reinterpret_cast<char*>(bytes.data()), bytes.size());
 
     // 资源根目录 = json 所在目录（含尾部分隔符）
     LoadModelJsonImpl(jsonText, pathStr.substr(0, pathStr.find_last_of("/\\") + 1), createRenderer);
@@ -117,12 +107,14 @@ void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& ho
     }
     std::string mocPath = JoinPath(mModelHomeDir, modelIt->get<std::string>());
 
-    auto mocData = readFile(mocPath);
-    if (mocData.empty()) {
-        LOGE("Failed to read .moc file: %s", mocPath.c_str());
-        return;
+    {
+        auto mocData = FileUtils::LoadFileAsBytes(mocPath);
+        if (mocData.empty()) {
+            LOGE("Failed to read .moc file: %s", mocPath.c_str());
+            return;
+        }
+        LoadModelData(mocData);
     }
-    LoadModelData(mocData, 0);
     // 画布适配参数在模型生命周期内不变，加载时设置一次
     mMatrixManager.SetFit(
         {(float)mMoc->GetCanvasWidth(), (float)mMoc->GetCanvasHeight(), true, true});
@@ -132,72 +124,79 @@ void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& ho
     parseTexturePaths(data, mTexturePaths);
 
     // Load physics (Python: getPhysicsFile() is not None — lapp_model.py:63-64)
-    auto physics = data.find("physics");
-    if (physics != data.end() && physics->is_string()) {
-        auto phyFile = physics->get<std::string>();
-        auto phyData = readFile(JoinPath(mModelHomeDir, phyFile));
-        if (!phyData.empty()) {
-            LOGD("Load physics: %s", phyFile.c_str());
-            LoadPhysics(phyData);
+    {
+        auto physics = data.find("physics");
+        if (physics != data.end() && physics->is_string()) {
+            auto phyFile = physics->get<std::string>();
+            auto phyData = FileUtils::LoadFileAsBytes(JoinPath(mModelHomeDir, phyFile));
+            if (!phyData.empty()) {
+                LOGD("Load physics: %s", phyFile.c_str());
+                LoadPhysics(phyData);
+            }
         }
     }
 
     // Load pose file (Python: getPoseFile() is None for both missing key and
     // explicit null — e.g. Resources/v2/托尔/model0.json has "pose": null)
-    auto pose = data.find("pose");
-    if (pose != data.end() && pose->is_string()) {
-        auto poseFile = pose->get<std::string>();
-        auto posePath = JoinPath(mModelHomeDir, poseFile);
-        auto poseData = readFile(posePath);
-        if (!poseData.empty()) {
-            LOGI("Load pose: %s", poseFile.c_str());
-            mPose.reset(Pose::Load(poseData, mIdPool));
-            // Initialize part/param indices once (PartData::initIndex uses the
-            // "VISIBLE:" prefix; a bare-id pre-pass here used to append phantom
-            // parameters via getParamIndex's extend-on-miss).
-            mPose->InitParam(mMoc.get());
-        }
-    }
-
-    // Load motion files
-    auto motions = data.find("motions");
-    if (motions != data.end()) {
-        for (auto& [groupName, motionArray] : motions->items()) {
-            auto& motVec = mMotions[groupName];
-            for (auto& motionEntry : motionArray) {
-                auto motFile = motionEntry["file"].get<std::string>();
-                auto motPath = JoinPath(mModelHomeDir, motFile);
-                auto motData = readFile(motPath);
-                if (!motData.empty()) {
-                    auto* motion = Motion::Load(motData, mIdPool);
-                    LOGD("Load motion: %s", motFile.c_str());
-                    motVec.emplace_back(motion);
-
-                    std::string sound;
-                    auto soundIt = motionEntry.find("sound");
-                    if (soundIt != motionEntry.end() && soundIt->is_string())
-                        sound = soundIt->get<std::string>();
-                    mMotionInfos[groupName].push_back({motFile, sound});
-                }
+    {
+        auto pose = data.find("pose");
+        if (pose != data.end() && pose->is_string()) {
+            auto poseFile = pose->get<std::string>();
+            auto posePath = JoinPath(mModelHomeDir, poseFile);
+            auto poseData = FileUtils::LoadFileAsBytes(posePath);
+            if (!poseData.empty()) {
+                LOGI("Load pose: %s", poseFile.c_str());
+                mPose.reset(Pose::Load(poseData, mIdPool));
+                // Initialize part/param indices once (PartData::initIndex uses the
+                // "VISIBLE:" prefix; a bare-id pre-pass here used to append phantom
+                // parameters via getParamIndex's extend-on-miss).
+                mPose->InitParam(mMoc.get());
             }
-            if (motVec.empty())
-                mMotions.erase(groupName);
         }
     }
 
-    // Load expression files
-    auto expressions = data.find("expressions");
-    if (expressions != data.end()) {
-        for (auto& [index, expEntry] : expressions->items()) {
-            auto expFile = expEntry["file"].get<std::string>();
-            auto expPath = JoinPath(mModelHomeDir, expFile);
-            auto expData = readFile(expPath);
-            auto expName = expEntry["name"].get<std::string>();
-            if (!expData.empty()) {
-                auto* expr = ExpressionMotion::Load(expData, mIdPool);
-                LOGD("Load expression: %s", expName.c_str());
-                mExpressions[expName].reset(expr);
-                mExpressionFiles[expName] = expFile;
+    {   // Load motion files
+        auto motions = data.find("motions");
+        if (motions != data.end()) {
+            for (auto& [groupName, motionArray] : motions->items()) {
+                auto& motVec = mMotions[groupName];
+                for (auto& motionEntry : motionArray) {
+                    auto motFile = motionEntry["file"].get<std::string>();
+                    auto motPath = JoinPath(mModelHomeDir, motFile);
+                    auto motData = FileUtils::LoadFileAsBytes(motPath);
+                    if (!motData.empty()) {
+                        auto* motion = Motion::Load(motData, mIdPool);
+                        LOGD("Load motion: %s", motFile.c_str());
+                        motVec.emplace_back(motion);
+
+                        std::string sound;
+                        auto soundIt = motionEntry.find("sound");
+                        if (soundIt != motionEntry.end() && soundIt->is_string())
+                            sound = soundIt->get<std::string>();
+                        mMotionInfos[groupName].push_back({motFile, sound});
+                    }
+                }
+                if (motVec.empty())
+                    mMotions.erase(groupName);
+            }
+        }
+    }
+
+    {
+        // Load expression files
+        auto expressions = data.find("expressions");
+        if (expressions != data.end()) {
+            for (auto& [index, expEntry] : expressions->items()) {
+                auto expFile = expEntry["file"].get<std::string>();
+                auto expPath = JoinPath(mModelHomeDir, expFile);
+                auto expData = FileUtils::LoadFileAsBytes(expPath);
+                auto expName = expEntry["name"].get<std::string>();
+                if (!expData.empty()) {
+                    auto* expr = ExpressionMotion::Load(expData, mIdPool);
+                    LOGD("Load expression: %s", expName.c_str());
+                    mExpressions[expName].reset(expr);
+                    mExpressionFiles[expName] = expFile;
+                }
             }
         }
     }
@@ -510,7 +509,7 @@ void Model::StartMotion(const std::string& group, int no, int priority, MotionCa
             no = 0;
 
         // Priority check (match Python v2)
-        if (priority == MotionPriority::Force) {
+        if (priority == MotionPriority::MotionPrioNone) {
             LOGI("Start motion (force): group=%s no=%d priority=%d", group.c_str(), no, priority);
             mMainMotionMgr->SetReservePriority(priority);
         } else if (!mMainMotionMgr->ReserveMotion(priority)) {
@@ -759,44 +758,8 @@ void Model::CreateRenderer(int maskBufferCount) {
         // 与 V3 一致：Vulkan 已初始化时创建 Vulkan
         // 渲染器；未初始化则跳过（无头模式安全）
         if (VulkanManager::GetInstance()->IsInitialized()) {
-            auto* vkRenderer = new VkRenderer(mMoc.get(), (int)mTexturePaths.size());
-            mRenderer.reset(vkRenderer);
-            for (size_t i = 0; i < mTexturePaths.size(); i++) {
-                std::string texPath = JoinPath(mModelHomeDir, mTexturePaths[i]);
-                int w, h, n;
-                auto texData = readFile(texPath);
-                unsigned char* pixels =
-                    texData.empty()
-                        ? nullptr
-                        : stbi_load_from_memory(texData.data(), (int)texData.size(), &w, &h, &n, 4);
-                if (!pixels)
-                    continue;
-                LOGD("Load texture[%zu/%zu]: %s",
-                     i + 1,
-                     mTexturePaths.size(),
-                     mTexturePaths[i].c_str());
-
-                VkImage image = VK_NULL_HANDLE;
-                VkDeviceMemory memory = VK_NULL_HANDLE;
-                VkImageView view = VK_NULL_HANDLE;
-                VkSampler sampler = VK_NULL_HANDLE;
-                if (VkUtil::CreateTextureFromPixels(
-                        VulkanManager::GetInstance()->GetDevice(),
-                        VulkanManager::GetInstance()->GetPhysicalDevice(),
-                        pixels,
-                        w,
-                        h,
-                        &image,
-                        &memory,
-                        &view,
-                        &sampler,
-                        1.0f)) {
-                    vkRenderer->SetTexture((int)i, image, memory, view, sampler);
-                } else {
-                    LOGE("Failed to create Vulkan texture: %s", texPath.c_str());
-                }
-                stbi_image_free(pixels);
-            }
+            mRenderer = std::make_unique<VkRenderer>(mMoc.get(), (int)mTexturePaths.size());
+            SetupTextures();
             return;
         }
         LOGW("Vulkan is not initialized, skipping renderer creation");
@@ -806,32 +769,7 @@ void Model::CreateRenderer(int maskBufferCount) {
 #if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
     if (Common::Backend::IsOpenGL()) {
         mRenderer = std::make_unique<GLRenderer>(mMoc.get(), (int)mTexturePaths.size());
-        for (size_t i = 0; i < mTexturePaths.size(); i++) {
-            std::string texPath = JoinPath(mModelHomeDir, mTexturePaths[i]);
-            int w, h, n;
-            auto texData = readFile(texPath);
-            unsigned char* pixels =
-                texData.empty()
-                    ? nullptr
-                    : stbi_load_from_memory(texData.data(), (int)texData.size(), &w, &h, &n, 4);
-            if (!pixels)
-                continue;
-            LOGD(
-                "Load texture[%zu/%zu]: %s", i + 1, mTexturePaths.size(), mTexturePaths[i].c_str());
-
-            GLuint texId;
-            glGenTextures(1, &texId);
-            glBindTexture(GL_TEXTURE_2D, texId);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glGenerateMipmap(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, 0);
-            static_cast<GLRenderer*>(mRenderer.get())->SetTexture((int)i, (int)texId);
-            stbi_image_free(pixels);
-        }
+        SetupTextures();
     }
 #endif
 }
@@ -996,7 +934,7 @@ void Model::SetScaleY(float scaleY) {
 // ---- 动作组 ----
 
 int Model::LoadExtraMotion(const char* group, const char* motionJsonPath) {
-    auto motData = readFile(motionJsonPath);
+    auto motData = FileUtils::LoadFileAsBytes(motionJsonPath);
     if (motData.empty()) {
         LOGE("Failed to read motion file: %s", motionJsonPath);
         return -1;
@@ -1147,7 +1085,7 @@ void Model::GetExpressions(void* collector,
     }
 }
 void Model::LoadExtraExpression(const char* expressionId, const char* expressionJsonPath) {
-    auto expData = readFile(expressionJsonPath);
+    auto expData = FileUtils::LoadFileAsBytes(expressionJsonPath);
     if (expData.empty()) {
         LOGE("Failed to read expression file: %s", expressionJsonPath);
         return;
@@ -1162,10 +1100,81 @@ void Model::LoadExtraExpression(const char* expressionId, const char* expression
     LOGI("Load extra expression: %s => [%s]", expressionJsonPath, expressionId);
 }
 
-bool Model::HasMocConsistencyFromFile(const char* mocFileName) {
-    (void)mocFileName;
+bool Model::HasMocConsistencyFromFile(const char*) {
     // v2 的 .moc 二进制格式没有 moc3 的一致性检查概念
     return false;
+}
+void Model::SetupTextures() {
+#ifdef CSM_TARGET_VULKAN
+    if (Common::Backend::IsVulkan()) {
+        auto vkRenderer = mRenderer->GetVkRenderer();
+        for (size_t i = 0; i < mTexturePaths.size(); i++) {
+            std::string texPath = JoinPath(mModelHomeDir, mTexturePaths[i]);
+            int w, h, n;
+            auto texData = FileUtils::LoadFileAsBytes(texPath);
+            unsigned char* pixels =
+                texData.empty()
+                    ? nullptr
+                    : stbi_load_from_memory(texData.data(), (int)texData.size(), &w, &h, &n, 4);
+            if (!pixels)
+                continue;
+            LOGD(
+                "Load texture[%zu/%zu]: %s", i + 1, mTexturePaths.size(), mTexturePaths[i].c_str());
+
+            VkImage image = VK_NULL_HANDLE;
+            VkDeviceMemory memory = VK_NULL_HANDLE;
+            VkImageView view = VK_NULL_HANDLE;
+            VkSampler sampler = VK_NULL_HANDLE;
+            if (VkUtil::CreateTextureFromPixels(VulkanManager::GetInstance()->GetDevice(),
+                                                VulkanManager::GetInstance()->GetPhysicalDevice(),
+                                                pixels,
+                                                w,
+                                                h,
+                                                &image,
+                                                &memory,
+                                                &view,
+                                                &sampler,
+                                                1.0f)) {
+                vkRenderer->SetTexture((int)i, image, memory, view, sampler);
+            } else {
+                LOGE("Failed to create Vulkan texture: %s", texPath.c_str());
+            }
+            stbi_image_free(pixels);
+        }
+        return;
+    }
+#endif
+
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
+    if (Common::Backend::IsOpenGL()) {
+        for (size_t i = 0; i < mTexturePaths.size(); i++) {
+            std::string texPath = JoinPath(mModelHomeDir, mTexturePaths[i]);
+            int w, h, n;
+            auto texData = FileUtils::LoadFileAsBytes(texPath);
+            unsigned char* pixels =
+                texData.empty()
+                    ? nullptr
+                    : stbi_load_from_memory(texData.data(), (int)texData.size(), &w, &h, &n, 4);
+            if (!pixels)
+                continue;
+            LOGD(
+                "Load texture[%zu/%zu]: %s", i + 1, mTexturePaths.size(), mTexturePaths[i].c_str());
+
+            GLuint texId;
+            glGenTextures(1, &texId);
+            glBindTexture(GL_TEXTURE_2D, texId);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glGenerateMipmap(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            static_cast<GLRenderer*>(mRenderer.get())->SetTexture((int)i, (int)texId);
+            stbi_image_free(pixels);
+        }
+    }
+#endif
 }
 }   // namespace V2
 }   // namespace Live2D

@@ -32,7 +32,7 @@ public:
      * @param[in]   graphicsFamily      ->  描画コマンドに使うキューファミリ
      * @param[in]   presentFamily       ->  表示に使うキューファミリ
      */
-    SwapchainManager(void* _window, VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, uint32_t graphicsFamily, uint32_t presentFamily);
+    SwapchainManager(void* _window, VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, VkFormat format, uint32_t graphicsFamily, uint32_t presentFamily);
 
     /**
      * @brief    物理デバイスのサポートを確認する

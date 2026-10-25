@@ -125,7 +125,7 @@ static PyObject* live2d_glInit() {
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_HIGH, 0, NULL, GL_TRUE);
 #endif
 #else
-    PyErr_SetString(PyExc_RuntimeError, "OpenGL backend is not supported on this platform");
+    PyErr_SetString(PyExc_RuntimeError, "OpenGL backend is not supported on this build");
     return NULL;
 #endif
     Py_RETURN_NONE;
@@ -143,7 +143,7 @@ static PyObject* live2d_glRelease() {
     Csm::Rendering::CubismRenderer::StaticRelease();
     Common::Backend::SetBackend(Live2D::Common::Backend::BACKEND_NONE);
 #else
-    PyErr_SetString(PyExc_RuntimeError, "OpenGL backend is not supported on this platform");
+    PyErr_SetString(PyExc_RuntimeError, "OpenGL backend is not supported on this build");
     return NULL;
 #endif
     Py_RETURN_NONE;
@@ -166,7 +166,7 @@ static PyObject* live2d_clear_buffer(PyObject* self, PyObject* args) {
     glClear(GL_COLOR_BUFFER_BIT);
     glClearDepth(1.0);
 #else
-    PyErr_SetString(PyExc_RuntimeError, "OpenGL backend is not supported on this platform");
+    PyErr_SetString(PyExc_RuntimeError, "OpenGL backend is not supported on this build");
     return NULL;
 #endif
     Py_RETURN_NONE;
@@ -188,16 +188,20 @@ static PyObject* live2d_vk_init(PyObject* /*self*/, PyObject* args) {
         return NULL;
     }
 
+    unsigned int backend = -1;
     unsigned long long windowAddr = 0;
     unsigned long long displayAddr = 0;
-    if (!PyArg_ParseTuple(args, "K|K", &windowAddr, &displayAddr)) {
+    unsigned long long connnection = 0;
+    if (!PyArg_ParseTuple(args, "IKKK", &backend, &windowAddr, &displayAddr, &connnection)) {
         return NULL;
     }
 
     SurfaceCreateContext surfaceCtx{};
+    surfaceCtx.platform = backend;
     surfaceCtx.window = reinterpret_cast<void*>(static_cast<uintptr_t>(windowAddr));
     surfaceCtx.display = reinterpret_cast<void*>(static_cast<uintptr_t>(displayAddr));
-
+    surfaceCtx.connection = reinterpret_cast<void*>(static_cast<uintptr_t>(connnection));
+    
     VulkanManager* vkManager = VulkanManager::GetInstance();
     vkManager->SetSurfaceCreateContext(surfaceCtx);
     // 不调用 SetInstanceExtensions → GetRequiredExtensions() 自动补齐所需扩展

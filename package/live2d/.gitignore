@@ -1,4 +1,5 @@
 *.pyd
+*.so
 FrameworkShaders/*
 !FrameworkShaders/.gitkeep
 clang_rt.asan_dynamic-x86_64.dll
