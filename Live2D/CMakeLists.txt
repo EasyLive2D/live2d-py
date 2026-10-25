@@ -28,12 +28,12 @@ message("[Live2D Root]: ${LIVE2D_ROOT}")
 
 
 if(${GR_BACKEND} MATCHES "OpenGL" OR ${GR_BACKEND} MATCHES "Dual")
-if(CMAKE_SYSTEM_NAME MATCHES "Android")
-    set(OPENGL_LIBRARIES GLESv2)
-else() # Windows, Linux, MacOS
-    add_subdirectory(Glad)
-    find_package(OpenGL REQUIRED)
-endif()
+  if(CMAKE_SYSTEM_NAME MATCHES "Android")
+      set(OPENGL_LIBRARIES GLESv2)
+  else() # Windows, Linux, MacOS
+      add_subdirectory(Glad)
+      find_package(OpenGL REQUIRED)
+  endif()
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
@@ -48,9 +48,10 @@ if(${GR_BACKEND} MATCHES "Vulkan" OR ${GR_BACKEND} MATCHES "Dual")
   add_subdirectory(Vulkan)
 endif()
 
+# V3/V2 各 cmake（include 进本作用域）向其中追加 shader 目录
+set(LIVE2D_SHADER_DIRS)
 include(V3/cmake/V3.cmake)
 include(V2/cmake/V2.cmake)
-
 
 # 顶层 Live2D 库：聚合 V2/V3，并承载统一入口（Init 初始化 / CreateModel 工厂）。
 # 这些入口依赖 V2+V3，放在此处而非 Common，以保持 Common 为不依赖 SDK 的纯公共层。
@@ -66,4 +67,6 @@ target_link_libraries(${LIVE2D_TARGET} PUBLIC
 if (LIVE2D_TRACY AND TARGET Tracy::TracyClient)
     target_link_libraries(${LIVE2D_TARGET} PUBLIC Tracy::TracyClient)
 endif()
+# 导出到 root 作用域，供 Wrapper / tests/cpp / Live2DViewer 使用
+set(LIVE2D_SHADER_DIRS ${LIVE2D_SHADER_DIRS} PARENT_SCOPE)
 add_library(Live2D::Live2D ALIAS ${LIVE2D_TARGET})

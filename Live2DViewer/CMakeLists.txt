@@ -94,8 +94,6 @@ if(WIN32)
             if not exist ${MARKER} (${WINDEPLOYQT_EXECUTABLE} $<TARGET_FILE:Live2DViewer> && echo done. > ${MARKER}) else (echo deployed)
         COMMAND
         ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/moeroid.ico $<TARGET_FILE_DIR:Live2DViewer>/moeroid.ico
-        COMMAND 
-        ${CMAKE_COMMAND} -E copy_directory $<TARGET_PROPERTY:Framework,LIVE2D_SHADER_DIR> $<TARGET_FILE_DIR:Live2DViewer>/FrameworkShaders
         COMMAND
         ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Common> $<TARGET_FILE_DIR:Live2DViewer>/
     )
@@ -106,10 +104,18 @@ else()
         POST_BUILD
         COMMAND
         ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/moeroid.ico $<TARGET_FILE_DIR:Live2DViewer>/moeroid.ico
-        COMMAND
-        ${CMAKE_COMMAND} -E copy_directory $<TARGET_PROPERTY:Framework,LIVE2D_SHADER_DIR> $<TARGET_FILE_DIR:Live2DViewer>/FrameworkShaders
     )
 endif()
+
+# 着色器：与 Wrapper/tests 一致，统一从 LIVE2D_SHADER_DIRS 拷贝到 exe 旁的 FrameworkShaders
+foreach(shaderDir ${LIVE2D_SHADER_DIRS})
+    add_custom_command(
+        TARGET Live2DViewer
+        POST_BUILD
+        COMMAND
+        ${CMAKE_COMMAND} -E copy_directory ${shaderDir} $<TARGET_FILE_DIR:Live2DViewer>/FrameworkShaders
+    )
+endforeach()
 
 set(ts_files
     Translations/moe_zh_CN.ts

@@ -31,10 +31,9 @@ if(${GR_BACKEND} MATCHES "OpenGL" OR ${GR_BACKEND} MATCHES "Dual")
   if (NOT CMAKE_SYSTEM_NAME MATCHES "Android")
     target_link_libraries(Framework PUBLIC glad)
   endif()
-  # Expose GL shader source directory via target property for wrapper post-build copy
-  # (Dual 下与 LIVE2D_VK_SHADER_DIR 并存，两个目录都会拷到 package/live2d/FrameworkShaders)
-  set_target_properties(Framework PROPERTIES
-    LIVE2D_GL_SHADER_DIR "${LIVE2D_ROOT}/V3/Framework/src/Rendering/OpenGL/Shaders/Standard"
+  # GL shader 源文件目录（Dual 下与 Vulkan .spv 目录并存，都会拷到 package/live2d/FrameworkShaders）
+  list(APPEND LIVE2D_SHADER_DIRS
+      "${LIVE2D_ROOT}/V3/Framework/src/Rendering/OpenGL/Shaders/Standard"
   )
 endif()
 
@@ -44,13 +43,9 @@ if(${GR_BACKEND} MATCHES "Vulkan" OR ${GR_BACKEND} MATCHES "Dual")
   endif()
   # Compile Vulkan shaders (.spv) using the SDK's own Shaders/CMakeLists.txt
   # (Framework 源码树不修改，仅通过 add_subdirectory 复用其编译规则).
-  # Exposes the output dir via $<TARGET_PROPERTY:Framework,LIVE2D_VK_SHADER_DIR>.
   add_subdirectory(${LIVE2D_ROOT}/V3/Framework/src/Rendering/Vulkan/Shaders
                   ${CMAKE_CURRENT_BINARY_DIR}/FrameworkVulkanShaders)
-  set_target_properties(FrameworkShaders PROPERTIES
-    LIVE2D_VK_SHADER_DIR "${CMAKE_CURRENT_BINARY_DIR}/FrameworkVulkanShaders/compiledShaders"
-  )
-  set_target_properties(Framework PROPERTIES
-    LIVE2D_VK_SHADER_DIR "${CMAKE_CURRENT_BINARY_DIR}/FrameworkVulkanShaders/compiledShaders"
+  list(APPEND LIVE2D_SHADER_DIRS
+      "${CMAKE_CURRENT_BINARY_DIR}/FrameworkVulkanShaders/compiledShaders"
   )
 endif()

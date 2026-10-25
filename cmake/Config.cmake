@@ -9,7 +9,9 @@
 # backend - Vulkan | OpenGL
 set(GR_BACKEND OpenGL CACHE STRING "Graphics backend: Vulkan | OpenGL | Dual")
 
-set(VIEWER off CACHE BOOL "enable viewer and disable wrapper")
+set(VIEWER off CACHE BOOL "enable viewer")
+
+set(WRAPPER on CACHE BOOL "enable wrapper")
 
 set(DEBUG_ENABLE_CALLSTACK on CACHE BOOL "print backtrace when crashing")
 

@@ -20,8 +20,8 @@ if (${GR_BACKEND} MATCHES "Vulkan" OR ${GR_BACKEND} MATCHES "Dual")
 endif()
 if (${GR_BACKEND} MATCHES "OpenGL" OR ${GR_BACKEND} MATCHES "Dual")
     # V2 OpenGL shader 源文件目录（.vert/.frag，构建后拷到 package/live2d/FrameworkShaders）
-    set_target_properties(${V2_TARGET} PROPERTIES
-        LIVE2D_GL_SHADER_DIR "${LIVE2D_ROOT}/V2/shaders/opengl")
+    list(APPEND LIVE2D_SHADER_DIRS
+        "${LIVE2D_ROOT}/V2/shaders/opengl")
     if (NOT CMAKE_SYSTEM_NAME MATCHES "Android")
         target_link_libraries(${V2_TARGET} PUBLIC glad)
     endif()

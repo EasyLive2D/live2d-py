@@ -81,13 +81,18 @@ if (LIVE2D_TRACY)
   include_directories(tracy/public)
 endif()
 
+# 所有后端/模块的 shader 目录汇总（由 Live2D/ 填充并 PARENT_SCOPE 导出），
+# 供 Wrapper / tests/cpp / Live2DViewer 统一拷贝
+set(LIVE2D_SHADER_DIRS)
 add_subdirectory(Live2D)
 
 if(VIEWER)
-  message("[Target]: Viewer")
+  message("[Viewer]: on")
   include(cmake/Live2DViewer.cmake)
-else()
-  message("[Target]: Wrapper")
+endif()
+
+if(WRAPPER)
+  message("[Wrapper]: on")
   # ---- Shared Wrapper config (Python3, output naming) ----
   include(cmake/Wrapper.cmake)
 

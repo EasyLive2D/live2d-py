@@ -45,26 +45,13 @@ target_compile_definitions(Live2DTest PRIVATE SHADER_DIRECTORY="${CMAKE_SOURCE_D
 #   GL     : V3 Framework 源文件（*.vert/*.frag）+ V2 源文件（V2*GL.*）
 #   Vulkan : V3 / V2 编译产物（*.spv）
 set(TEST_SHADER_OUT $<TARGET_FILE_DIR:Live2DTest>/FrameworkShaders)
-set(TEST_SHADER_DIRS)
-
-if (${GR_BACKEND} MATCHES "OpenGL" OR ${GR_BACKEND} MATCHES "Dual")
-  list(APPEND TEST_SHADER_DIRS
-    $<TARGET_PROPERTY:Framework,LIVE2D_GL_SHADER_DIR>
-    $<TARGET_PROPERTY:V2,LIVE2D_GL_SHADER_DIR>)
-endif()
-
-if (${GR_BACKEND} MATCHES "Vulkan" OR ${GR_BACKEND} MATCHES "Dual")
-  list(APPEND TEST_SHADER_DIRS
-    $<TARGET_PROPERTY:Framework,LIVE2D_VK_SHADER_DIR>
-    $<TARGET_PROPERTY:V2Shaders,LIVE2D_VK_SHADER_DIR>)
-endif()
 
 add_custom_command(TARGET Live2DTest POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E make_directory ${TEST_SHADER_OUT}
   COMMENT "Prepare FrameworkShaders next to Live2DTest"
 )
 
-foreach(shaderDir ${TEST_SHADER_DIRS})
+foreach(shaderDir ${LIVE2D_SHADER_DIRS})
   add_custom_command(TARGET Live2DTest POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${shaderDir} ${TEST_SHADER_OUT}
     COMMENT "Copy shaders: ${shaderDir}"

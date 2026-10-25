@@ -1,6 +1,5 @@
 # V2 Vulkan shader 编译：Live2D/V2/shaders/*.vert|frag → .spv
-# 输出目录通过 $<TARGET_PROPERTY:V2Shaders,LIVE2D_VK_SHADER_DIR> 暴露给调用方拷贝
-# （与 Framework 的 LIVE2D_VK_SHADER_DIR 约定一致）
+# 输出目录追加到 LIVE2D_SHADER_DIRS，由调用方（Wrapper/tests/Viewer）统一拷贝
 
 set(V2_SHADER_SRC_DIR ${LIVE2D_ROOT}/V2/shaders)
 set(V2_SHADER_OUT_DIR ${CMAKE_BINARY_DIR}/V2Shaders)
@@ -44,4 +43,6 @@ if(V2_GLSLC_DEP)
     add_dependencies(V2Shaders ${V2_GLSLC_DEP})
 endif()
 
-set_target_properties(V2Shaders PROPERTIES LIVE2D_VK_SHADER_DIR ${V2_SHADER_OUT_DIR})
+list(APPEND LIVE2D_SHADER_DIRS
+    ${V2_SHADER_OUT_DIR}
+)

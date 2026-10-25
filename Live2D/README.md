@@ -49,13 +49,9 @@ All public targets are accessed through aliases. Never depend on the raw target 
 | `Live2D::V3Framework` | `Framework` | Cubism Native Framework |
 | `Live2D::V3` | `V3` | V3 top-level (Model, LAppPal, ...) |
 
-## Target Properties
+## Shader Directories
 
-| Target | Property | Value |
-|---|---|---|
-| `Framework` | `LIVE2D_SHADER_DIR` | Path to OpenGL shader sources (`.../Rendering/OpenGL/Shaders/Standard`) |
-
-Use `$<TARGET_PROPERTY:Framework,LIVE2D_SHADER_DIR>` in generator expressions to reference the shader directory without hardcoding internal paths.
+`Live2D/CMakeLists.txt` exports `LIVE2D_SHADER_DIRS` to the parent scope: a list of all shader directories for the enabled backends (V3 GL sources, V2 GL sources, V3/V2 Vulkan `.spv` outputs). Consumers (Wrapper / tests/cpp / Live2DViewer) iterate this variable and copy each directory to their runtime `FrameworkShaders/` folder, instead of reading per-target properties.
 
 ## Integration
 
