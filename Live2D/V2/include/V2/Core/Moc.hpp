@@ -34,7 +34,6 @@ class Part;
  */
 class Moc : public ISerializable {
 private:
-
 public:
     static constexpr int NOT_USED_ORDER = -1;
     static constexpr int NO_NEXT = -1;
@@ -73,7 +72,7 @@ public:
     Drawable* GetDrawable(int index) const;
     Part* GetPart(int index) const {
         return (index >= 0 && index < static_cast<int>(mParts.size())) ? mParts[index].get()
-                                                                           : nullptr;
+                                                                       : nullptr;
     }
     int GetDrawableIndex(const Id* drawableId) const;
     int GetDrawableIndex(const std::string& idStr) const {
@@ -163,7 +162,6 @@ private:
     void Release();
 
 public:
-
     int mCanvasWidth = 0;
     int mCanvasHeight = 0;
 
@@ -185,6 +183,7 @@ private:
     // Update() 的 order 桶数组以此为界）
     int mMinDrawOrder = 0;
     int mMaxDrawOrder = 0;
+
 private:
     // Resolve() 解析缓冲（有效窗口：resolve 完成 → 下次 update）
     std::vector<float> mResolvedOpacity;

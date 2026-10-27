@@ -169,8 +169,7 @@ bool RotationDeformer::SetupTransform(Moc* moc) {
     mTransformedAffine->mOriginY = originDst[1];
     mTransformedAffine->mScaleX = mInterpolatedAffine->mScaleX;
     mTransformedAffine->mScaleY = mInterpolatedAffine->mScaleY;
-    mTransformedAffine->mRotationDeg =
-        mInterpolatedAffine->mRotationDeg - angle * RAD_TO_DEG;
+    mTransformedAffine->mRotationDeg = mInterpolatedAffine->mRotationDeg - angle * RAD_TO_DEG;
 
     float ps = parentDef->GetTotalScale();
     SetTotalScale_notForClient(ps * mTransformedAffine->mScaleX);

@@ -201,7 +201,7 @@ static PyObject* live2d_vk_init(PyObject* /*self*/, PyObject* args) {
     surfaceCtx.window = reinterpret_cast<void*>(static_cast<uintptr_t>(windowAddr));
     surfaceCtx.display = reinterpret_cast<void*>(static_cast<uintptr_t>(displayAddr));
     surfaceCtx.connection = reinterpret_cast<void*>(static_cast<uintptr_t>(connnection));
-    
+
     VulkanManager* vkManager = VulkanManager::GetInstance();
     vkManager->SetSurfaceCreateContext(surfaceCtx);
     // 不调用 SetInstanceExtensions → GetRequiredExtensions() 自动补齐所需扩展
@@ -415,13 +415,16 @@ static PyObject* live2d_get_log_level(PyObject* self, PyObject* args) {
 }
 
 static PyObject* live2d_supported_backends(PyObject* self, PyObject* args) {
-#if defined(CSM_TARGET_VULKAN) && (!defined(CSM_TARGET_WIN_GL) && !defined(CSM_TARGET_LINUX_GL) && !defined(CSM_TARGET_MAC_GL))
+#if defined(CSM_TARGET_VULKAN) && \
+    (!defined(CSM_TARGET_WIN_GL) && !defined(CSM_TARGET_LINUX_GL) && !defined(CSM_TARGET_MAC_GL))
     return Py_BuildValue("s", "Vulkan");
 #endif
-#if !defined(CSM_TARGET_VULKAN) && (defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL))
+#if !defined(CSM_TARGET_VULKAN) && \
+    (defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL))
     return Py_BuildValue("s", "OpenGL");
 #endif
-#if (defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)) && defined(CSM_TARGET_VULKAN)
+#if (defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)) && \
+    defined(CSM_TARGET_VULKAN)
     return Py_BuildValue("s", "Vulkan | OpenGL");
 #endif
 }

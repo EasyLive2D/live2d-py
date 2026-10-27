@@ -72,18 +72,18 @@ bool InitVulkan(GLFWwindow* window) {
     surfaceCtx.platform = PLATFORM_WINDOWS;
     surfaceCtx.window = glfwGetWin32Window(window);
 #elif defined(__linux__)
-        // 运行时判断 GLFW 当前使用的后端，填充对应的原生句柄。
+    // 运行时判断 GLFW 当前使用的后端，填充对应的原生句柄。
     // surface 创建由 VulkanManager 内部根据 platform 分发到
     // vkCreateXlibSurfaceKHR 或 vkCreateWaylandSurfaceKHR。
     const auto platform = glfwGetPlatform();
     if (glfwGetPlatform() == GLFW_PLATFORM_WAYLAND) {
-        surfaceCtx.platform      = PLATFORM_WAYLAND;
+        surfaceCtx.platform = PLATFORM_WAYLAND;
         surfaceCtx.display = glfwGetWaylandDisplay();
         surfaceCtx.window = glfwGetWaylandWindow(window);
         LOGI("platform: wayland");
     } else if (platform == GLFW_PLATFORM_X11) {
         // GLFW 的 X11 后端，句柄是 Xlib 类型
-        surfaceCtx.platform      = PLATFORM_XLIB;
+        surfaceCtx.platform = PLATFORM_XLIB;
         surfaceCtx.display = glfwGetX11Display();
         surfaceCtx.window = (void*)(uintptr_t)glfwGetX11Window(window);
         LOGI("platform: x11");
@@ -124,9 +124,8 @@ bool InitOpenGL(GLFWwindow* window) {
 
     if (!gladLoadGL())
         return false;
-    printf("OpenGL %s, GLSL %s\n",
-           glGetString(GL_VERSION),
-           glGetString(GL_SHADING_LANGUAGE_VERSION));
+    printf(
+        "OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
     return true;
 }
 #endif
@@ -198,7 +197,7 @@ void RenderFrame(GLFWwindow* window, Live2D::IModel& model) {
 }   // namespace
 
 int RunInteractive(const std::string& modelPath) {
-#if defined(__linux__) && defined(CSM_TARGET_VULKAN) // temp for wsl
+#if defined(__linux__) && defined(CSM_TARGET_VULKAN)   // temp for wsl
     glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
 #endif
     glfwSetErrorCallback(glfwErrorCallback);

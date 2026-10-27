@@ -9,10 +9,10 @@ struct MotionQueueEntry {
     AMotion* mMotion = nullptr;
     float mFadeIn = 0, mFadeOut = 0;
     bool mStarted = false;
-    float mElapsedMs = 0;             // 累计播放时长（dt 积分）
-    float mFadeInElapsedMs = 0;       // 累计淡入时长
-    float mFadeOutEndElapsedMs = -1;  // 淡出结束时刻的 mElapsedMs（-1 = 未调度）
-    bool mFinished = false;           // true when fade-out 已完成
+    float mElapsedMs = 0;              // 累计播放时长（dt 积分）
+    float mFadeInElapsedMs = 0;        // 累计淡入时长
+    float mFadeOutEndElapsedMs = -1;   // 淡出结束时刻的 mElapsedMs（-1 = 未调度）
+    bool mFinished = false;            // true when fade-out 已完成
 };
 class MotionManager {
 public:

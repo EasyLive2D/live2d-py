@@ -19,9 +19,8 @@ public:
     void InitRuntimeState() override;
     void SetupInterpolate(Moc* moc) override;
     bool SetupTransform(Moc* moc) override;
-    void TransformPoints(const std::vector<float>& srcPoints,
-                         std::vector<float>& dstPoints, int numPoint, int ptOffset,
-                         int ptStep) override;
+    void TransformPoints(const std::vector<float>& srcPoints, std::vector<float>& dstPoints,
+                         int numPoint, int ptOffset, int ptStep) override;
 
     int GetPointCount() const { return (mRow + 1) * (mCol + 1); }
 

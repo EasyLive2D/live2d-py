@@ -24,9 +24,13 @@ const std::pair<const char*, const char*> kModelTable[] = {
 
 }   // namespace
 
-const std::pair<const char*, const char*>* ModelTable() { return kModelTable; }
+const std::pair<const char*, const char*>* ModelTable() {
+    return kModelTable;
+}
 
-size_t ModelTableSize() { return sizeof(kModelTable) / sizeof(kModelTable[0]); }
+size_t ModelTableSize() {
+    return sizeof(kModelTable) / sizeof(kModelTable[0]);
+}
 
 std::string U8ToString(const std::u8string& u8) {
     return std::string(reinterpret_cast<const char*>(u8.data()), u8.size());
@@ -62,4 +66,6 @@ std::string ResolveModelPath(const std::string& arg) {
     return "";
 }
 
-std::string DefaultModelPath() { return FindUpward("Resources/v3/llny/llny.model3.json"); }
+std::string DefaultModelPath() {
+    return FindUpward("Resources/v3/llny/llny.model3.json");
+}

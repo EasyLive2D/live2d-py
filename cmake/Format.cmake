@@ -20,23 +20,19 @@ if(CLANG_FORMAT_EXECUTABLE)
         ${CMAKE_SOURCE_DIR}/Live2D/V3/include/*.hpp
         ${CMAKE_SOURCE_DIR}/Live2D/V3/include/*.h
 
-        ${CMAKE_SOURCE_DIR}/Live2D/Common/Debug.cpp
-        ${CMAKE_SOURCE_DIR}/Live2D/Common/Debug.hpp
-        ${CMAKE_SOURCE_DIR}/Live2D/Common/Log.cpp
-        ${CMAKE_SOURCE_DIR}/Live2D/Common/Log.hpp
+        ${CMAKE_SOURCE_DIR}/Live2D/Common/*.cpp
+        ${CMAKE_SOURCE_DIR}/Live2D/Common/*.hpp
 
         ${CMAKE_SOURCE_DIR}/Wrapper/*.cpp
         ${CMAKE_SOURCE_DIR}/Wrapper/*.hpp
         ${CMAKE_SOURCE_DIR}/Wrapper/*.h
 
-        ${CMAKE_SOURCE_DIR}/tests/v2/main.cpp
+        ${CMAKE_SOURCE_DIR}/tests/cpp/*.cpp
+        ${CMAKE_SOURCE_DIR}/tests/cpp/*.hpp
     )
-
-    # 过滤掉第三方目录
     list(FILTER ALL_SOURCES EXCLUDE REGEX ".*/backward/.*")
     list(FILTER ALL_SOURCES EXCLUDE REGEX ".*/nlohmann/.*")
-    list(FILTER ALL_SOURCES EXCLUDE REGEX ".*/stb_image.h")
-
+    list(FILTER ALL_SOURCES EXCLUDE REGEX ".*/glfw/.*")
 
     add_custom_target(format
         COMMAND ${CLANG_FORMAT_EXECUTABLE} -i ${ALL_SOURCES}

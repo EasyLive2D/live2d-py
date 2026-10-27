@@ -69,8 +69,7 @@ int RunSmokeModel(const std::string& smokePath) {
         std::vector<std::string> gGroups;
         int gCounts = 0;
         model->GetMotions(
-            &gGroups,
-            [](void* c, const char* group, int no, const char* file, const char* sound) {
+            &gGroups, [](void* c, const char* group, int no, const char* file, const char* sound) {
                 auto* groups = (std::vector<std::string>*)c;
                 if (no == 0)
                     groups->push_back(group);
@@ -86,16 +85,13 @@ int RunSmokeModel(const std::string& smokePath) {
 
             // extra motion (re-using the file of the first group)
             std::string extraMotionPath;
-            model->GetMotions(&extraMotionPath,
-                              [](void* c,
-                                 const char* group,
-                                 int no,
-                                 const char* file,
-                                 const char* sound) {
-                                  auto* out = (std::string*)c;
-                                  if (out->empty())
-                                      *out = file;
-                              });
+            model->GetMotions(
+                &extraMotionPath,
+                [](void* c, const char* group, int no, const char* file, const char* sound) {
+                    auto* out = (std::string*)c;
+                    if (out->empty())
+                        *out = file;
+                });
             std::string extraMotionFull = std::string(model->GetModelHomeDir()) + extraMotionPath;
             int extraNo = model->LoadExtraMotion(firstGroup.c_str(), extraMotionFull.c_str());
             printf("[smoke] LoadExtraMotion -> no=%d\n", extraNo);
@@ -174,14 +170,14 @@ int RunSmokeModel(const std::string& smokePath) {
                     finR = [mdl, &cbEvents, restartLeft, rePrio](const std::string& g, int n) {
                         cbEvents.push_back("finishR:" + g + ":" + std::to_string(n));
                         if ((*restartLeft)-- > 0) {
-                            mdl->StartMotion(g,
-                                             n,
-                                             rePrio,
-                                             [&cbEvents](const std::string& g2, int n2) {
-                                                 cbEvents.push_back("startR:" + g2 + ":" +
-                                                                    std::to_string(n2));
-                                             },
-                                             nullptr);
+                            mdl->StartMotion(
+                                g,
+                                n,
+                                rePrio,
+                                [&cbEvents](const std::string& g2, int n2) {
+                                    cbEvents.push_back("startR:" + g2 + ":" + std::to_string(n2));
+                                },
+                                nullptr);
                         }
                     };
                     model->StartMotion(firstGroup, 0, 3, nullptr, finR);
@@ -212,14 +208,10 @@ int RunSmokeModel(const std::string& smokePath) {
                         *burstLeft = 0;
                         // 递增优先级 4..103 绕过两端优先级拒绝
                         for (int b = 0; b < left; ++b) {
-                            mdl->StartMotion(g,
-                                             n,
-                                             4 + b,
-                                             nullptr,
-                                             [&cbEvents](const std::string& g2, int n2) {
-                                                 cbEvents.push_back("finishB2:" + g2 + ":" +
-                                                                    std::to_string(n2));
-                                             });
+                            mdl->StartMotion(
+                                g, n, 4 + b, nullptr, [&cbEvents](const std::string& g2, int n2) {
+                                    cbEvents.push_back("finishB2:" + g2 + ":" + std::to_string(n2));
+                                });
                         }
                     };
                     model->StartMotion(firstGroup, 0, 3, nullptr, finB);
@@ -320,6 +312,7 @@ int RunSmokeAll() {
         else
             failed++;
     }
-    printf("\n[smoke] summary: %d passed, %d failed / %d models\n", passed, failed, passed + failed);
+    printf(
+        "\n[smoke] summary: %d passed, %d failed / %d models\n", passed, failed, passed + failed);
     return failed == 0 ? 0 : 1;
 }

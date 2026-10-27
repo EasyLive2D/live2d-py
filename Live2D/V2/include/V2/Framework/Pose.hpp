@@ -32,7 +32,6 @@ public:
     std::vector<PosePartGroup> mMGroups;
 
 private:
-
 };
 }   // namespace V2
 }   // namespace Live2D

@@ -66,8 +66,7 @@ bool MotionManager::UpdateParam(Moc* moc, float dtMs) {
         // Fade-out weight
         float fadeOut = 1.0f;
         if (e.mFadeOut > 0 && e.mFadeOutEndElapsedMs >= 0) {
-            float remaining =
-                (e.mFadeOutEndElapsedMs - e.mElapsedMs) / (e.mFadeOut * 1000.0f);
+            float remaining = (e.mFadeOutEndElapsedMs - e.mElapsedMs) / (e.mFadeOut * 1000.0f);
             if (remaining <= 0) {
                 e.mFinished = true;
                 fadeOut = 0;
@@ -88,8 +87,8 @@ bool MotionManager::UpdateParam(Moc* moc, float dtMs) {
         // Reset、UpdateParam 越线置位），多 entry 共享同一 motion 对象时会被
         // 被抢占 entry 置位，污染同帧后续 entry 的判定（误杀+重复触发），
         // 故用 entry 自身 elapsed 对比 duration
-        const bool timeOver = !e.mMotion->IsLoop() &&
-                              e.mElapsedMs > e.mMotion->GetDurationSec() * 1000.0f;
+        const bool timeOver =
+            !e.mMotion->IsLoop() && e.mElapsedMs > e.mMotion->GetDurationSec() * 1000.0f;
         if (e.mFinished || timeOver) {
             // 先移出队列再回调：回调内可安全重入 StartMotion（含同一
             // motion），不依赖 e 在回调后的有效性

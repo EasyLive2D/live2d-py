@@ -64,6 +64,7 @@ public:
 
     Id* ResolveId(const std::string& idStr) { return mIdPool.Resolve(idStr); }
     Id::IdPool& GetIdPool() const { return mIdPool; }
+
 private:
     void* ReadKnownTypeObject(int type);
     void* ReadObjectUntyped(int type = -1);

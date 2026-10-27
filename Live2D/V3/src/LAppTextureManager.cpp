@@ -24,7 +24,8 @@ using namespace Live2D::Cubism::Framework;
 LAppTextureManager::LAppTextureManager()
 #ifdef CSM_TARGET_VULKAN
     :
-    mSequenceId(0), mMipLevels(0)
+    mSequenceId(0),
+    mMipLevels(0)
 #endif
 {
 }

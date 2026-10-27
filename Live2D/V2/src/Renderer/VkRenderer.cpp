@@ -63,18 +63,25 @@ static VkPipelineColorBlendAttachmentState blendFor(int compositionType) {
     switch (compositionType) {
         case VkRenderer::COLOR_COMPOSITION_SCREEN:
             // (GL_ONE, GL_ONE / GL_ZERO, GL_ONE)
-            return makeBlend(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE,
-                             VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE);
+            return makeBlend(VK_BLEND_OP_ADD,
+                             VK_BLEND_FACTOR_ONE,
+                             VK_BLEND_FACTOR_ONE,
+                             VK_BLEND_FACTOR_ZERO,
+                             VK_BLEND_FACTOR_ONE);
         case VkRenderer::COLOR_COMPOSITION_MULTIPLY:
             // (GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA / GL_ZERO, GL_ONE)
-            return makeBlend(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_DST_COLOR,
-                             VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_FACTOR_ZERO,
+            return makeBlend(VK_BLEND_OP_ADD,
+                             VK_BLEND_FACTOR_DST_COLOR,
+                             VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+                             VK_BLEND_FACTOR_ZERO,
                              VK_BLEND_FACTOR_ONE);
         case VkRenderer::COLOR_COMPOSITION_NORMAL:
         default:
             // (GL_ONE, GL_ONE_MINUS_SRC_ALPHA / GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-            return makeBlend(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE,
-                             VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_FACTOR_ONE,
+            return makeBlend(VK_BLEND_OP_ADD,
+                             VK_BLEND_FACTOR_ONE,
+                             VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+                             VK_BLEND_FACTOR_ONE,
                              VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
     }
 }
@@ -235,25 +242,36 @@ void VkRenderer::CreateLayoutsAndPipelines() {
 
 void VkRenderer::CreateMaskTarget() {
     // mask image 使用与 swapchain 相同的格式，管线 rendering info 即可对两种目标通用
-    VkUtil::CreateImage(mDevice, mPhysicalDevice, MASK_SIZE, MASK_SIZE, 1, mColorFormat,
+    VkUtil::CreateImage(mDevice,
+                        mPhysicalDevice,
+                        MASK_SIZE,
+                        MASK_SIZE,
+                        1,
+                        mColorFormat,
                         VK_IMAGE_TILING_OPTIMAL,
                         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &mMaskImage, &mMaskMemory);
-    mMaskView = VkUtil::CreateImageView(mDevice, mMaskImage, mColorFormat,
-                                        VK_IMAGE_ASPECT_COLOR_BIT, 1);
-    mMaskSampler = VkUtil::CreateSampler(mDevice, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                                         VK_FILTER_LINEAR, VK_FILTER_LINEAR,
-                                         VK_SAMPLER_MIPMAP_MODE_NEAREST, 1.0f, 1);
+                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                        &mMaskImage,
+                        &mMaskMemory);
+    mMaskView =
+        VkUtil::CreateImageView(mDevice, mMaskImage, mColorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+    mMaskSampler = VkUtil::CreateSampler(mDevice,
+                                         VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                                         VK_FILTER_LINEAR,
+                                         VK_FILTER_LINEAR,
+                                         VK_SAMPLER_MIPMAP_MODE_NEAREST,
+                                         1.0f,
+                                         1);
 }
 
-VkRenderer::VkRenderer(Moc* moc, int textureCount)
-    : mDevice(VulkanManager::GetInstance()->GetDevice())
-    , mPhysicalDevice(VulkanManager::GetInstance()->GetPhysicalDevice()),
-    mMaxFramesInFlight(VulkanManager::GetInstance()->GetFramesInFlight()),
-    mCurrentFrame(0) {
+VkRenderer::VkRenderer(Moc* moc, int textureCount) :
+    mDevice(VulkanManager::GetInstance()->GetDevice()),
+    mPhysicalDevice(VulkanManager::GetInstance()->GetPhysicalDevice()),
+    mMaxFramesInFlight(VulkanManager::GetInstance()->GetFramesInFlight()), mCurrentFrame(0) {
     mColorFormat = VulkanManager::GetInstance()->GetSwapchainManager()->GetSwapchainImageFormat();
     mTextures.resize(textureCount < 1 ? 1 : textureCount);
-    mFrameDescSets.resize(mMaxFramesInFlight, std::vector<VkDescriptorSet>(mTextures.size(), VK_NULL_HANDLE));
+    mFrameDescSets.resize(mMaxFramesInFlight,
+                          std::vector<VkDescriptorSet>(mTextures.size(), VK_NULL_HANDLE));
 
     // UBO 动态偏移对齐
     VkPhysicalDeviceProperties props;
@@ -321,22 +339,41 @@ VkRenderer::VkRenderer(Moc* moc, int textureCount)
     mIbCapacity = IB_SIZE;
     mUboSlots = maxDraws;
     LOGD("v2 arena: drawables=%u mainDraws=%u maskDraws=%u vb=%lluB ib=%lluB uboSlots=%u",
-         drawableCount, mainDraws, maskDraws, (unsigned long long)VB_SIZE,
-         (unsigned long long)IB_SIZE, maxDraws);
+         drawableCount,
+         mainDraws,
+         maskDraws,
+         (unsigned long long)VB_SIZE,
+         (unsigned long long)IB_SIZE,
+         maxDraws);
 
     mVbs.resize(mMaxFramesInFlight);
     mIbs.resize(mMaxFramesInFlight);
     mUbs.resize(mMaxFramesInFlight);
     for (int i = 0; i < mMaxFramesInFlight; i++) {
-        VkUtil::CreateBuffer(mDevice, mPhysicalDevice, VB_SIZE, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                            &mVbs[i].buffer, &mVbs[i].memory);
-        VkUtil::CreateBuffer(mDevice, mPhysicalDevice, IB_SIZE, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                            &mIbs[i].buffer, &mIbs[i].memory);
-        VkUtil::CreateBuffer(mDevice, mPhysicalDevice, UB_SIZE, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                            &mUbs[i].buffer, &mUbs[i].memory);
+        VkUtil::CreateBuffer(
+            mDevice,
+            mPhysicalDevice,
+            VB_SIZE,
+            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            &mVbs[i].buffer,
+            &mVbs[i].memory);
+        VkUtil::CreateBuffer(
+            mDevice,
+            mPhysicalDevice,
+            IB_SIZE,
+            VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            &mIbs[i].buffer,
+            &mIbs[i].memory);
+        VkUtil::CreateBuffer(
+            mDevice,
+            mPhysicalDevice,
+            UB_SIZE,
+            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            &mUbs[i].buffer,
+            &mUbs[i].memory);
         vkMapMemory(mDevice, mVbs[i].memory, 0, VK_WHOLE_SIZE, 0, &mVbs[i].mapped);
         vkMapMemory(mDevice, mIbs[i].memory, 0, VK_WHOLE_SIZE, 0, &mIbs[i].mapped);
         vkMapMemory(mDevice, mUbs[i].memory, 0, VK_WHOLE_SIZE, 0, &mUbs[i].mapped);
@@ -371,15 +408,23 @@ VkRenderer::~VkRenderer() {
     for (auto& t : mTextures) {
         if (!t.valid)
             continue;
-        if (t.sampler) vkDestroySampler(mDevice, t.sampler, nullptr);
-        if (t.view) vkDestroyImageView(mDevice, t.view, nullptr);
-        if (t.image) vkDestroyImage(mDevice, t.image, nullptr);
-        if (t.memory) vkFreeMemory(mDevice, t.memory, nullptr);
+        if (t.sampler)
+            vkDestroySampler(mDevice, t.sampler, nullptr);
+        if (t.view)
+            vkDestroyImageView(mDevice, t.view, nullptr);
+        if (t.image)
+            vkDestroyImage(mDevice, t.image, nullptr);
+        if (t.memory)
+            vkFreeMemory(mDevice, t.memory, nullptr);
     }
-    if (mMaskSampler) vkDestroySampler(mDevice, mMaskSampler, nullptr);
-    if (mMaskView) vkDestroyImageView(mDevice, mMaskView, nullptr);
-    if (mMaskImage) vkDestroyImage(mDevice, mMaskImage, nullptr);
-    if (mMaskMemory) vkFreeMemory(mDevice, mMaskMemory, nullptr);
+    if (mMaskSampler)
+        vkDestroySampler(mDevice, mMaskSampler, nullptr);
+    if (mMaskView)
+        vkDestroyImageView(mDevice, mMaskView, nullptr);
+    if (mMaskImage)
+        vkDestroyImage(mDevice, mMaskImage, nullptr);
+    if (mMaskMemory)
+        vkFreeMemory(mDevice, mMaskMemory, nullptr);
 
     for (auto& it : mVbs) {
         vkUnmapMemory(mDevice, it.memory);
@@ -400,11 +445,15 @@ VkRenderer::~VkRenderer() {
     }
     mUbs.clear();
 
-    if (mDescPool) vkDestroyDescriptorPool(mDevice, mDescPool, nullptr);
-    if (mPipelineLayout) vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
+    if (mDescPool)
+        vkDestroyDescriptorPool(mDevice, mDescPool, nullptr);
+    if (mPipelineLayout)
+        vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
     for (auto& p : mPipelines)
-        if (p) vkDestroyPipeline(mDevice, p, nullptr);
-    if (mDescLayout) vkDestroyDescriptorSetLayout(mDevice, mDescLayout, nullptr);
+        if (p)
+            vkDestroyPipeline(mDevice, p, nullptr);
+    if (mDescLayout)
+        vkDestroyDescriptorSetLayout(mDevice, mDescLayout, nullptr);
 }
 
 void VkRenderer::SetMatrix(const float m[16]) {
@@ -440,7 +489,8 @@ void VkRenderer::SetTexture(int no, VkImage image, VkDeviceMemory memory, VkImag
             allocInfo.descriptorPool = mDescPool;
             allocInfo.descriptorSetCount = 1;
             allocInfo.pSetLayouts = &mDescLayout;
-            if (vkAllocateDescriptorSets(mDevice, &allocInfo, &mFrameDescSets[i][no]) != VK_SUCCESS) {
+            if (vkAllocateDescriptorSets(mDevice, &allocInfo, &mFrameDescSets[i][no]) !=
+                VK_SUCCESS) {
                 LOGE("failed to allocate descriptor set for texture %d", no);
                 return;
             }
@@ -448,7 +498,8 @@ void VkRenderer::SetTexture(int no, VkImage image, VkDeviceMemory memory, VkImag
 
         VkDescriptorBufferInfo uboInfo{mUbs[i].buffer, 0, sizeof(UBO)};
         VkDescriptorImageInfo imgInfo{sampler, view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
-        VkDescriptorImageInfo maskInfo{mMaskSampler, mMaskView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+        VkDescriptorImageInfo maskInfo{
+            mMaskSampler, mMaskView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
 
         VkWriteDescriptorSet writes[3]{};
         writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -542,13 +593,16 @@ void VkRenderer::PreDraw(Moc* moc) {
 
     mgr->SuspendMainRegion();
     // mask image: 上帧 SHADER_READ → COLOR_ATTACHMENT（每帧全量重写）
-    ImageBarrier(cmd, mMaskImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    ImageBarrier(
+        cmd, mMaskImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     beginRendering(cmd, mMaskView, MASK_SIZE, MASK_SIZE, /*clear=*/true);
     mCurrentCmd = cmd;
     mClipManager->SetupClip(moc);
     mCurrentCmd = VK_NULL_HANDLE;
     vkCmdEndRendering(cmd);
-    ImageBarrier(cmd, mMaskImage, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    ImageBarrier(cmd,
+                 mMaskImage,
+                 VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     mgr->ResumeMainRegion();
 
@@ -572,8 +626,10 @@ void VkRenderer::DrawDrawable(Moc* moc, int idx) {
                 moc->GetDrawableScreenColor(idx),
                 moc->GetDrawableVertexIndices(idx),
                 moc->GetDrawableVertexIndexCount(idx),
-                moc->GetDrawableVertices(idx), vertexFloatCount,
-                moc->GetDrawableVertexUvs(idx), vertexFloatCount,
+                moc->GetDrawableVertices(idx),
+                vertexFloatCount,
+                moc->GetDrawableVertexUvs(idx),
+                vertexFloatCount,
                 moc->GetDrawableOpacity(idx),
                 moc->GetDrawableColorComposition(idx),
                 moc->GetDrawableMultiplyColor(idx));
@@ -595,16 +651,16 @@ void VkRenderer::Draw(Moc* moc) {
 }
 
 void VkRenderer::DrawTexture(int texNo, const std::array<float, 4>& screenColor,
-                             const uint16_t* indices, int indexCount,
-                             const float* vertices, int vertexFloatCount,
-                             const float* uvs, int uvFloatCount,
+                             const uint16_t* indices, int indexCount, const float* vertices,
+                             int vertexFloatCount, const float* uvs, int uvFloatCount,
                              float opacity, int compositionType,
                              const std::array<float, 4>& multiplyColor) {
     if (opacity < 0.01f && !mClipMaskMode)
         return;
     if (mCurrentCmd == VK_NULL_HANDLE)
         return;
-    if (texNo < 0 || texNo >= (int)mFrameDescSets[mCurrentFrame].size() || mFrameDescSets[mCurrentFrame][texNo] == VK_NULL_HANDLE) {
+    if (texNo < 0 || texNo >= (int)mFrameDescSets[mCurrentFrame].size() ||
+        mFrameDescSets[mCurrentFrame][texNo] == VK_NULL_HANDLE) {
         LOGE("VkRenderer: texture %d not bound", texNo);
         return;
     }
@@ -724,8 +780,14 @@ void VkRenderer::DrawTexture(int texNo, const std::array<float, 4>& screenColor,
                       maskPass ? VK_FRONT_FACE_COUNTER_CLOCKWISE : VK_FRONT_FACE_CLOCKWISE);
     vkCmdSetCullMode(mCurrentCmd, mCulling ? VK_CULL_MODE_BACK_BIT : VK_CULL_MODE_NONE);
 
-    vkCmdBindDescriptorSets(mCurrentCmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
-                            &mFrameDescSets[mCurrentFrame][texNo], 1, &uboOffset);
+    vkCmdBindDescriptorSets(mCurrentCmd,
+                            VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            mPipelineLayout,
+                            0,
+                            1,
+                            &mFrameDescSets[mCurrentFrame][texNo],
+                            1,
+                            &uboOffset);
 
     VkBuffer vbuffers[2] = {mVbs[mCurrentFrame].buffer, mVbs[mCurrentFrame].buffer};
     VkDeviceSize voffsets[2] = {posOffset, uvOffset};

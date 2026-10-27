@@ -14,7 +14,6 @@ namespace Live2D {
 namespace V2 {
 class Model : public BaseModel {
 public:
-
     Model();
     ~Model() override;
 
@@ -149,7 +148,7 @@ private:
     // jsonText: model json 完整文本；homeDir: 资源根目录（含尾部分隔符，可为空串）
     void LoadModelJsonImpl(const std::string& jsonText, const std::string& homeDir,
                            bool createRenderer);
-                           
+
     void SetupTextures();
 
     TargetPoint mDragMgr;

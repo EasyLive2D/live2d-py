@@ -8,8 +8,7 @@ namespace V2 {
 
 static constexpr int CHANNEL_COUNT = 4;
 
-ClippingManagerVulkan::ClippingManagerVulkan(VkRenderer& renderer)
-    : mRenderer(renderer) {
+ClippingManagerVulkan::ClippingManagerVulkan(VkRenderer& renderer) : mRenderer(renderer) {
     // 与 GL 版一致: ch0=Alpha, ch1=Red, ch2=Green, ch3=Blue
     mChannelColors.resize(CHANNEL_COUNT);
     mChannelColors[0] = {0.0f, 0.0f, 0.0f, 1.0f};
@@ -72,8 +71,7 @@ void ClippingManagerVulkan::Init(Moc* moc) {
     }
 }
 
-void ClippingManagerVulkan::CalcClippedDrawTotalBounds(Moc* moc,
-                                                       ClipContext* clip) {
+void ClippingManagerVulkan::CalcClippedDrawTotalBounds(Moc* moc, ClipContext* clip) {
     float minX = 0, minY = 0, maxX = 0, maxY = 0;
 
     int nVertOk = 0;
@@ -137,8 +135,8 @@ void ClippingManagerVulkan::SetupLayoutBounds(int count) {
             for (int i = 0; i < n; i++) {
                 auto& clip = mClipContextList[idx++];
                 clip->mLayoutChannelNo = ch;
-                clip->mLayoutBounds = {(float)(i % 3) / 3.0f, (float)(i / 3) / 3.0f, 1.0f / 3.0f,
-                                       1.0f / 3.0f};
+                clip->mLayoutBounds = {
+                    (float)(i % 3) / 3.0f, (float)(i / 3) / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f};
             }
         }
     }

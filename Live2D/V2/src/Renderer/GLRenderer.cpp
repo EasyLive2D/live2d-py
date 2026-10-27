@@ -36,15 +36,9 @@ static std::string LoadShaderSource(const char* fileName) {
     return source;
 }
 
-GLRenderer::GLRenderer(Moc* moc, int textureCount)
-    : mShaderNormal(0)
-    , mShaderMask(0)
-    , mFramebuffer(0)
-    , mFramebufferTexture(0)
-    , mPosVBO(0)
-    , mUVVBO(0)
-    , mEBO(0)
-    , mCulling(false) {
+GLRenderer::GLRenderer(Moc* moc, int textureCount) :
+    mShaderNormal(0), mShaderMask(0), mFramebuffer(0), mFramebufferTexture(0), mPosVBO(0),
+    mUVVBO(0), mEBO(0), mCulling(false) {
     mTextures.resize(textureCount, 0);
     Init(moc);
 }
@@ -251,9 +245,8 @@ GLuint GLRenderer::GetTexture(int no) const {
 }
 
 void GLRenderer::DrawTexture(int texNo, const std::array<float, 4>& screenColor,
-                             const uint16_t* indices, int indexCount,
-                             const float* vertices, int vertexFloatCount,
-                             const float* uvs, int uvFloatCount,
+                             const uint16_t* indices, int indexCount, const float* vertices,
+                             int vertexFloatCount, const float* uvs, int uvFloatCount,
                              float opacity, int compositionType,
                              const std::array<float, 4>& multiplyColor) {
     if (opacity < 0.01f && !mClipMaskMode)
@@ -409,8 +402,7 @@ void GLRenderer::DrawTexture(int texNo, const std::array<float, 4>& screenColor,
     if (!mPosVBO)
         glGenBuffers(1, &mPosVBO);
     glBindBuffer(GL_ARRAY_BUFFER, mPosVBO);
-    glBufferData(
-        GL_ARRAY_BUFFER, vertexFloatCount * sizeof(float), vertices, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertexFloatCount * sizeof(float), vertices, GL_DYNAMIC_DRAW);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
 
@@ -426,8 +418,7 @@ void GLRenderer::DrawTexture(int texNo, const std::array<float, 4>& screenColor,
     if (!mEBO)
         glGenBuffers(1, &mEBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
-    glBufferData(
-        GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(uint16_t), indices, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(uint16_t), indices, GL_DYNAMIC_DRAW);
 
     glDrawElements(GL_TRIANGLES, (GLsizei)indexCount, GL_UNSIGNED_SHORT, 0);
 
@@ -469,8 +460,10 @@ void GLRenderer::DrawDrawable(Moc* moc, int idx) {
                 moc->GetDrawableScreenColor(idx),
                 moc->GetDrawableVertexIndices(idx),
                 moc->GetDrawableVertexIndexCount(idx),
-                moc->GetDrawableVertices(idx), vertexFloatCount,
-                moc->GetDrawableVertexUvs(idx), vertexFloatCount,
+                moc->GetDrawableVertices(idx),
+                vertexFloatCount,
+                moc->GetDrawableVertexUvs(idx),
+                vertexFloatCount,
                 moc->GetDrawableOpacity(idx),
                 moc->GetDrawableColorComposition(idx),
                 moc->GetDrawableMultiplyColor(idx));

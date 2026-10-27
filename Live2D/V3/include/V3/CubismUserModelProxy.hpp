@@ -36,16 +36,13 @@ public:
     using Csm::CubismUserModel::_mocConsistency;
 
     // Hook motion loading to auto-fix meta counts
-    Csm::ACubismMotion* LoadMotion(const Csm::csmByte* buffer,
-                                   Csm::csmSizeInt size,
+    Csm::ACubismMotion* LoadMotion(const Csm::csmByte* buffer, Csm::csmSizeInt size,
                                    const Csm::csmChar* name,
                                    Csm::ICubismModelSetting* modelSetting = NULL,
-                                   const Csm::csmChar* group = NULL,
-                                   Csm::csmInt32 index = -1,
+                                   const Csm::csmChar* group = NULL, Csm::csmInt32 index = -1,
                                    csmBool shouldCheckMotionConsistency = false) override;
 
-    bool IsHit(CubismIdHandle drawableId, Csm::csmFloat32 pointX,
-               Csm::csmFloat32 pointY) override;
+    bool IsHit(CubismIdHandle drawableId, Csm::csmFloat32 pointX, Csm::csmFloat32 pointY) override;
 };
 
 }   // namespace V3

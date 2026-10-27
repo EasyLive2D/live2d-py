@@ -25,6 +25,7 @@ public:
 
     PyGILGuard(const PyGILGuard&) = delete;
     PyGILGuard& operator=(const PyGILGuard&) = delete;
+
 private:
     PyGILState_STATE mGILState;
 };

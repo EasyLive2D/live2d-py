@@ -58,8 +58,7 @@ float PhysicsHair::CalcAngle() const {
 void PhysicsHair::AddSrcParam(PhysicsSrcType t, Id* id, float scale, float weight) {
     sourceParams.push_back({t, id, scale, weight});
 }
-void PhysicsHair::AddTargetParam(PhysicsTargetType t, Id* id, float scale,
-                                 float weight) {
+void PhysicsHair::AddTargetParam(PhysicsTargetType t, Id* id, float scale, float weight) {
     targetParams.push_back({t, id, scale, weight});
 }
 

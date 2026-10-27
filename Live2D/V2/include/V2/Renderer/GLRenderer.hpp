@@ -60,11 +60,9 @@ public:
 private:
     void Init(Moc* moc);
 
-    void DrawTexture(int texNo, const std::array<float, 4>& screenColor,
-                     const uint16_t* indices, int indexCount,
-                     const float* vertices, int vertexFloatCount,
-                     const float* uvs, int uvFloatCount,
-                     float opacity, int compositionType,
+    void DrawTexture(int texNo, const std::array<float, 4>& screenColor, const uint16_t* indices,
+                     int indexCount, const float* vertices, int vertexFloatCount, const float* uvs,
+                     int uvFloatCount, float opacity, int compositionType,
                      const std::array<float, 4>& multiplyColor);
 
     void InitShaders();

@@ -14,8 +14,7 @@ namespace V2 {
 static constexpr int CHANNEL_COUNT = 4;
 static constexpr int CLIP_MASK_SIZE = 256;
 
-ClippingManagerOpenGL::ClippingManagerOpenGL(GLRenderer& renderer)
-    : mRenderer(renderer) {
+ClippingManagerOpenGL::ClippingManagerOpenGL(GLRenderer& renderer) : mRenderer(renderer) {
     // Init channel colors
     mChannelColors.resize(CHANNEL_COUNT);
     // Match v2 Python: ch0=Alpha, ch1=Red, ch2=Green, ch3=Blue
@@ -81,8 +80,7 @@ void ClippingManagerOpenGL::Init(Moc* moc) {
     }
 }
 
-void ClippingManagerOpenGL::CalcClippedDrawTotalBounds(Moc* moc,
-                                                       ClipContext* clip) {
+void ClippingManagerOpenGL::CalcClippedDrawTotalBounds(Moc* moc, ClipContext* clip) {
     // Match v2 Python: Float32Array(a4) with trailing zeros makes min always 0
     float minX = 0, minY = 0, maxX = 0, maxY = 0;
 

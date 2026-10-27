@@ -29,9 +29,7 @@ public:
         void Read(class BinaryReader& br) override;
 
         int GetParamIndex();
-        void SetParamIndex(int index) {
-            mParamIndex = index;
-        }
+        void SetParamIndex(int index) { mParamIndex = index; }
 
         const Id* GetId() const { return mParamId; }
         int GetPivotCount() const { return mCount; }

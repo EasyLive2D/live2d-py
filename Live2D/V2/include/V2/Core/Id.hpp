@@ -16,6 +16,7 @@ public:
         ~IdPool();
 
         Id* Resolve(const std::string& idStr);
+
     private:
         std::unordered_map<std::string, Id*> mIds;
     };

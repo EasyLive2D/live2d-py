@@ -81,5 +81,5 @@ void FileUtils::interceptShaderLoading(std::string& filePath) {
     }
 }
 
-}  // namespace Common
-}  // namespace Live2D
+}   // namespace Common
+}   // namespace Live2D

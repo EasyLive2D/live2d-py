@@ -56,11 +56,8 @@ bool WarpDeformer::SetupTransform(Moc* moc) {
                 float ps = parentDef->GetTotalScale();
                 SetTotalScale_notForClient(ps);
                 SetTotalOpacity(parentDef->GetTotalOpacity() * GetInterpolatedOpacity());
-                parentDef->TransformPoints(mInterpolatedPoints,
-                                           mTransformedPoints,
-                                           GetPointCount(),
-                                           0,
-                                           2);
+                parentDef->TransformPoints(
+                    mInterpolatedPoints, mTransformedPoints, GetPointCount(), 0, 2);
                 SetAvailable(true);
             } else {
                 SetAvailable(false);

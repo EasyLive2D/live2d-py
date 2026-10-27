@@ -76,8 +76,7 @@ int UtInterpolate::InterpolateInt(Moc* moc, PivotManager* pivotMgr, bool& ret,
     return static_cast<int>(result + 0.5f);
 }
 
-void UtInterpolate::InterpolatePoints(Moc* moc, PivotManager* pivotMgr, bool& ret,
-                                      int pointCount,
+void UtInterpolate::InterpolatePoints(Moc* moc, PivotManager* pivotMgr, bool& ret, int pointCount,
                                       const std::vector<std::vector<float>>& pivotPoints,
                                       std::vector<float>& dstPoints, int ptOffset, int ptStep) {
     int interpCount = pivotMgr->CalcPivotValues(moc, ret);

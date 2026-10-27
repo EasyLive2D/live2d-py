@@ -42,9 +42,7 @@
 // （std::filesystem::u8path）。中文路径（如 托尔）的 GBK 字节不是合法 UTF-8，
 // 直接传给 u8path 会抛异常导致 terminate。重新按宽字符取命令行并转 UTF-8。
 #ifdef _WIN32
-static void ConvertArgsToUtf8(int& argc,
-                              char**& argv,
-                              std::vector<std::string>& storage,
+static void ConvertArgsToUtf8(int& argc, char**& argv, std::vector<std::string>& storage,
                               std::vector<char*>& out) {
     int wargc = 0;
     LPWSTR* wargv = CommandLineToArgvW(GetCommandLineW(), &wargc);
