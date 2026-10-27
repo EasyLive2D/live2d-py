@@ -83,3 +83,7 @@ tools/
 
 bench/traces/*
 !bench/traces/.gitkeep
+
+.acl-recovery
+*.cap
+docs/V2CPP_DEFORMER_RENDER_DEEPDIVE.md

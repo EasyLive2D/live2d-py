@@ -51,10 +51,10 @@ void RotationDeformer::InitRuntimeState() {
 }
 
 void RotationDeformer::SetupInterpolate(Moc* moc) {
-    bool success = false;
-    int pivotCount = mPivotManager->CalcPivotValues(moc, success);
-    SetOutsideParam(success);
-    InterpolateOpacity(moc, mPivotManager.get(), success);
+    bool outOfRange = false;
+    int pivotCount = mPivotManager->CalcPivotValues(moc, outOfRange);
+    SetParamOutOfRange(outOfRange);
+    InterpolateOpacity(moc, mPivotManager.get(), outOfRange);
 
     auto& pivotIndices = moc->GetTempPivotTableIndices();
     auto& pivotT = moc->GetTempT();

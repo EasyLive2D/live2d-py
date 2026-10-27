@@ -68,12 +68,11 @@ public:
     void LoadParam();
     void SaveParam();
 
-    int GetInitVersion() const { return mInitVersion; }
 
-    Deformer* GetDeformer(int index) const { return mDeformerList[index]; }
+    Deformer* GetDeformer(int index) const { return mDeformers[index]; }
     Drawable* GetDrawable(int index) const;
     Part* GetPart(int index) const {
-        return (index >= 0 && index < static_cast<int>(mPartsList.size())) ? mPartsList[index]
+        return (index >= 0 && index < static_cast<int>(mParts.size())) ? mParts[index].get()
                                                                            : nullptr;
     }
     int GetDrawableIndex(const Id* drawableId) const;
@@ -103,7 +102,7 @@ public:
     //========================================================
 
     /// drawable 数量
-    int GetDrawableCount() const { return static_cast<int>(mDrawableList.size()); }
+    int GetDrawableCount() const { return static_cast<int>(mDrawables.size()); }
 
     /// drawable 顶点数（xy 交错存储，坐标浮点数为 vertexCount*2）
     int GetDrawableVertexCount(int index) const;
@@ -118,12 +117,12 @@ public:
 
     /// 最终不透明度（interpolated * parts * base 三重合成，resolve 阶段计算）
     float GetDrawableOpacity(int index) const { return mResolvedOpacity[index]; }
-    /// 可见性（!paramOutside && available，resolve 阶段计算）
+    /// 可见性（!paramOutOfRange && available，resolve 阶段计算）
     bool IsDrawableVisible(int index) const { return mResolvedVisible[index]; }
     /// deformer 变换可用性（裁剪边界计算跳过条件，resolve 阶段快照）
     bool IsDrawableAvailable(int index) const { return mResolvedAvailable[index]; }
     /// 参数越界标记（mask 源渲染跳过条件，resolve 阶段快照）
-    bool IsDrawableParamOutside(int index) const { return mResolvedParamOutside[index]; }
+    bool IsDrawableParamOutside(int index) const { return mResolvedParamOutOfRange[index]; }
     /// 插值后的绘制顺序值
     int GetDrawableRenderOrder(int index) const;
     /// 渲染序列（按渲染顺序排列的可见 drawable 索引，resolve 阶段摊平）
@@ -149,21 +148,21 @@ public:
     }
 
     // Data lists (populated from moc data in Init())
-    std::vector<const Id*> mParamIdList;
+    std::vector<const Id*> mParamIds;
     std::vector<float> mParamValues;
     std::vector<float> mParamMinValues;
     std::vector<float> mParamMaxValues;
     std::vector<float> mParamDefaultValues;
     std::vector<float> mSavedParamValues;
-    std::vector<Deformer*> mDeformerList;
-    std::vector<Drawable*> mDrawableList;
-    std::vector<Part*> mPartsList;
+    std::vector<Deformer*> mDeformers;
+    std::vector<Drawable*> mDrawables;
+    std::vector<std::unique_ptr<Part>> mParts;
+
 
 private:
     void Release();
 
 public:
-    int mInitVersion = -1;
 
     int mCanvasWidth = 0;
     int mCanvasHeight = 0;
@@ -191,7 +190,7 @@ private:
     std::vector<float> mResolvedOpacity;
     std::vector<bool> mResolvedVisible;
     std::vector<bool> mResolvedAvailable;
-    std::vector<bool> mResolvedParamOutside;
+    std::vector<bool> mResolvedParamOutOfRange;
     // drawable 最终颜色（color override 有效时替换所属 part 颜色）
     std::vector<std::array<float, 4>> mResolvedMultiplyColors;
     std::vector<std::array<float, 4>> mResolvedScreenColors;
@@ -204,7 +203,6 @@ private:
 
     // moc 解析数据所有权（Read() 填充，生命周期 = Moc）
     std::vector<std::unique_ptr<Parameter>> mParameters;
-    std::vector<std::unique_ptr<Part>> mParts;
     Id::IdPool& mIdPool;
 };
 

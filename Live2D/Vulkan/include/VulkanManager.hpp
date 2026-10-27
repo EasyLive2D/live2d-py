@@ -358,6 +358,8 @@ public:
 
     void ChooseSurfaceFormat();
 
+    int GetCurrentFrame() { return _frameIndex; }
+
 private:
     void* _window;                                    // 窗口
     SurfaceCreateContext _surfaceCtx;                 // surface 创建上下文

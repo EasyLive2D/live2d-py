@@ -84,7 +84,7 @@ public:
     int mPartsIndex = 0;
     int mTmpDeformerIndex = DEFORMER_INDEX_NOT_INIT;
     bool mAvailable = true;
-    bool mParamOutside = false;
+    bool mParamOutOfRange = false;
 
 private:
     const Id* mId = nullptr;

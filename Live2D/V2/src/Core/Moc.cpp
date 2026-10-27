@@ -14,7 +14,7 @@
 namespace Live2D {
 namespace V2 {
 
-Moc::Moc(Id::IdPool& idPool): mIdPool(idPool) {
+Moc::Moc(Id::IdPool& idPool) : mIdPool(idPool) {
     mTmpPivotTableIndices.resize(PIVOT_TABLE_SIZE);
     mTempTArray.resize(MAX_INTERPOLATION);
 }
@@ -24,9 +24,9 @@ Moc::~Moc() {
 }
 
 void Moc::Release() {
-    mDeformerList.clear();
-    mDrawableList.clear();
-    mPartsList.clear();
+    mDeformers.clear();
+    mDrawables.clear();
+    mParts.clear();
 }
 
 void Moc::Read(BinaryReader& br) {
@@ -57,28 +57,25 @@ void Moc::Read(BinaryReader& br) {
 }
 
 void Moc::Init() {
-    mInitVersion++;
-    if (!mPartsList.empty())
-        Release();
-
     std::vector<Deformer*> allDefs;
 
-    for (auto& part : mParts) {
-        mPartsList.push_back(part.get());
+    const int size = mParts.size();
+    for (int i = 0; i < size; i++) {
+        auto part = mParts[i].get();
         part->InitRuntimeState();
 
         auto& baseDefs = part->GetDeformers();
         for (auto& d : baseDefs) {
             d->InitRuntimeState();
-            d->mPartsIndex = static_cast<int>(mPartsList.size()) - 1;
+            d->mPartsIndex = i;
             allDefs.push_back(d.get());
         }
 
         auto& drawables = part->GetDrawables();
         for (auto& dd : drawables) {
             dd->InitRuntimeState();
-            dd->mPartsIndex = static_cast<int>(mPartsList.size()) - 1;
-            mDrawableList.push_back(dd.get());
+            dd->mPartsIndex = i;
+            mDrawables.push_back(dd.get());
         }
     }
 
@@ -92,7 +89,7 @@ void Moc::Init() {
                 continue;
             auto* target = d->GetTargetId();
             if (!target || target == Id::DST_BASE_ID() || GetDeformerIndex(target) >= 0) {
-                mDeformerList.push_back(d);
+                mDeformers.push_back(d);
                 allDefs[i] = nullptr;
                 progress = true;
             }
@@ -103,7 +100,7 @@ void Moc::Init() {
 
     // 参数表一次性构建：预分配后直接填充（加载后不可变，无运行期扩展）
     const size_t nParam = mParameters.size();
-    mParamIdList.resize(nParam);
+    mParamIds.resize(nParam);
     mParamValues.resize(nParam);
     mParamMinValues.resize(nParam);
     mParamMaxValues.resize(nParam);
@@ -111,7 +108,7 @@ void Moc::Init() {
     mSavedParamValues.resize(nParam);
     for (size_t i = 0; i < mParameters.size(); i++) {
         auto* p = mParameters[i].get();
-        mParamIdList[i] = p->GetId();
+        mParamIds[i] = p->GetId();
         mParamValues[i] = p->GetDefaultValue();
         mParamMinValues[i] = p->GetMinValue();
         mParamMaxValues[i] = p->GetMaxValue();
@@ -121,9 +118,9 @@ void Moc::Init() {
 
     // 静态 mask 索引解析：clipID 列表 -> mask drawable 索引（moc 数据，init 后不变）
     mDrawableMasks.clear();
-    mDrawableMasks.resize(mDrawableList.size());
-    for (size_t i = 0; i < mDrawableList.size(); i++) {
-        for (auto& cid : mDrawableList[i]->GetClipIDList()) {
+    mDrawableMasks.resize(mDrawables.size());
+    for (size_t i = 0; i < mDrawables.size(); i++) {
+        for (auto& cid : mDrawables[i]->GetClipIDList()) {
             int maskIdx = GetDrawableIndex(cid);
             if (maskIdx >= 0)
                 mDrawableMasks[i].push_back(maskIdx);
@@ -133,7 +130,7 @@ void Moc::Init() {
     // 全部 drawable 的 pivot draw order 键位值域（等价旧 Drawable 静态累积，
     // 收敛为 per-model 实例状态，消除跨模型残留）
     mMinDrawOrder = mMaxDrawOrder = Drawable::DEFAULT_ORDER;
-    for (auto* d : mDrawableList) {
+    for (auto* d : mDrawables) {
         for (int order : d->GetPivotDrawOrders()) {
             if (order < mMinDrawOrder)
                 mMinDrawOrder = order;
@@ -144,8 +141,8 @@ void Moc::Init() {
 }
 
 void Moc::Update() {
-    int nDef = static_cast<int>(mDeformerList.size());
-    int nDraw = static_cast<int>(mDrawableList.size());
+    int nDef = static_cast<int>(mDeformers.size());
+    int nDraw = static_cast<int>(mDrawables.size());
     int minOrder = mMinDrawOrder;
     int maxOrder = mMaxDrawOrder;
     int range = maxOrder - minOrder + 1;
@@ -164,14 +161,14 @@ void Moc::Update() {
         mNextListDrawIndex[i] = NO_NEXT;
 
     for (int i = 0; i < nDef; i++) {
-        mDeformerList[i]->SetupInterpolate(this);
-        mDeformerList[i]->SetupTransform(this);
+        mDeformers[i]->SetupInterpolate(this);
+        mDeformers[i]->SetupTransform(this);
     }
 
     for (int i = 0; i < nDraw; i++) {
-        auto* dd = mDrawableList[i];
+        auto* dd = mDrawables[i];
         dd->SetupInterpolate(this);
-        if (dd->mParamOutside)
+        if (dd->mParamOutOfRange)
             continue;
 
         dd->SetupTransform(this);
@@ -186,31 +183,30 @@ void Moc::Update() {
 }
 
 void Moc::Resolve() {
-    int nDraw = static_cast<int>(mDrawableList.size());
+    int nDraw = static_cast<int>(mDrawables.size());
     if (static_cast<int>(mResolvedOpacity.size()) != nDraw) {
         mResolvedOpacity.resize(nDraw);
         mResolvedVisible.resize(nDraw);
         mResolvedAvailable.resize(nDraw);
-        mResolvedParamOutside.resize(nDraw);
+        mResolvedParamOutOfRange.resize(nDraw);
         mResolvedMultiplyColors.resize(nDraw);
         mResolvedScreenColors.resize(nDraw);
     }
 
     for (int i = 0; i < nDraw; i++) {
-        auto* dd = mDrawableList[i];
-        mResolvedVisible[i] = !dd->mParamOutside && dd->mAvailable;
+        auto* dd = mDrawables[i];
+        mResolvedVisible[i] = !dd->mParamOutOfRange && dd->mAvailable;
         mResolvedAvailable[i] = dd->mAvailable;
-        mResolvedParamOutside[i] = dd->mParamOutside;
+        mResolvedParamOutOfRange[i] = dd->mParamOutOfRange;
         // drawable 级颜色覆盖优先（对齐 V3 per-drawable override 语义），
         // 未覆盖时回落所属 part 颜色
-        auto* part = mPartsList[dd->mPartsIndex];
-        mResolvedMultiplyColors[i] = dd->HasColorOverride() ? dd->mOverrideMultiplyColor
-                                                            : part->mMultiplyColor;
-        mResolvedScreenColors[i] = dd->HasColorOverride() ? dd->mOverrideScreenColor
-                                                          : part->mScreenColor;
+        auto* part = mParts[dd->mPartsIndex].get();
+        mResolvedMultiplyColors[i] =
+            dd->HasColorOverride() ? dd->mOverrideMultiplyColor : part->mMultiplyColor;
+        mResolvedScreenColors[i] =
+            dd->HasColorOverride() ? dd->mOverrideScreenColor : part->mScreenColor;
         // 与旧路径 Mesh::draw 相同的三重合成与运算顺序（保证逐位一致）
-        mResolvedOpacity[i] = dd->mInterpolatedOpacity *
-                              part->GetPartsOpacity() * dd->mBaseOpacity;
+        mResolvedOpacity[i] = dd->mInterpolatedOpacity * part->GetPartsOpacity() * dd->mBaseOpacity;
     }
 
     // 摊平渲染序列：复刻 renderer 旧遍历逻辑（order 链 + available 过滤）
@@ -231,34 +227,34 @@ void Moc::Resolve() {
 }
 
 int Moc::GetDrawableVertexCount(int index) const {
-    return mDrawableList[index]->GetNumPoints();
+    return mDrawables[index]->GetNumPoints();
 }
 const float* Moc::GetDrawableVertices(int index) const {
-    auto* dd = mDrawableList[index];
+    auto* dd = mDrawables[index];
     return !dd->mTransformedPoints.empty() ? dd->mTransformedPoints.data()
                                            : dd->mInterpolatedPoints.data();
 }
 const float* Moc::GetDrawableVertexUvs(int index) const {
-    return mDrawableList[index]->GetUvs().data();
+    return mDrawables[index]->GetUvs().data();
 }
 int Moc::GetDrawableVertexIndexCount(int index) const {
-    return static_cast<int>(mDrawableList[index]->GetIndexArray().size());
+    return static_cast<int>(mDrawables[index]->GetIndexArray().size());
 }
 const uint16_t* Moc::GetDrawableVertexIndices(int index) const {
-    return reinterpret_cast<const uint16_t*>(mDrawableList[index]->GetIndexArray().data());
+    return reinterpret_cast<const uint16_t*>(mDrawables[index]->GetIndexArray().data());
 }
 int Moc::GetDrawableRenderOrder(int index) const {
-    return mDrawableList[index]->GetDrawOrder();
+    return mDrawables[index]->GetDrawOrder();
 }
 int Moc::GetDrawableTextureIndex(int index) const {
-    int texNo = mDrawableList[index]->GetTextureNo();
+    int texNo = mDrawables[index]->GetTextureNo();
     return texNo < 0 ? 1 : texNo;
 }
 int Moc::GetDrawableColorComposition(int index) const {
-    return mDrawableList[index]->GetColorCompositionType();
+    return mDrawables[index]->GetColorCompositionType();
 }
 bool Moc::GetDrawableCulling(int index) const {
-    return mDrawableList[index]->GetCulling();
+    return mDrawables[index]->GetCulling();
 }
 const std::array<float, 4>& Moc::GetDrawableMultiplyColor(int index) const {
     return mResolvedMultiplyColors[index];
@@ -271,8 +267,8 @@ int Moc::GetParamIndex(const Id* paramId) {
     auto it = mParamIndexCache.find(paramId);
     if (it != mParamIndexCache.end())
         return it->second;
-    for (size_t i = 0; i < mParamIdList.size(); i++)
-        if (mParamIdList[i] == paramId) {
+    for (size_t i = 0; i < mParamIds.size(); i++)
+        if (mParamIds[i] == paramId) {
             mParamIndexCache.emplace(paramId, static_cast<int>(i));
             return static_cast<int>(i);
         }
@@ -283,8 +279,8 @@ int Moc::GetParamIndex(const Id* paramId) {
 }
 
 int Moc::GetDeformerIndex(const Id* id) {
-    for (int i = static_cast<int>(mDeformerList.size()) - 1; i >= 0; i--)
-        if (mDeformerList[i] && mDeformerList[i]->GetId() == id)
+    for (int i = static_cast<int>(mDeformers.size()) - 1; i >= 0; i--)
+        if (mDeformers[i] && mDeformers[i]->GetId() == id)
             return i;
     return -1;
 }
@@ -346,14 +342,14 @@ void Moc::SaveParam() {
 }
 
 Drawable* Moc::GetDrawable(int index) const {
-    return (index >= 0 && index < (int)mDrawableList.size()) ? mDrawableList[index] : nullptr;
+    return (index >= 0 && index < (int)mDrawables.size()) ? mDrawables[index] : nullptr;
 }
 int Moc::GetDrawableIndex(const Id* drawableId) const {
     auto it = mDrawableIndexCache.find(drawableId);
     if (it != mDrawableIndexCache.end())
         return it->second;
-    for (int i = (int)mDrawableList.size() - 1; i >= 0; i--)
-        if (mDrawableList[i] && mDrawableList[i]->GetId() == drawableId) {
+    for (int i = (int)mDrawables.size() - 1; i >= 0; i--)
+        if (mDrawables[i] && mDrawables[i]->GetId() == drawableId) {
             mDrawableIndexCache.emplace(drawableId, i);
             return i;
         }
@@ -364,8 +360,8 @@ int Moc::GetPartIndex(const Id* id) const {
     auto it = mPartIndexCache.find(id);
     if (it != mPartIndexCache.end())
         return it->second;
-    for (int i = (int)mPartsList.size() - 1; i >= 0; i--)
-        if (mPartsList[i] && mPartsList[i]->GetId() == id) {
+    for (int i = (int)mParts.size() - 1; i >= 0; i--)
+        if (mParts[i] && mParts[i]->GetId() == id) {
             mPartIndexCache.emplace(id, i);
             return i;
         }
@@ -373,25 +369,25 @@ int Moc::GetPartIndex(const Id* id) const {
     return -1;
 }
 void Moc::SetPartsOpacity(int i, float op) {
-    mPartsList[i]->SetPartsOpacity(op);
+    mParts[i]->SetPartsOpacity(op);
 }
 float Moc::GetPartsOpacity(int i) const {
-    return mPartsList[i]->GetPartsOpacity();
+    return mParts[i]->GetPartsOpacity();
 }
 void Moc::SetPartMultiplyColor(int i, float r, float g, float b, float a) {
-    if (i < 0 || i >= static_cast<int>(mPartsList.size()))
+    if (i < 0 || i >= static_cast<int>(mParts.size()))
         return;
-    mPartsList[i]->SetPartMultiplyColor(r, g, b, a);
+    mParts[i]->SetPartMultiplyColor(r, g, b, a);
     // 后写覆盖先写：清除该 part 下 drawable 的颜色覆盖，回落新 part 颜色
-    for (auto* dd : mDrawableList)
+    for (auto* dd : mDrawables)
         if (dd->mPartsIndex == i)
             dd->ClearColorOverride();
 }
 void Moc::SetPartScreenColor(int i, float r, float g, float b, float a) {
-    if (i < 0 || i >= static_cast<int>(mPartsList.size()))
+    if (i < 0 || i >= static_cast<int>(mParts.size()))
         return;
-    mPartsList[i]->SetPartScreenColor(r, g, b, a);
-    for (auto* dd : mDrawableList)
+    mParts[i]->SetPartScreenColor(r, g, b, a);
+    for (auto* dd : mDrawables)
         if (dd->mPartsIndex == i)
             dd->ClearColorOverride();
 }

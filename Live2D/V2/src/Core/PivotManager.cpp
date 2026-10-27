@@ -2,8 +2,7 @@
 #include "Moc.hpp"
 #include "BinaryReader.hpp"
 #include "DEF.hpp"
-#include <cstdio>
-#include <stdexcept>
+
 
 namespace Live2D {
 namespace V2 {
@@ -12,14 +11,11 @@ namespace V2 {
 
 void PivotManager::Pivot::Read(BinaryReader& br) {
     mParamId = br.ReadObject<const Id*>();
-    mPivotCount = br.ReadInt32();
-    mPivotValues = br.ReadObject<std::vector<float>>();
+    mCount = br.ReadInt32();
+    mValues = br.ReadObject<std::vector<float>>();
 }
 
-int PivotManager::Pivot::GetParamIndex(int initVersion) {
-    if (mInitVersion != initVersion) {
-        mParamIndex = PARAM_INDEX_NOT_INIT;
-    }
+int PivotManager::Pivot::GetParamIndex() {
     return mParamIndex;
 }
 
@@ -29,27 +25,26 @@ PivotManager::~PivotManager() = default;
 
 void PivotManager::Read(BinaryReader& br) {
     auto raw = br.ReadObject<std::vector<Pivot*>>();
-    mParamPivotTable.reserve(raw.size());
+    mPivots.reserve(raw.size());
     for (auto* p : raw)
-        mParamPivotTable.emplace_back(p);
+        mPivots.emplace_back(p);
 }
 
 int PivotManager::CalcPivotValues(Moc* moc, bool& outRet) {
-    int paramCount = static_cast<int>(mParamPivotTable.size());
-    int initVersion = moc->GetInitVersion();
+    int paramCount = static_cast<int>(mPivots.size());
     int interpolationCount = 0;
 
     for (int i = 0; i < paramCount; i++) {
-        auto& pp = mParamPivotTable[i];
-        int paramIndex = pp->GetParamIndex(initVersion);
+        auto& pp = mPivots[i];
+        int paramIndex = pp->GetParamIndex();
         if (paramIndex == Pivot::PARAM_INDEX_NOT_INIT) {
             paramIndex = moc->GetParamIndex(pp->GetId());
-            pp->SetParamIndex(paramIndex, initVersion);
+            pp->SetParamIndex(paramIndex);
         }
 
         float paramValue = (paramIndex < 0) ? 0.0f : moc->GetParamValue(paramIndex);
         int pivotCount = pp->GetPivotCount();
-        auto& pivotValues = pp->GetPivotValues();
+        auto& pivotValues = pp->GetValues();
 
         int pivotIndex = -1;
         float t = 0.0f;
@@ -96,38 +91,40 @@ int PivotManager::CalcPivotValues(Moc* moc, bool& outRet) {
                 }
             }
         }
-
-        pp->SetTmpPivotIndex(pivotIndex);
-        pp->SetTmpT(t);
+        // 找到每个区间起始点对应的index
+        pp->SetCurrentPivotIndex(pivotIndex);
+        // 插值进度
+        pp->SetCurrentT(t);
     }
     return interpolationCount;
 }
 
+// indexArray中的index，用于访问铺平的Drawable Pivot数据
 void PivotManager::CalcPivotIndices(std::vector<int16_t>& indexArray, std::vector<float>& tArray,
                                     int interpolationCount) {
     int tableSize = 1 << interpolationCount;
     if (tableSize + 1 > PIVOT_TABLE_SIZE) {
-        LOGE("err 23245\n");
+        LOGF("%s: tableSize overflow\n", __FUNCTION__);
     }
 
-    int paramCount = static_cast<int>(mParamPivotTable.size());
+    int paramCount = static_cast<int>(mPivots.size());
     int stride = 1, divisor = 1, tIndex = 0;
 
     for (int i = 0; i < tableSize; i++)
         indexArray[i] = 0;
 
     for (int i = 0; i < paramCount; i++) {
-        auto& pp = mParamPivotTable[i];
-        if (pp->GetTmpT() == 0.0f) {
-            int offset = pp->GetTmpPivotIndex() * stride;
+        auto& pp = mPivots[i];
+        if (pp->GetCurrentT() == 0.0f) {
+            int offset = pp->GetCurrentPivotIndex() * stride;
             for (int j = 0; j < tableSize; j++)
                 indexArray[j] += offset;
         } else {
-            int offset1 = stride * pp->GetTmpPivotIndex();
-            int offset2 = stride * (pp->GetTmpPivotIndex() + 1);
+            int offset1 = stride * pp->GetCurrentPivotIndex();
+            int offset2 = stride * (pp->GetCurrentPivotIndex() + 1);
             for (int j = 0; j < tableSize; j++)
                 indexArray[j] += ((j / divisor) % 2 == 0) ? offset1 : offset2;
-            tArray[tIndex] = pp->GetTmpT();
+            tArray[tIndex] = pp->GetCurrentT();
             tIndex++;
             divisor *= 2;
         }

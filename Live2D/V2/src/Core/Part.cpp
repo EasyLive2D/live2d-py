@@ -13,13 +13,13 @@ void Part::Read(BinaryReader& br) {
     mVisible = br.ReadBit();
     mId = br.ReadObject<const Id*>();
     auto rawDefs = br.ReadObject<std::vector<Deformer*>>();
-    mDeformerList.reserve(rawDefs.size());
+    mDeformers.reserve(rawDefs.size());
     for (auto* d : rawDefs)
-        mDeformerList.emplace_back(d);
+        mDeformers.emplace_back(d);
     auto rawDraw = br.ReadObject<std::vector<Drawable*>>();
-    mDrawableList.reserve(rawDraw.size());
+    mDrawables.reserve(rawDraw.size());
     for (auto* d : rawDraw)
-        mDrawableList.emplace_back(d);
+        mDrawables.emplace_back(d);
 }
 
 }   // namespace V2

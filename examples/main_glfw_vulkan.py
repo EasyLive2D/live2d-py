@@ -27,7 +27,7 @@ from live2d.utils import log
 from live2d.utils.lipsync import WavHandler
 
 live2d.enableLog(True)
-live2d.setLogLevel(live2d.LogLevels.LV_INFO)
+live2d.setLogLevel(live2d.LogLevels.LV_DEBUG)
 
 
 LIVE2D_VERSION = 2
@@ -131,7 +131,7 @@ def main():
     glfw.window_hint(glfw.CLIENT_API, glfw.NO_API)
     glfw.window_hint(glfw.RESIZABLE, True)
 
-    display = (800, 800)
+    display = (500, 600)
     window = glfw.create_window(*display, "live2d-py Vulkan", None, None)
     if not window:
         glfw.terminate()
@@ -146,9 +146,9 @@ def main():
     live2d.vkInit(*get_native_window_handle(window))
 
     model = live2d.Model()
-    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"),
+    model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"),
     # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"),
-    model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/绫地宁宁/nn_min.model3.json"),
+    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/绫地宁宁/nn_min.model3.json"),
     # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/akane/InariTalk_PSDtool2.model3.json"), 
     # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json"),
     # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/Epsilon/Epsilon.model.json"),

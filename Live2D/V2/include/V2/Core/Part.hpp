@@ -26,8 +26,8 @@ public:
     void SetVisible(bool v) { mVisible = v; }
     void SetLocked(bool v) { mLocked = v; }
 
-    std::vector<std::unique_ptr<Deformer>>& GetDeformers() { return mDeformerList; }
-    std::vector<std::unique_ptr<Drawable>>& GetDrawables() { return mDrawableList; }
+    std::vector<std::unique_ptr<Deformer>>& GetDeformers() { return mDeformers; }
+    std::vector<std::unique_ptr<Drawable>>& GetDrawables() { return mDrawables; }
     const Id* GetId() const { return mId; }
     void SetId(const Id* idVal) { mId = idVal; }
 
@@ -45,8 +45,8 @@ private:
     bool mVisible = true;
     bool mLocked = false;
     const Id* mId = nullptr;
-    std::vector<std::unique_ptr<Deformer>> mDeformerList;
-    std::vector<std::unique_ptr<Drawable>> mDrawableList;
+    std::vector<std::unique_ptr<Deformer>> mDeformers;
+    std::vector<std::unique_ptr<Drawable>> mDrawables;
 
     float mPartsOpacity = 1.0f;
 };

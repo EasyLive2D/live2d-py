@@ -842,10 +842,10 @@ void VulkanManager::EndFrame() {
         memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
         memoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
         memoryBarrier.dstAccessMask =
-            VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT | VK_ACCESS_INDEX_READ_BIT;
+            VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT | VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT;
         vkCmdPipelineBarrier(uploadCmd,
                              VK_PIPELINE_STAGE_TRANSFER_BIT,
-                             VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+                             VK_PIPELINE_STAGE_VERTEX_INPUT_BIT|VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
                              0,
                              1,
                              &memoryBarrier,
@@ -867,7 +867,7 @@ void VulkanManager::EndFrame() {
     submitInfo.pWaitSemaphores = &_imageAvailableSemaphores[_frameIndex];
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = &_imageFinishDrawSemaphores[_imageIndex];
-    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_VERTEX_INPUT_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     submitInfo.pWaitDstStageMask = waitStages;
     {
 #if defined(TRACY_ENABLE)

@@ -45,8 +45,8 @@ public:
     bool IsAvailable() const { return mAvailable; }
     void SetAvailable(bool v) { mAvailable = v; }
 
-    bool IsOutsideParam() const { return mOutsideParam; }
-    void SetOutsideParam(bool v) { mOutsideParam = v; }
+    bool IsParamOutOfRange() const { return mOutOfRange; }
+    void SetParamOutOfRange(bool v) { mOutOfRange = v; }
 
     float GetTotalScale() const { return mTotalScale; }
     void SetTotalScale_notForClient(float v) { mTotalScale = v; }
@@ -67,7 +67,7 @@ protected:
     std::vector<float> mPivotOpacities;
 
     bool mAvailable = true;
-    bool mOutsideParam = false;
+    bool mOutOfRange = false;
     float mTotalScale = 1.0f;
     float mTotalOpacity = 1.0f;
     float mInterpolatedOpacity = 1.0f;

@@ -30,11 +30,11 @@ void WarpDeformer::InitRuntimeState() {
 
 void WarpDeformer::SetupInterpolate(Moc* moc) {
     int pointCount = GetPointCount();
-    bool success = false;
+    bool outOfRange = false;
     UtInterpolate::InterpolatePoints(
-        moc, mPivotMgr.get(), success, pointCount, mPivotPoints, mInterpolatedPoints, 0, 2);
-    SetOutsideParam(success);
-    InterpolateOpacity(moc, mPivotMgr.get(), success);
+        moc, mPivotMgr.get(), outOfRange, pointCount, mPivotPoints, mInterpolatedPoints, 0, 2);
+    SetParamOutOfRange(outOfRange);
+    InterpolateOpacity(moc, mPivotMgr.get(), outOfRange);
 }
 
 bool WarpDeformer::SetupTransform(Moc* moc) {

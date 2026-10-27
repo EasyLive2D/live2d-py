@@ -28,29 +28,29 @@ public:
 
         void Read(class BinaryReader& br) override;
 
-        int GetParamIndex(int initVersion);
-        void SetParamIndex(int index, int initVersion) {
+        int GetParamIndex();
+        void SetParamIndex(int index) {
             mParamIndex = index;
-            mInitVersion = initVersion;
         }
 
         const Id* GetId() const { return mParamId; }
-        int GetPivotCount() const { return mPivotCount; }
-        const std::vector<float>& GetPivotValues() const { return mPivotValues; }
+        int GetPivotCount() const { return mCount; }
+        const std::vector<float>& GetValues() const { return mValues; }
 
-        int GetTmpPivotIndex() const { return mTmpPivotIndex; }
-        void SetTmpPivotIndex(int index) { mTmpPivotIndex = index; }
-        float GetTmpT() const { return mTmpT; }
-        void SetTmpT(float value) { mTmpT = value; }
+        int GetCurrentPivotIndex() const { return mCurrentPivotIndex; }
+        void SetCurrentPivotIndex(int index) { mCurrentPivotIndex = index; }
+        float GetCurrentT() const { return mCurrentT; }
+        void SetCurrentT(float value) { mCurrentT = value; }
 
     private:
-        int mPivotCount = 0;
+        // 关键帧
+        int mCount = 0;
         const Id* mParamId = nullptr;
-        std::vector<float> mPivotValues;
+        std::vector<float> mValues;
         int mParamIndex = PARAM_INDEX_NOT_INIT;
         int mInitVersion = -1;
-        int mTmpPivotIndex = 0;
-        float mTmpT = 0.0f;
+        int mCurrentPivotIndex = 0;
+        float mCurrentT = 0.0f;
     };
 
     PivotManager() = default;
@@ -58,14 +58,15 @@ public:
 
     void Read(class BinaryReader& br) override;
 
-    int CalcPivotValues(Moc* moc, bool& outRet);
+    int CalcPivotValues(Moc* moc, bool& outRet /* 参数值越界 */);
+
     void CalcPivotIndices(std::vector<int16_t>& indexArray, std::vector<float>& tArray,
                           int interpolationCount);
 
-    int GetParamCount() const { return static_cast<int>(mParamPivotTable.size()); }
+    int GetParamCount() const { return static_cast<int>(mPivots.size()); }
 
 private:
-    std::vector<std::unique_ptr<Pivot>> mParamPivotTable;
+    std::vector<std::unique_ptr<Pivot>> mPivots;
 };
 
 }   // namespace V2

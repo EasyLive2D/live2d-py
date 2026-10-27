@@ -248,9 +248,12 @@ void VkRenderer::CreateMaskTarget() {
 
 VkRenderer::VkRenderer(Moc* moc, int textureCount)
     : mDevice(VulkanManager::GetInstance()->GetDevice())
-    , mPhysicalDevice(VulkanManager::GetInstance()->GetPhysicalDevice()) {
+    , mPhysicalDevice(VulkanManager::GetInstance()->GetPhysicalDevice()),
+    mMaxFramesInFlight(VulkanManager::GetInstance()->GetFramesInFlight()),
+    mCurrentFrame(0) {
     mColorFormat = VulkanManager::GetInstance()->GetSwapchainManager()->GetSwapchainImageFormat();
     mTextures.resize(textureCount < 1 ? 1 : textureCount);
+    mFrameDescSets.resize(mMaxFramesInFlight, std::vector<VkDescriptorSet>(mTextures.size(), VK_NULL_HANDLE));
 
     // UBO 动态偏移对齐
     VkPhysicalDeviceProperties props;
@@ -320,30 +323,37 @@ VkRenderer::VkRenderer(Moc* moc, int textureCount)
     LOGD("v2 arena: drawables=%u mainDraws=%u maskDraws=%u vb=%lluB ib=%lluB uboSlots=%u",
          drawableCount, mainDraws, maskDraws, (unsigned long long)VB_SIZE,
          (unsigned long long)IB_SIZE, maxDraws);
-    VkUtil::CreateBuffer(mDevice, mPhysicalDevice, VB_SIZE, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                         &mVbBuffer, &mVbMemory);
-    VkUtil::CreateBuffer(mDevice, mPhysicalDevice, IB_SIZE, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                         &mIbBuffer, &mIbMemory);
-    VkUtil::CreateBuffer(mDevice, mPhysicalDevice, UB_SIZE, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                         &mUboBuffer, &mUboMemory);
-    vkMapMemory(mDevice, mVbMemory, 0, VK_WHOLE_SIZE, 0, &mVbMapped);
-    vkMapMemory(mDevice, mIbMemory, 0, VK_WHOLE_SIZE, 0, &mIbMapped);
-    vkMapMemory(mDevice, mUboMemory, 0, VK_WHOLE_SIZE, 0, &mUboMapped);
+
+    mVbs.resize(mMaxFramesInFlight);
+    mIbs.resize(mMaxFramesInFlight);
+    mUbs.resize(mMaxFramesInFlight);
+    for (int i = 0; i < mMaxFramesInFlight; i++) {
+        VkUtil::CreateBuffer(mDevice, mPhysicalDevice, VB_SIZE, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                            &mVbs[i].buffer, &mVbs[i].memory);
+        VkUtil::CreateBuffer(mDevice, mPhysicalDevice, IB_SIZE, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                            &mIbs[i].buffer, &mIbs[i].memory);
+        VkUtil::CreateBuffer(mDevice, mPhysicalDevice, UB_SIZE, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                            &mUbs[i].buffer, &mUbs[i].memory);
+        vkMapMemory(mDevice, mVbs[i].memory, 0, VK_WHOLE_SIZE, 0, &mVbs[i].mapped);
+        vkMapMemory(mDevice, mIbs[i].memory, 0, VK_WHOLE_SIZE, 0, &mIbs[i].mapped);
+        vkMapMemory(mDevice, mUbs[i].memory, 0, VK_WHOLE_SIZE, 0, &mUbs[i].mapped);
+    }
+
 
     // descriptor pool
     VkDescriptorPoolSize poolSizes[2]{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSizes[0].descriptorCount = (uint32_t)(mTextures.size() * 2 + 4);
+    poolSizes[0].descriptorCount = (uint32_t)((mTextures.size() * 2 + 4) * mMaxFramesInFlight);
     poolSizes[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-    poolSizes[1].descriptorCount = (uint32_t)(mTextures.size() + 4);
+    poolSizes[1].descriptorCount = (uint32_t)((mTextures.size() + 4) * mMaxFramesInFlight);
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     poolInfo.poolSizeCount = 2;
     poolInfo.pPoolSizes = poolSizes;
-    poolInfo.maxSets = (uint32_t)(mTextures.size() + 4);
+    poolInfo.maxSets = (uint32_t)((mTextures.size() + 4) * mMaxFramesInFlight);
     vkCreateDescriptorPool(mDevice, &poolInfo, nullptr, &mDescPool);
 
     // 全局 UBO 描述符只作为 pool 兜底；每纹理 set 在 setTexture 中分配并写入 b1/b2
@@ -371,15 +381,24 @@ VkRenderer::~VkRenderer() {
     if (mMaskImage) vkDestroyImage(mDevice, mMaskImage, nullptr);
     if (mMaskMemory) vkFreeMemory(mDevice, mMaskMemory, nullptr);
 
-    if (mVbMapped) vkUnmapMemory(mDevice, mVbMemory);
-    if (mIbMapped) vkUnmapMemory(mDevice, mIbMemory);
-    if (mUboMapped) vkUnmapMemory(mDevice, mUboMemory);
-    if (mVbBuffer) vkDestroyBuffer(mDevice, mVbBuffer, nullptr);
-    if (mIbBuffer) vkDestroyBuffer(mDevice, mIbBuffer, nullptr);
-    if (mUboBuffer) vkDestroyBuffer(mDevice, mUboBuffer, nullptr);
-    if (mVbMemory) vkFreeMemory(mDevice, mVbMemory, nullptr);
-    if (mIbMemory) vkFreeMemory(mDevice, mIbMemory, nullptr);
-    if (mUboMemory) vkFreeMemory(mDevice, mUboMemory, nullptr);
+    for (auto& it : mVbs) {
+        vkUnmapMemory(mDevice, it.memory);
+        vkDestroyBuffer(mDevice, it.buffer, nullptr);
+        vkFreeMemory(mDevice, it.memory, nullptr);
+    }
+    mVbs.clear();
+    for (auto& it : mIbs) {
+        vkUnmapMemory(mDevice, it.memory);
+        vkDestroyBuffer(mDevice, it.buffer, nullptr);
+        vkFreeMemory(mDevice, it.memory, nullptr);
+    }
+    mIbs.clear();
+    for (auto& it : mUbs) {
+        vkUnmapMemory(mDevice, it.memory);
+        vkDestroyBuffer(mDevice, it.buffer, nullptr);
+        vkFreeMemory(mDevice, it.memory, nullptr);
+    }
+    mUbs.clear();
 
     if (mDescPool) vkDestroyDescriptorPool(mDevice, mDescPool, nullptr);
     if (mPipelineLayout) vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
@@ -414,44 +433,44 @@ void VkRenderer::SetTexture(int no, VkImage image, VkDeviceMemory memory, VkImag
     t.sampler = sampler;
     t.valid = true;
 
-    if (no >= (int)mDescSets.size())
-        mDescSets.resize(no + 1, VK_NULL_HANDLE);
-    if (mDescSets[no] == VK_NULL_HANDLE) {
-        VkDescriptorSetAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        allocInfo.descriptorPool = mDescPool;
-        allocInfo.descriptorSetCount = 1;
-        allocInfo.pSetLayouts = &mDescLayout;
-        if (vkAllocateDescriptorSets(mDevice, &allocInfo, &mDescSets[no]) != VK_SUCCESS) {
-            LOGE("failed to allocate descriptor set for texture %d", no);
-            return;
+    for (int i = 0; i < mMaxFramesInFlight; i++) {
+        if (mFrameDescSets[i][no] == VK_NULL_HANDLE) {
+            VkDescriptorSetAllocateInfo allocInfo{};
+            allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+            allocInfo.descriptorPool = mDescPool;
+            allocInfo.descriptorSetCount = 1;
+            allocInfo.pSetLayouts = &mDescLayout;
+            if (vkAllocateDescriptorSets(mDevice, &allocInfo, &mFrameDescSets[i][no]) != VK_SUCCESS) {
+                LOGE("failed to allocate descriptor set for texture %d", no);
+                return;
+            }
         }
+
+        VkDescriptorBufferInfo uboInfo{mUbs[i].buffer, 0, sizeof(UBO)};
+        VkDescriptorImageInfo imgInfo{sampler, view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+        VkDescriptorImageInfo maskInfo{mMaskSampler, mMaskView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+
+        VkWriteDescriptorSet writes[3]{};
+        writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writes[0].dstSet = mFrameDescSets[i][no];
+        writes[0].dstBinding = 0;
+        writes[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+        writes[0].descriptorCount = 1;
+        writes[0].pBufferInfo = &uboInfo;
+        writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writes[1].dstSet = mFrameDescSets[i][no];
+        writes[1].dstBinding = 1;
+        writes[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        writes[1].descriptorCount = 1;
+        writes[1].pImageInfo = &imgInfo;
+        writes[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writes[2].dstSet = mFrameDescSets[i][no];
+        writes[2].dstBinding = 2;
+        writes[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        writes[2].descriptorCount = 1;
+        writes[2].pImageInfo = &maskInfo;
+        vkUpdateDescriptorSets(mDevice, 3, writes, 0, nullptr);
     }
-
-    VkDescriptorBufferInfo uboInfo{mUboBuffer, 0, sizeof(UBO)};
-    VkDescriptorImageInfo imgInfo{sampler, view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
-    VkDescriptorImageInfo maskInfo{mMaskSampler, mMaskView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
-
-    VkWriteDescriptorSet writes[3]{};
-    writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    writes[0].dstSet = mDescSets[no];
-    writes[0].dstBinding = 0;
-    writes[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-    writes[0].descriptorCount = 1;
-    writes[0].pBufferInfo = &uboInfo;
-    writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    writes[1].dstSet = mDescSets[no];
-    writes[1].dstBinding = 1;
-    writes[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    writes[1].descriptorCount = 1;
-    writes[1].pImageInfo = &imgInfo;
-    writes[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    writes[2].dstSet = mDescSets[no];
-    writes[2].dstBinding = 2;
-    writes[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    writes[2].descriptorCount = 1;
-    writes[2].pImageInfo = &maskInfo;
-    vkUpdateDescriptorSets(mDevice, 3, writes, 0, nullptr);
 }
 
 void VkRenderer::ImageBarrier(VkCommandBuffer cmd, VkImage image, VkImageLayout oldLayout,
@@ -507,6 +526,7 @@ static void beginRendering(VkCommandBuffer cmd, VkImageView view, uint32_t width
 }
 
 void VkRenderer::PreDraw(Moc* moc) {
+    mCurrentFrame = VulkanManager::GetInstance()->GetCurrentFrame();
     // 帧首复位 arena（帧内所有录制共用，EndFrame 提交后等待 GPU 空闲，覆盖安全）
     mVbOffset = 0;
     mIbOffset = 0;
@@ -584,7 +604,7 @@ void VkRenderer::DrawTexture(int texNo, const std::array<float, 4>& screenColor,
         return;
     if (mCurrentCmd == VK_NULL_HANDLE)
         return;
-    if (texNo < 0 || texNo >= (int)mDescSets.size() || mDescSets[texNo] == VK_NULL_HANDLE) {
+    if (texNo < 0 || texNo >= (int)mFrameDescSets[mCurrentFrame].size() || mFrameDescSets[mCurrentFrame][texNo] == VK_NULL_HANDLE) {
         LOGE("VkRenderer: texture %d not bound", texNo);
         return;
     }
@@ -654,7 +674,7 @@ void VkRenderer::DrawTexture(int texNo, const std::array<float, 4>& screenColor,
     }
     uint32_t uboOffset = (uint32_t)(mUboIndex * mUboStride);
     mUboIndex++;
-    std::memcpy((char*)mUboMapped + uboOffset, &u, sizeof(UBO));
+    std::memcpy((char*)mUbs[mCurrentFrame].mapped + uboOffset, &u, sizeof(UBO));
 
     // 顶点/索引 arena
     VkDeviceSize vbBytes = (VkDeviceSize)vertexFloatCount * sizeof(float);
@@ -665,13 +685,13 @@ void VkRenderer::DrawTexture(int texNo, const std::array<float, 4>& screenColor,
         return;
     }
     VkDeviceSize posOffset = mVbOffset;
-    std::memcpy((char*)mVbMapped + posOffset, vertices, (size_t)vbBytes);
+    std::memcpy((char*)mVbs[mCurrentFrame].mapped + posOffset, vertices, (size_t)vbBytes);
     mVbOffset += vbBytes;
     VkDeviceSize uvOffset = mVbOffset;
-    std::memcpy((char*)mVbMapped + uvOffset, uvs, (size_t)uvBytes);
+    std::memcpy((char*)mVbs[mCurrentFrame].mapped + uvOffset, uvs, (size_t)uvBytes);
     mVbOffset += uvBytes;
     VkDeviceSize idxOffset = mIbOffset;
-    std::memcpy((char*)mIbMapped + idxOffset, indices, (size_t)ibBytes);
+    std::memcpy((char*)mIbs[mCurrentFrame].mapped + idxOffset, indices, (size_t)ibBytes);
     mIbOffset += ibBytes;
 
     // 管线选择：mask pass 固定 normal 程序 + NORMAL 混合；裁剪绘制用 mask 程序
@@ -705,12 +725,12 @@ void VkRenderer::DrawTexture(int texNo, const std::array<float, 4>& screenColor,
     vkCmdSetCullMode(mCurrentCmd, mCulling ? VK_CULL_MODE_BACK_BIT : VK_CULL_MODE_NONE);
 
     vkCmdBindDescriptorSets(mCurrentCmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
-                            &mDescSets[texNo], 1, &uboOffset);
+                            &mFrameDescSets[mCurrentFrame][texNo], 1, &uboOffset);
 
-    VkBuffer vbuffers[2] = {mVbBuffer, mVbBuffer};
+    VkBuffer vbuffers[2] = {mVbs[mCurrentFrame].buffer, mVbs[mCurrentFrame].buffer};
     VkDeviceSize voffsets[2] = {posOffset, uvOffset};
     vkCmdBindVertexBuffers(mCurrentCmd, 0, 2, vbuffers, voffsets);
-    vkCmdBindIndexBuffer(mCurrentCmd, mIbBuffer, idxOffset, VK_INDEX_TYPE_UINT16);
+    vkCmdBindIndexBuffer(mCurrentCmd, mIbs[mCurrentFrame].buffer, idxOffset, VK_INDEX_TYPE_UINT16);
     vkCmdDrawIndexed(mCurrentCmd, (uint32_t)indexCount, 1, 0, 0, 0);
 }
 

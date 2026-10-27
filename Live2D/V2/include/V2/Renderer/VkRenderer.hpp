@@ -112,23 +112,24 @@ private:
     VkPipelineLayout mPipelineLayout = VK_NULL_HANDLE;
     VkPipeline mPipelines[6] = {};   // [0..2]=normal×blend, [3..5]=mask×blend
     VkDescriptorPool mDescPool = VK_NULL_HANDLE;
-    std::vector<VkDescriptorSet> mDescSets;   // 每纹理一个 set
+    std::vector<std::vector<VkDescriptorSet>> mFrameDescSets;   // 每纹理一个 set
 
     // 纹理资源
     std::vector<TextureRes> mTextures;
 
     // 帧级 arena（host-visible，SubmitCommand 每次等待完成，故单帧安全复用）
-    VkBuffer mVbBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory mVbMemory = VK_NULL_HANDLE;
-    void* mVbMapped = nullptr;
-    VkDeviceSize mVbOffset = 0;
-    VkBuffer mIbBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory mIbMemory = VK_NULL_HANDLE;
-    void* mIbMapped = nullptr;
-    VkDeviceSize mIbOffset = 0;
-    VkBuffer mUboBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory mUboMemory = VK_NULL_HANDLE;
-    void* mUboMapped = nullptr;
+    struct Memory {
+        VkDeviceMemory memory;
+        VkBuffer buffer;
+        void* mapped;
+    };
+
+    VkDeviceSize mVbOffset;
+    std::vector<Memory> mVbs;
+    VkDeviceSize mIbOffset;
+    std::vector<Memory> mIbs;
+    std::vector<Memory> mUbs;
+
     uint32_t mUboIndex = 0;
     uint32_t mUboStride = 256;
     // arena 容量按模型 drawable 数分配（见构造函数），帧内溢出时丢弃该次 draw
@@ -147,6 +148,9 @@ private:
     bool mMaskDirty = true;   // mask 需重渲（首次为 true，此后由 setMaskDirty 标记）
 
     std::shared_ptr<ClippingManagerVulkan> mClipManager;
+
+    const uint32_t mMaxFramesInFlight;
+    uint32_t mCurrentFrame;
 };
 
 }   // namespace V2

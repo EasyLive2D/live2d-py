@@ -272,7 +272,7 @@ void Model::GetParameterIds(void* collector, void (*collect)(void* collector, co
     }
 }
 const char* Model::GetParameterId(int index) {
-    auto& ids = mMoc->mParamIdList;
+    auto& ids = mMoc->mParamIds;
     if (index >= 0 && index < (int)ids.size() && ids[index])
         return ids[index]->Str().c_str();
     return "";
@@ -290,10 +290,10 @@ float Model::GetParameterDefaultValue(int index) {
     return mMoc->GetParamDefault(index);
 }
 int Model::GetPartCount() const {
-    return (int)mMoc->mPartsList.size();
+    return (int)mMoc->mParts.size();
 }
 void Model::GetPartIds(void* collector, void (*collect)(void* collector, const char* id)) const {
-    auto& parts = mMoc->mPartsList;
+    auto& parts = mMoc->mParts;
     const int count = (int)parts.size();
     for (int i = 0; i < count; i++) {
         if (parts[i]->GetId())
@@ -301,7 +301,7 @@ void Model::GetPartIds(void* collector, void (*collect)(void* collector, const c
     }
 }
 const char* Model::GetPartId(int index) const {
-    auto& parts = mMoc->mPartsList;
+    auto& parts = mMoc->mParts;
     if (index >= 0 && index < (int)parts.size() && parts[index]->GetId())
         return parts[index]->GetId()->Str().c_str();
     return "";
@@ -627,7 +627,7 @@ std::vector<std::string> Model::HitIds(float x, float y, bool topOnly, bool want
     float mx = x, my = y;
     screenToModel(&mx, &my);
 
-    auto& drawList = mMoc->mDrawableList;
+    auto& drawList = mMoc->mDrawables;
     auto& nextList = mMoc->mNextListDrawIndex;
     auto& firstList = mMoc->mOrderListFirstDrawIndex;
     int range = (int)firstList.size();
@@ -1007,7 +1007,7 @@ bool Model::IsDrawableHit(int index, float x, float y) {
 // ---- drawable ----
 
 int Model::GetDrawableCount() {
-    return (int)mMoc->mDrawableList.size();
+    return (int)mMoc->mDrawables.size();
 }
 void Model::GetDrawableIds(void* collector, void (*collect)(void* collector, const char* id)) {
     const int count = GetDrawableCount();

@@ -102,33 +102,33 @@ void Drawable::InitRuntimeState() {
 
 void Drawable::SetupInterpolate(Moc* moc) {
     // drawable 级：插值 drawOrder 与 opacity
-    mParamOutside = false;
+    mParamOutOfRange = false;
     mInterpolatedDrawOrder =
-        UtInterpolate::InterpolateInt(moc, mPivotMgr.get(), mParamOutside, mPivotDrawOrders);
+        UtInterpolate::InterpolateInt(moc, mPivotMgr.get(), mParamOutOfRange, mPivotDrawOrders);
     // Match Python: skip opacity interpolation if outside param
-    if (mParamOutside)
+    if (mParamOutOfRange)
         return;
     mInterpolatedOpacity =
-        UtInterpolate::InterpolateFloat(moc, mPivotMgr.get(), mParamOutside, mPivotOpacities);
-    if (mParamOutside)
+        UtInterpolate::InterpolateFloat(moc, mPivotMgr.get(), mParamOutOfRange, mPivotOpacities);
+    if (mParamOutOfRange)
         return;
 
     // 网格顶点插值
-    bool paramOutside = false;
+    bool paramOutOfRange = false;
     UtInterpolate::InterpolatePoints(moc,
                                      mPivotMgr.get(),
-                                     paramOutside,
+                                     paramOutOfRange,
                                      mPointCount,
                                      mPivotPoints,
                                      mInterpolatedPoints,
                                      VERTEX_OFFSET,
                                      VERTEX_STEP);
-    if (paramOutside)
-        mParamOutside = true;
+    if (paramOutOfRange)
+        mParamOutOfRange = true;
 }
 
 void Drawable::SetupTransform(Moc* moc) {
-    if (mParamOutside)
+    if (mParamOutOfRange)
         return;
 
     if (NeedTransform()) {
@@ -140,7 +140,7 @@ void Drawable::SetupTransform(Moc* moc) {
             LOGE("deformer not found: %s\n", targetId->Str().c_str());
         } else {
             auto* deformer = moc->GetDeformer(mTmpDeformerIndex);
-            if (deformer && !deformer->IsOutsideParam()) {
+            if (deformer && !deformer->IsParamOutOfRange()) {
                 deformer->TransformPoints(mInterpolatedPoints,
                                           mTransformedPoints,
                                           mPointCount,
