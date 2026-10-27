@@ -21,7 +21,7 @@ live2d.enableLog(True)
 live2d.setLogLevel(live2d.LogLevels.LV_INFO)
 
 LOAD_FROM_JSON = False
-LIVE2D_VERSION = 2
+LIVE2D_VERSION = 3
 
 if LIVE2D_VERSION == 2:
     from live2d import StandardParamsV2 as StandardParams
@@ -214,7 +214,7 @@ def main():
     model.CreateRenderer()
 
     # disable vsync for performance test
-    glfw.swap_interval(0)
+    glfw.swap_interval(1)
 
     while not glfw.window_should_close(window):
         glfw.poll_events()
@@ -242,16 +242,7 @@ def main():
         model.SetOffset(dx, dy)
         model.SetScale(scale)
         live2d.clearBuffer(1.0, 0.0, 0.0, 0.0)
-
-        GL.glPushAttrib(GL.GL_CURRENT_BIT | GL.GL_ENABLE_BIT | GL.GL_POLYGON_BIT | GL.GL_COLOR_BUFFER_BIT)
-        GL.glUseProgram(0)
-        GL.glDisable(GL.GL_DEPTH_TEST)
-        GL.glDisable(GL.GL_CULL_FACE)
-        GL.glEnable(GL.GL_BLEND)
-        GL.glBlendFuncSeparate(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA, GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA)
-
         model.Draw()
-        GL.glPopAttrib()
 
         glfw.swap_buffers(window)
 

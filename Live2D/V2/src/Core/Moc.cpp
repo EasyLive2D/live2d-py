@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 namespace Live2D {
 namespace V2 {
@@ -107,6 +108,7 @@ void Moc::Init() {
     mParamMinValues.resize(nParam);
     mParamMaxValues.resize(nParam);
     mParamDefaultValues.resize(nParam);
+    mSavedParamValues.resize(nParam);
     for (size_t i = 0; i < mParameters.size(); i++) {
         auto* p = mParameters[i].get();
         mParamIdList[i] = p->GetId();
@@ -114,6 +116,7 @@ void Moc::Init() {
         mParamMinValues[i] = p->GetMinValue();
         mParamMaxValues[i] = p->GetMaxValue();
         mParamDefaultValues[i] = p->GetDefaultValue();
+        mSavedParamValues[i] = p->GetDefaultValue();
     }
 
     // 静态 mask 索引解析：clipID 列表 -> mask drawable 索引（moc 数据，init 后不变）
@@ -334,14 +337,12 @@ float Moc::GetParamDefault(int index) const {
 }
 
 void Moc::LoadParam() {
-    for (size_t i = 0; i < mSavedParamValues.size(); i++)
-        mParamValues[i] = mSavedParamValues[i];
+    memcpy(mParamValues.data(), mSavedParamValues.data(), mSavedParamValues.size());
 }
 void Moc::SaveParam() {
-    if (mSavedParamValues.size() < mParamValues.size())
-        mSavedParamValues.resize(mParamValues.size());
     for (size_t i = 0; i < mParamValues.size(); i++)
         mSavedParamValues[i] = mParamValues[i];
+    memcpy(mSavedParamValues.data(), mParamValues.data(), mParamValues.size());
 }
 
 Drawable* Moc::GetDrawable(int index) const {

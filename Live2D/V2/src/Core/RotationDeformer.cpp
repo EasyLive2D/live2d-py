@@ -5,6 +5,7 @@
 #include "Moc.hpp"
 #include "AffineEnt.hpp"
 #include <cmath>
+#include <vector>
 
 namespace Live2D {
 namespace V2 {
@@ -99,14 +100,13 @@ void RotationDeformer::SetupInterpolate(Moc* moc) {
 
 static void getDirectionOnDst(Moc* moc, Deformer* targetDef, float ox, float oy, float dx, float dy,
                               float retDir[2]) {
-    std::vector<float> tpVec = {ox, oy};
-    std::vector<float> toVec(2);
+    static std::vector<float> tpVec(2), toVec(2), testVec(2), transVec(2);
+    tpVec[0] = ox, tpVec[1] = oy;
     targetDef->TransformPoints(tpVec, toVec, 1, 0, 2);
 
     float stepSize = 1.0f;
     for (int it = 0; it < 10; it++) {
-        std::vector<float> testVec = {ox + stepSize * dx, oy + stepSize * dy};
-        std::vector<float> transVec(2);
+        testVec[0] = ox + stepSize * dx, testVec[1] = oy + stepSize * dy;
         targetDef->TransformPoints(testVec, transVec, 1, 0, 2);
         transVec[0] -= toVec[0];
         transVec[1] -= toVec[1];
@@ -115,7 +115,7 @@ static void getDirectionOnDst(Moc* moc, Deformer* targetDef, float ox, float oy,
             retDir[1] = transVec[1];
             return;
         }
-        testVec = {ox - stepSize * dx, oy - stepSize * dy};
+        testVec[0] = ox - stepSize * dx, testVec[1] = oy - stepSize * dy;
         targetDef->TransformPoints(testVec, transVec, 1, 0, 2);
         transVec[0] -= toVec[0];
         transVec[1] -= toVec[1];

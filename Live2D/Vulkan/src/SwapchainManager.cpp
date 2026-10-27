@@ -56,11 +56,11 @@ VkSurfaceFormatKHR SwapchainManager::ChooseSwapSurfaceFormat(const std::vector<V
 
 VkPresentModeKHR SwapchainManager::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
 {
-    // 默认 MAILBOX（无撕裂、跟随刷新率），发布构建恒定此模式。
+    // 默认 FIFO（无撕裂、跟随刷新率），发布构建恒定此模式，可以有效降低cpu占用。
     // 仅 Tracy 构建（压测/录制）允许用环境变量关闭呈现节流：
     //   LIVE2D_VK_PRESENT_MODE=immediate | mailbox | fifo | fifo_relaxed
 #if defined(TRACY_ENABLE)
-    VkPresentModeKHR preferred = VK_PRESENT_MODE_MAILBOX_KHR;
+    VkPresentModeKHR preferred = VK_PRESENT_MODE_FIFO_KHR;
     if (const char* requested = std::getenv("LIVE2D_VK_PRESENT_MODE"))
     {
         if (std::strcmp(requested, "immediate") == 0) preferred = VK_PRESENT_MODE_IMMEDIATE_KHR;
