@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ClippingManagerOpenGL.hpp"
+#include "Drawable.hpp"
 #include "IRenderer.hpp"
 #ifdef __ANDROID__
 #include <GLES/gl.h>
@@ -60,7 +61,7 @@ public:
 private:
     void Init(Moc* moc);
 
-    void DrawTexture(int texNo, const std::array<float, 4>& screenColor, const uint16_t* indices,
+    void DrawTexture(int drawableIndex, int texNo, const std::array<float, 4>& screenColor, const uint16_t* indices,
                      int indexCount, const float* vertices, int vertexFloatCount, const float* uvs,
                      int uvFloatCount, float opacity, int compositionType,
                      const std::array<float, 4>& multiplyColor);
@@ -79,7 +80,15 @@ private:
         GLint maskMvp = -1, maskClipMatrix = -1, maskBaseColor = -1, maskChannelFlag = -1,
               maskScreenColor = -1, maskMultiplyColor = -1, maskTexture0 = -1, maskTexture1 = -1;
     } mUniforms;
-    GLuint mPosVBO = 0, mUVVBO = 0, mEBO = 0;
+
+    struct DrawObject {
+        GLuint vao;
+        GLuint vbo;
+        GLuint uvbo;
+        GLuint ebo;
+    };
+
+    std::vector<DrawObject> mDrawObjects;
     std::array<float, 16> mMatrix4x4{};
     std::array<float, 16> mClipMatrix{};
     bool mCulling = true;

@@ -21,7 +21,7 @@ live2d.enableLog(True)
 live2d.setLogLevel(live2d.LogLevels.LV_INFO)
 
 LOAD_FROM_JSON = False
-LIVE2D_VERSION = 3
+LIVE2D_VERSION = 2
 
 if LIVE2D_VERSION == 2:
     from live2d import StandardParamsV2 as StandardParams

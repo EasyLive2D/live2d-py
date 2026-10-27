@@ -1,4 +1,5 @@
 #include "GLRenderer.hpp"
+#include "GL/glew.h"
 #include "Log.hpp"
 #include "ClippingManagerOpenGL.hpp"
 #include "ClipContext.hpp"
@@ -37,8 +38,7 @@ static std::string LoadShaderSource(const char* fileName) {
 }
 
 GLRenderer::GLRenderer(Moc* moc, int textureCount) :
-    mShaderNormal(0), mShaderMask(0), mFramebuffer(0), mFramebufferTexture(0), mPosVBO(0),
-    mUVVBO(0), mEBO(0), mCulling(false) {
+    mShaderNormal(0), mShaderMask(0), mFramebuffer(0), mFramebufferTexture(0), mCulling(false) {
     mTextures.resize(textureCount, 0);
     Init(moc);
 }
@@ -48,6 +48,44 @@ void GLRenderer::Init(Moc* moc) {
 
     mClipManager = std::make_unique<ClippingManagerOpenGL>(*this);
     mClipManager->Init(moc);
+
+    const int drawableCount = moc->GetDrawableCount();
+    mDrawObjects.resize(drawableCount, {});
+    GLuint vao, vbo, uvbo, ebo, vertexFloatCount, indexCount;
+
+    for (int i = 0; i < drawableCount; i ++) {
+        vertexFloatCount = moc->GetDrawableVertexCount(i) * 2;
+        indexCount = moc->GetDrawableVertexIndexCount(i);
+        glGenVertexArrays(1, &vao);
+        glBindVertexArray(vao);
+
+        // Position VBO (location 0)
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, vertexFloatCount * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(0);
+
+        // UV VBO (location 1)
+        glGenBuffers(1, &uvbo);
+        glBindBuffer(GL_ARRAY_BUFFER, uvbo);
+        glBufferData(GL_ARRAY_BUFFER, vertexFloatCount * sizeof(float), moc->GetDrawableVertexUvs(i), GL_STATIC_DRAW);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(1);
+
+        // EBO
+        glGenBuffers(1, &ebo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        glBufferData(
+            GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(uint16_t), moc->GetDrawableVertexIndices(i), GL_STATIC_DRAW);
+        
+        mDrawObjects[i].vao = vao;
+        mDrawObjects[i].vbo = vbo;
+        mDrawObjects[i].uvbo = uvbo;
+        mDrawObjects[i].ebo = ebo;
+
+        glBindVertexArray(0);
+    }
 }
 
 GLRenderer::~GLRenderer() {
@@ -59,12 +97,12 @@ GLRenderer::~GLRenderer() {
         glDeleteFramebuffers(1, &mFramebuffer);
     if (mFramebufferTexture)
         glDeleteTextures(1, &mFramebufferTexture);
-    if (mEBO)
-        glDeleteBuffers(1, &mEBO);
-    if (mPosVBO)
-        glDeleteBuffers(1, &mPosVBO);
-    if (mUVVBO)
-        glDeleteBuffers(1, &mUVVBO);
+    for (auto& it : mDrawObjects) {
+        glDeleteVertexArrays(1, &it.vao);
+        glDeleteBuffers(1, &it.vbo);
+        glDeleteBuffers(1, &it.uvbo);
+        glDeleteBuffers(1, &it.ebo);
+    }
     for (auto t : mTextures)
         if (t)
             glDeleteTextures(1, &t);
@@ -183,11 +221,20 @@ void GLRenderer::SetupDraw(Moc* moc) {
     glFrontFace(GL_CW);
     glEnable(GL_BLEND);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    // glBindBuffer(GL_ARRAY_BUFFER, 0);
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void GLRenderer::EndDraw() {
+    glBindVertexArray(0);
+    // glDisableVertexAttribArray(0);
+    // glDisableVertexAttribArray(1);
+    // glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_BLEND);
+
     glBindFramebuffer(GL_FRAMEBUFFER, mCurrentFBO);
     // When changing model: v2cpp => v3,
     // v3 may get save the wrong program id to `lastProgramId`
@@ -244,7 +291,7 @@ GLuint GLRenderer::GetTexture(int no) const {
     return 0;
 }
 
-void GLRenderer::DrawTexture(int texNo, const std::array<float, 4>& screenColor,
+void GLRenderer::DrawTexture(int drawbaleIndex, int texNo, const std::array<float, 4>& screenColor,
                              const uint16_t* indices, int indexCount, const float* vertices,
                              int vertexFloatCount, const float* uvs, int uvFloatCount,
                              float opacity, int compositionType,
@@ -256,12 +303,6 @@ void GLRenderer::DrawTexture(int texNo, const std::array<float, 4>& screenColor,
     float a2 = mBaseGreen * opacity;
     float a5 = mBaseBlue * opacity;
     float a7 = mBaseAlpha * opacity;
-
-    static int sDrawCallNo = 0;
-    sDrawCallNo++;
-    int callNo = sDrawCallNo;
-    const char* path = mClipMaskMode ? "MASK" : mClipDrawMode ? "CLIP" : "NORM";
-
 
     if (mClipMaskMode) {
         // Path 1: Mask RENDER — use clip's matrixForMask as u_mvpMatrix
@@ -381,55 +422,14 @@ void GLRenderer::DrawTexture(int texNo, const std::array<float, 4>& screenColor,
     glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
     glBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha);
 
-    // Debug: print blend function
-    auto blendName = [](GLenum e) -> const char* {
-        switch (e) {
-            case GL_ONE:
-                return "ONE";
-            case GL_ZERO:
-                return "ZERO";
-            case GL_DST_COLOR:
-                return "DST_COLOR";
-            case GL_ONE_MINUS_SRC_ALPHA:
-                return "ONE_MINUS_SRC_ALPHA";
-            case GL_ONE_MINUS_SRC_COLOR:
-                return "ONE_MINUS_SRC_COLOR";
-            default:
-                return "?";
-        }
-    };
-    // Position VBO (location 0)
-    if (!mPosVBO)
-        glGenBuffers(1, &mPosVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, mPosVBO);
-    glBufferData(GL_ARRAY_BUFFER, vertexFloatCount * sizeof(float), vertices, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(0);
-
-    // UV VBO (location 1)
-    if (!mUVVBO)
-        glGenBuffers(1, &mUVVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, mUVVBO);
-    glBufferData(GL_ARRAY_BUFFER, uvFloatCount * sizeof(float), uvs, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(1);
-
-    // EBO
-    if (!mEBO)
-        glGenBuffers(1, &mEBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(uint16_t), indices, GL_DYNAMIC_DRAW);
+    auto& drawObject = mDrawObjects[drawbaleIndex];
+    glBindVertexArray(drawObject.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, drawObject.vbo);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, vertexFloatCount * sizeof(float), vertices);
 
     glDrawElements(GL_TRIANGLES, (GLsizei)indexCount, GL_UNSIGNED_SHORT, 0);
-
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_BLEND);
 }
+
 void GLRenderer::Resize(int w, int h) {
     (void)w;
     (void)h;
@@ -456,7 +456,8 @@ void GLRenderer::DrawDrawable(Moc* moc, int idx) {
     SetCulling(moc->GetDrawableCulling(idx));
 
     int vertexFloatCount = moc->GetDrawableVertexCount(idx) * 2;
-    DrawTexture(moc->GetDrawableTextureIndex(idx),
+    DrawTexture(idx, 
+        moc->GetDrawableTextureIndex(idx),
                 moc->GetDrawableScreenColor(idx),
                 moc->GetDrawableVertexIndices(idx),
                 moc->GetDrawableVertexIndexCount(idx),
