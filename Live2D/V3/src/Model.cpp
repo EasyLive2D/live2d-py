@@ -1109,6 +1109,8 @@ void Model::Draw() {
             return;
         }
 
+        vkManager->InvalidateSizeIfNeeded(mMatrixManager.GetWidth(), mMatrixManager.GetHeight());
+
         // 帧解耦：acquire/clear/present 由外部 vkBeginFrame/vkEndFrame 驱动，
         // Draw 仅向帧命令缓冲录制；mask/自有区间由渲染器经挂起/恢复钩子自管
         if (!vkManager->IsFrameActive()) {

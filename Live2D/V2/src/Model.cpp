@@ -444,6 +444,7 @@ void Model::Draw() {
         VulkanManager* vkMgr = VulkanManager::GetInstance();
         if (!vkMgr->IsFrameActive())
             return;
+        vkMgr->InvalidateSizeIfNeeded(mMatrixManager.GetWidth(), mMatrixManager.GetHeight());
     }
 #endif
     {

@@ -72,10 +72,13 @@ def load_from_generated_json():
 
 
 def main():
+    display = (500, 600)
+    windowWidth, windowHeight = display
+    frameWidth, frameHeight = (0, 0)
+
     if not glfw.init():
         raise RuntimeError("glfw.init failed")
 
-    display = (500, 600)
     window = glfw.create_window(*display, "glfw", None, None)
     if not window:
         glfw.terminate()
@@ -191,14 +194,25 @@ def main():
     glfw.set_mouse_button_callback(window, on_mouse_button)
 
     def on_cursor_pos(window, x, y):
-        nonlocal currentTopClickedPartId
-        model.Drag(x, y)
-        currentTopClickedPartId = getHitFeedback(x, y)
+        nonlocal currentTopClickedPartId, frameWidth, frameHeight, windowWidth, windowHeight
+        px, py = x * frameWidth / windowWidth, y * frameHeight / windowHeight
+        model.Drag(px, py)
+        currentTopClickedPartId = getHitFeedback(px, py)
     glfw.set_cursor_pos_callback(window, on_cursor_pos)
 
-    def on_resize(window, width, height):
+    def on_framebuffer_resize(window, width, height):
+        nonlocal frameWidth, frameHeight
         GL.glViewport(0, 0, width, height)
         model.Resize(width, height)
+        frameWidth = width
+        frameHeight = height
+    glfw.set_framebuffer_size_callback(window, on_framebuffer_resize)
+    on_framebuffer_resize(window, *glfw.get_framebuffer_size(window))
+
+    def on_resize(window, w, h):
+        nonlocal windowWidth, windowHeight
+        windowWidth = w
+        windowHeight = h
     glfw.set_window_size_callback(window, on_resize)
 
     # Rotate animation

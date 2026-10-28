@@ -67,11 +67,6 @@ public:
     ~VulkanManager();
 
     /**
-     * @brief   ウィンドウハンドルをセットする（Initialize 前に呼ぶ）
-     */
-    void SetWindow(void* window) { _window = window; }
-
-    /**
      * @brief   インスタンス拡張を外部から注入する（Initialize 前に呼ぶ）
      *          glfwGetRequiredInstanceExtensions 等の結果を渡す
      */
@@ -89,7 +84,6 @@ public:
      */
     void SetSurfaceCreateContext(const SurfaceCreateContext& ctx) {
         _surfaceCtx = ctx;
-        _window = ctx.window;
     }
     void SetDisplay(void* display) { _surfaceCtx.display = display; }
 
@@ -360,8 +354,9 @@ public:
 
     int GetCurrentFrame() { return _frameIndex; }
 
+    void InvalidateSizeIfNeeded(int width, int height);
+
 private:
-    void* _window;                                    // 窗口
     SurfaceCreateContext _surfaceCtx;                 // surface 创建上下文
     std::vector<const char*> _instanceExtensions;     // 外部注入的实例扩展
     CreateSurfaceFunc _createSurfaceFunc = nullptr;   // surface 创建钩子（省略时用内部实现）
@@ -394,4 +389,6 @@ private:
 #else
     bool _enableValidationLayers = false;
 #endif   // LIVE2D_VK_VALIDATION
+    uint32_t _frameWidth;
+    uint32_t _frameHeight;
 };

@@ -2,15 +2,12 @@
 #include "Log.hpp"
 
 #include <algorithm>
-#include <cstdlib>
-#include <cstring>
-#include <vulkan/vulkan_core.h>
 
-SwapchainManager::SwapchainManager(void* _window, VkPhysicalDevice physicalDevice, VkDevice device,
-                                   VkSurfaceKHR surface, VkFormat format, uint32_t graphicsFamily, uint32_t presentFamily)
+SwapchainManager::SwapchainManager(VkPhysicalDevice physicalDevice, VkDevice device,
+                                   VkSurfaceKHR surface, VkFormat format, uint32_t graphicsFamily, uint32_t presentFamily, VkExtent2D extent)
                                    : swapchainFormat(format)
 {
-    CreateSwapchain(_window, physicalDevice, device, surface, graphicsFamily, presentFamily);
+    CreateSwapchain(physicalDevice, device, surface, graphicsFamily, presentFamily, extent);
 }
 
 SwapchainManager::SwapchainSupportDetails SwapchainManager::QuerySwapchainSupport(
@@ -87,7 +84,7 @@ VkPresentModeKHR SwapchainManager::ChooseSwapPresentMode(const std::vector<VkPre
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-VkExtent2D SwapchainManager::ChooseSwapExtent(void*, const VkSurfaceCapabilitiesKHR& capabilities)
+VkExtent2D SwapchainManager::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, VkExtent2D requested)
 {
     if (capabilities.currentExtent.width != UINT32_MAX)
     {
@@ -95,14 +92,7 @@ VkExtent2D SwapchainManager::ChooseSwapExtent(void*, const VkSurfaceCapabilities
     }
     else
     {
-        //for Retina display
-        int width = 0, height = 0;
-        // glfwGetFramebufferSize(window, &width, &height);
-
-        VkExtent2D actualExtent = {
-            static_cast<uint32_t>(width),
-            static_cast<uint32_t>(height)
-        };
+        VkExtent2D& actualExtent = requested;
 
         if (actualExtent.width < capabilities.minImageExtent.width)
         {
@@ -126,14 +116,14 @@ VkExtent2D SwapchainManager::ChooseSwapExtent(void*, const VkSurfaceCapabilities
     }
 }
 
-void SwapchainManager::CreateSwapchain(void* window, VkPhysicalDevice physicalDevice, VkDevice device,
+void SwapchainManager::CreateSwapchain(VkPhysicalDevice physicalDevice, VkDevice device,
                                        VkSurfaceKHR surface, uint32_t graphicsFamily,
-                                       uint32_t presentFamily)
+                                       uint32_t presentFamily, VkExtent2D requested)
 {
     SwapchainSupportDetails swapChainSupport = QuerySwapchainSupport(physicalDevice, surface);
     VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
     VkPresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
-    extent = ChooseSwapExtent(window, swapChainSupport.capabilities);
+    extent = ChooseSwapExtent(swapChainSupport.capabilities, requested);
 
     imageCount = swapChainSupport.capabilities.minImageCount + 1;
     if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)

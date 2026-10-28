@@ -19,15 +19,15 @@ import time
 
 import glfw
 from glfw.GLFW import _glfw as _glfw_lib
-
-import live2d
+# ensure env before import live2d
 import resources
+import live2d
 
 from live2d.utils import log
 from live2d.utils.lipsync import WavHandler
 
 live2d.enableLog(True)
-live2d.setLogLevel(live2d.LogLevels.LV_DEBUG)
+live2d.setLogLevel(live2d.LogLevels.LV_INFO)
 
 
 LIVE2D_VERSION = 2
@@ -146,18 +146,21 @@ def main():
     live2d.vkInit(*get_native_window_handle(window))
 
     model = live2d.Model()
-    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"),
-    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"),
-    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/绫地宁宁/nn_min.model3.json"),
-    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/akane/InariTalk_PSDtool2.model3.json"), 
-    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json"),
-    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/Epsilon/Epsilon.model.json"),
-    model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"),
-    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"),
-    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/hibiki/hibiki.model.json"),
-    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/shizuku/shizuku.model.json"),
-    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kana/Kobayaxi.model.json"),
+    if LIVE2D_VERSION == 3:
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"),
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"),
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/绫地宁宁/nn_min.model3.json"),
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/akane/InariTalk_PSDtool2.model3.json"), 
                         create_renderer=True)  # Load model without creating renderer
+    else:
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json"),
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/Epsilon/Epsilon.model.json"),
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"),
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"),
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/hibiki/hibiki.model.json"),
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/shizuku/shizuku.model.json"),
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kana/Kobayaxi.model.json"),
+                            create_renderer=True)  # Load model without creating renderer
     model2 = None
     if MULTI_MODEL:
         model2 = live2d.Model()
@@ -221,23 +224,23 @@ def main():
         nonlocal currentTopClickedPartId, currentTopClickedPartId2
         t = time.time()
         hitPartIds = model.HitPart(x, y, False)
-        print(f"hit part cost: {time.time() - t:.4f}s")
-        print(f"hit parts: {hitPartIds}")
+        # print(f"hit part cost: {time.time() - t:.4f}s")
+        # print(f"hit parts: {hitPartIds}")
         t = time.time()
         if MULTI_MODEL:
             hitPartIds2 = model2.HitPart(x, y, False)
-            print(f"hit part2 cost: {time.time() - t:.4f}s")
-            print(f"hit parts2: {hitPartIds2}")
+            # print(f"hit part2 cost: {time.time() - t:.4f}s")
+            # print(f"hit parts2: {hitPartIds2}")
         if currentTopClickedPartId is not None:
             pidx = partIds.index(currentTopClickedPartId)
             model.SetPartOpacity(pidx, 1)
             model.SetPartMultiplyColor(pidx, 1.0, 1.0, 1.0, 1.0)
-            print("Part Multiply Color:", model.GetPartMultiplyColor(pidx))
+            # print("Part Multiply Color:", model.GetPartMultiplyColor(pidx))
         if MULTI_MODEL and currentTopClickedPartId2 is not None:
             pidx2 = partIds2.index(currentTopClickedPartId2)
             model2.SetPartOpacity(pidx2, 1)
             model2.SetPartMultiplyColor(pidx2, 1.0, 1.0, 1.0, 1.0)
-            print("Part Multiply Color2:", model2.GetPartMultiplyColor(pidx2))
+            # print("Part Multiply Color2:", model2.GetPartMultiplyColor(pidx2))
         
         ret1 = hitPartIds[0] if len(hitPartIds) > 0 else None
         if MULTI_MODEL:

@@ -180,8 +180,7 @@ VulkanManager* VulkanManager::GetInstance() {
 VulkanManager::VulkanManager(void* wind) :
     _instance(VK_NULL_HANDLE), _physicalDevice(VK_NULL_HANDLE), _device(VK_NULL_HANDLE),
     _swapchainManager(), _surface(), _graphicQueue(VK_NULL_HANDLE), _presentQueue(VK_NULL_HANDLE),
-    _commandPool(VK_NULL_HANDLE), _debugMessenger() {
-    _window = wind;
+    _commandPool(VK_NULL_HANDLE), _debugMessenger(), _frameWidth(1), _frameHeight(1) {
     _surfaceCtx.window = wind;
 }
 
@@ -486,12 +485,10 @@ void VulkanManager::CreateLogicalDevice() {
     createInfo.enabledExtensionCount = sizeof(deviceExtensions) / sizeof(deviceExtensions[0]);
     createInfo.ppEnabledExtensionNames = deviceExtensions;
 
-    if (_enableValidationLayers) {
-        createInfo.enabledLayerCount = sizeof(validationLayers) / sizeof(validationLayers[0]);
-        createInfo.ppEnabledLayerNames = validationLayers;
-    } else {
-        createInfo.enabledLayerCount = 0;
-    }
+    // Device Layers have never worked since Vulkan 1.0 and
+    // only Instance Layers should be used instead: 
+    // https://docs.vulkan.org/spec/latest/appendices/legacy.html#legacy-devicelayers.
+    createInfo.enabledLayerCount = 0;
 
     VkPhysicalDeviceExtendedDynamicStateFeaturesEXT dynamicStateF{};
     dynamicStateF.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT;
@@ -616,9 +613,9 @@ void VulkanManager::Initialize() {
     ChooseSupportedDepthFormat();
     ChooseSurfaceFormat();
     _swapchainManager = new SwapchainManager(
-        _window, _physicalDevice, _device, _surface, _surfaceFormat, indices.graphicsFamily, indices.presentFamily);
+        _physicalDevice, _device, _surface, _surfaceFormat, indices.graphicsFamily, indices.presentFamily, {_frameWidth, _frameHeight});
     CreateCommandPool();
-    _swapchainManager->ChangeLayout(_device, _commandPool, _graphicQueue);
+    // _swapchainManager->ChangeLayout(_device, _commandPool, _graphicQueue);
     CreateSyncObjects();
 }
 
@@ -691,9 +688,9 @@ void VulkanManager::PostDraw() {
 void VulkanManager::RecreateSwapchain() {
     vkDeviceWaitIdle(_device);
     _swapchainManager->Cleanup(_device);
-    _swapchainManager->CreateSwapchain(
-        _window, _physicalDevice, _device, _surface, indices.graphicsFamily, indices.presentFamily);
-    _swapchainManager->ChangeLayout(_device, _commandPool, _graphicQueue);
+    _swapchainManager->CreateSwapchain(_physicalDevice, _device, _surface, indices.graphicsFamily, indices.presentFamily, 
+            {_frameWidth, _frameHeight});
+    // _swapchainManager->ChangeLayout(_device, _commandPool, _graphicQueue);
     // 图像数量可能变化，per-image 呈现完成信号量必须随之重建
     RecreateFinishSemaphores();
 }
@@ -778,7 +775,7 @@ bool VulkanManager::BeginFrame() {
     colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    colorAttachment.clearValue.color = {{0.0f, 0.0f, 0.0f, 0.0f}};
+    colorAttachment.clearValue.color = {{0.0f, 1.0f, 0.0f, 0.0f}};
 
     VkExtent2D extent = _swapchainManager->GetExtent();
     VkRenderingInfo renderingInfo{};
@@ -789,7 +786,7 @@ bool VulkanManager::BeginFrame() {
     renderingInfo.colorAttachmentCount = 1;
     renderingInfo.pColorAttachments = &colorAttachment;
     vkCmdBeginRendering(frameCmd, &renderingInfo);
-
+    LOGD("swapchain extent=%ux%u", extent.width, extent.height);
     _frameActive = true;
     return true;
 }
@@ -876,7 +873,9 @@ void VulkanManager::EndFrame() {
         // 确认本槽 fence 已由上一帧置位后（UpdateDrawFrame 已等待），
         // 在提交前重置，本帧 submit 完成时再次置位
         vkResetFences(_device, 1, &_frameFences[_frameIndex]);
-        vkQueueSubmit(_graphicQueue, 1, &submitInfo, _frameFences[_frameIndex]);
+        if (VK_SUCCESS != vkQueueSubmit(_graphicQueue, 1, &submitInfo, _frameFences[_frameIndex])) {
+            LOGW("frame %u failed to submit image", _frameIndex);
+        }
     }
 
     {
@@ -992,7 +991,6 @@ void VulkanManager::ChooseSurfaceFormat() {
     vkGetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice, _surface, &count, formats.data());
 
     for (auto& format : formats) {
-        LOGD("format => %d", format.format);
         if (format.format == _surfaceFormat || format.format == VK_FORMAT_B8G8R8A8_UNORM) {
             _surfaceFormat = format.format;
             LOGD("selected format: %d", _surfaceFormat);
@@ -1006,4 +1004,13 @@ void VulkanManager::ChooseSurfaceFormat() {
     } else {
         LOGE("No supported surface format");
     }
+}
+
+void VulkanManager::InvalidateSizeIfNeeded(int width, int height) {
+    auto extent = _swapchainManager->GetExtent();
+    if (extent.width != width || extent.height != height) {
+        _isSwapchainInvalid = true;
+    }
+    _frameWidth = width;
+    _frameHeight = height;
 }

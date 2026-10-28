@@ -25,14 +25,15 @@ public:
 
     /**
      * @brief   コンストラクタ
-     * @param[in]   _window             ->  ウィンドウ
      * @param[in]   physicalDevice      ->  物理デバイス
      * @param[in]   device              ->  デバイス
      * @param[in]   surface             ->  サーフェス
      * @param[in]   graphicsFamily      ->  描画コマンドに使うキューファミリ
      * @param[in]   presentFamily       ->  表示に使うキューファミリ
+     * @param[in]   extent              ->  init frame size
      */
-    SwapchainManager(void* _window, VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, VkFormat format, uint32_t graphicsFamily, uint32_t presentFamily);
+    SwapchainManager(VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, VkFormat format, uint32_t graphicsFamily, uint32_t presentFamily,
+        VkExtent2D extent);
 
     /**
      * @brief    物理デバイスのサポートを確認する
@@ -59,23 +60,22 @@ public:
     /**
      * @brief   スワップチェーンイメージの解像度を選択する
      *
-     * @param[in]   window              ->  ウィンドウ
      * @param[in]   capabilities        ->  サーフェスの機能を保持する構造体
      * @return  スワップチェーンイメージの解像度
      */
-    VkExtent2D ChooseSwapExtent(void* window, const VkSurfaceCapabilitiesKHR& capabilities);
+    VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, VkExtent2D requested);
 
     /**
      * @brief   スワップチェーンを作成する
      *
-     * @param[in]   _window             ->  ウィンドウ
      * @param[in]   physicalDevice      ->  物理デバイス
      * @param[in]   device              ->  デバイス
      * @param[in]   surface             ->  サーフェス
      * @param[in]   graphicsFamily      ->  描画コマンドに使うキューファミリ
      * @param[in]   presentFamily       ->  表示に使うキューファミリ
      */
-    void CreateSwapchain(void* window, VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, uint32_t graphicsFamily, uint32_t presentFamily);
+    void CreateSwapchain(VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, uint32_t graphicsFamily, uint32_t presentFamily, 
+                        VkExtent2D requested);
 
     /**
      * @brief    表示コマンドをキューに積む
