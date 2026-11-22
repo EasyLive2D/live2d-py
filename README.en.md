@@ -15,19 +15,19 @@
     <img title="Release Version" src="https://img.shields.io/github/v/release/EasyLive2D/live2d-py" alt="Docker Build Version" style="margin: 0 10px;">
     <img title="Python Version" src="https://img.shields.io/badge/python-3.11+-blue" alt="Python Version" style="margin: 0 10px;">
     <img title="CMake" src="https://img.shields.io/badge/CMake-3.26+-orange" alt="CMake" style="margin: 0 10px;">
-    <img title="C++" src="https://img.shields.io/badge/C%2B%2B-17-yellow" alt="C++17" style="margin: 0 10px;">
+    <img title="C++" src="https://img.shields.io/badge/C%2B%2B-20-yellow" alt="C++20" style="margin: 0 10px;">
     <img title="CsmSDK" src="https://img.shields.io/badge/CsmSDK-5--r.5-orange" alt="CsmSDK" style="margin: 0 10px;">
 </p>
 
 [中文](./README.md)
 
-**Note: This repo does not include Live2D Cubism Core and Framework (license restriction). Download them from the [official site](https://www.live2d.com/en/sdk/download/native/) when building from source.**
+**Note: This repo does not include Live2D Cubism Core (license restriction). Download it from the [official site](https://www.live2d.com/en/sdk/download/native/) when building from source. The Framework is maintained as a fork submodule at [Arkueid/CubismNativeFramework](https://github.com/Arkueid/CubismNativeFramework).**
 
 Load and manipulate Live2D models using pure Python instead of web engine (JavaScript).
 
 The functionalities of Live2D Native SDK are wrapped into Python via Python C Extension.
 
-Theoretically, Live2D models can be rendered on any OpenGL-based windows in Python as long as the OpenGL context is properly configured.
+Theoretically, Live2D models can be rendered on any OpenGL- (default) or Vulkan-based (optional) windows in Python as long as the corresponding context is properly configured.
 
 Code example: [examples](./examples/)
 
@@ -36,7 +36,7 @@ Documentation：[Wiki](https://github.com/EasyLive2D/live2d-py/wiki)
 Guide for dev：[CONTRIBUTING](./CONTRIBUTING.md)
 
 ## Compatible UI Libraries
-Theoretically compatible with all UI libraries that can use OpenGL for rendering: Pygame / PyQt5 / PySide2 / PySide6 / GLFW / pyopengltk / FreeGlut / Qfluentwidgets...
+Theoretically compatible with all UI libraries that can use OpenGL for rendering: Pygame / PyQt5 / PySide2 / PySide6 / GLFW / pyopengltk / FreeGlut / Qfluentwidgets... An optional Vulkan backend is also available (disabled by default; initialize explicitly via `vkInit`).
 
 ## Supported Features
 * **Model Loading**: **Cubism 2.1** and **Cubism 3.0** or later
@@ -47,6 +47,7 @@ Theoretically compatible with all UI libraries that can use OpenGL for rendering
 * Parameter control for model parts
 * Opacity control for parts
 * Precise part-level click detection
+* OpenGL / Vulkan dual rendering backends (Vulkan optional, OpenGL by default)
 
 ## Compatibility
 
@@ -54,8 +55,9 @@ Theoretically compatible with all UI libraries that can use OpenGL for rendering
 
 | `live2d-py`  | Supported Models       | Implementation            |
 |--------------|----------------------|---------------------------|
-| `live2d.v2.Model`  | Cubism 2.1 and earlier | Pure Python               |
-| `live2d.Model` | Cubism 2.1 and earlier/Cubism 3.0 and later | C++ port (Cubism 2.X WebSdk)/Python C Extension wrapper(CubismNativeSdk) |
+| `live2d.Model` | Cubism 2.1 and earlier / Cubism 3.0 and later | C++ implementation: V2 is a Cubism 2.X WebSDK port, V3 wraps CubismNativeSDK |
+
+The pure-Python `live2d.v2` has been removed; V2 models are now provided by the C++ implementation.
 
 
 ### Python Versions and Platforms
@@ -66,11 +68,11 @@ Theoretically compatible with all UI libraries that can use OpenGL for rendering
 
 :construction:, :x:: errors or compatibility issues need to be solved when building distributions
 
-| Platform | Python | `live2d.v2` | `live2d.v2cpp` | `live2d.v3` | PyPI |
-|----------|--------|-------------|----------------|-------------|------|
-| macOS arm64 | `>=3.11` |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-| Windows x64 | `>=3.11` |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-| Linux x64 | `>=3.11` |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
+| Platform | Python | `live2d.Model` (Cubism 2.1 + 3.0+) | PyPI |
+|----------|--------|-----------------------------------|------|
+| macOS arm64 | `>=3.11` |:white_check_mark:|:white_check_mark:|
+| Windows x64 | `>=3.11` |:white_check_mark:|:white_check_mark:|
+| Linux x64 | `>=3.11` |:white_check_mark:|:white_check_mark:|
 
 **Notes**:
 * **Cubism 2.X models**: File formats include `XXX.moc`, `XXX.model.json`, `XXX.mtn`.

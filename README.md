@@ -15,7 +15,7 @@
     <img title="Release Version" src="https://img.shields.io/github/v/release/EasyLive2D/live2d-py" alt="Docker Build Version" style="margin: 0 10px;">
     <img title="Python Version" src="https://img.shields.io/badge/python-3.11+-blue" alt="Python Version" style="margin: 0 10px;">
     <img title="CMake" src="https://img.shields.io/badge/CMake-3.26+-orange" alt="CMake" style="margin: 0 10px;">
-    <img title="C++" src="https://img.shields.io/badge/C%2B%2B-17-yellow" alt="C++17" style="margin: 0 10px;">
+    <img title="C++" src="https://img.shields.io/badge/C%2B%2B-20-yellow" alt="C++20" style="margin: 0 10px;">
     <img title="CsmSDK" src="https://img.shields.io/badge/CsmSDK-5--r.5-orange" alt="CsmSDK" style="margin: 0 10px;">
     <br>
     <img title="QQ Group" src="https://img.shields.io/badge/QQ群-783375488-brightgreen" style="margin: 0 10px;">
@@ -23,11 +23,11 @@
     <a href="https://github.com/EasyLive2D/live2d-py/blob/main/README.en.md">English README</a>
 </p>
 
-**注意：本仓库不包含 Live2D Cubism Core 及 Framework（受许可限制），源码编译时需自行从 [Live2D官网](https://www.live2d.com/en/sdk/download/native/) 下载。**
+**注意：本仓库不包含 Live2D Cubism Core（受许可限制），源码编译时需自行从 [Live2D官网](https://www.live2d.com/en/sdk/download/native/) 下载；Framework 由 fork 仓库 [Arkueid/CubismNativeFramework](https://github.com/Arkueid/CubismNativeFramework) 作为 submodule 维护。**
 
 使用 Python 直接加载和操作 Live2D 模型，不通过 Web Engine 等间接手段进行渲染。
 
-基于 Python C Extension 对 Live2D Native SDK (C++) 进行了封装。理论上，只要配置好 OpenGL 上下文，可在 Python 中将 live2d 绘制在任何基于 OpenGL 的窗口。
+基于 Python C Extension 对 Live2D Native SDK (C++) 进行了封装。理论上，只要配置好 OpenGL（默认）或 Vulkan（可选）上下文，即可在 Python 中将 live2d 绘制在任何基于 OpenGL / Vulkan 的窗口。
 
 代码使用示例：[examples](./examples/)
 
@@ -37,7 +37,7 @@
 
 ## 兼容UI库
 
-理论上兼容所有能使用 OpenGL 进行绘制的UI库： Pygame / PyQt5 / PySide2 / PySide6 / GLFW / pyopengltk / FreeGlut / Qfluentwidgets ...
+理论上兼容所有能使用 OpenGL 进行绘制的UI库： Pygame / PyQt5 / PySide2 / PySide6 / GLFW / pyopengltk / FreeGlut / Qfluentwidgets ...；另提供可选的 Vulkan 渲染后端（默认不开启，需 `vkInit` 显式初始化）。
 
 ## 支持功能
 
@@ -49,6 +49,7 @@
 * 模型各部分参数控制
 * 各部件透明度控制
 * 精确到部件的点击检测
+* OpenGL / Vulkan 双渲染后端（Vulkan 可选，默认 OpenGL）
 
 ## 兼容性
 
@@ -56,10 +57,9 @@
 
 | `live2d-py`  | 支持的live2d模型       | 实现                      |
 |--------------|---------------------|-------------------------|
-| `live2d.v2.Model`  | Cubism 2.1 以及更早的版本  | 纯 Python 实现             |
-| `live2d.Model` | Cubism 2.1 以及更早的版本/Cubism 3.0 及以上版本 | C++ 移植 (Cubism 2.X WebSDK) /Python C Extension 封装(CubismNativeSDK)|
+| `live2d.Model` | Cubism 2.1 以及更早的版本 / Cubism 3.0 及以上版本 | C++ 实现：V2 为 Cubism 2.X WebSDK 移植，V3 为 CubismNativeSDK 封装 |
 
-**推荐使用 `live2d.Model`**
+纯 Python 版 `live2d.v2` 已移除，V2 模型统一由 C++ 实现提供。
 
 ### Python 版本及平台
 
@@ -69,11 +69,11 @@
 
 :construction:, :x:: 编译期问题或平台兼容性问题待解决
 
-| Platform | Python Version | `live2d.v2` | `live2d.v2cpp` | `live2d.v3` | PyPI |
-|----------|---------------|-------------|----------------|-------------|------|
-| macOS arm64 | `>=3.11` |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-| Windows x64 | `>=3.11` |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-| Linux x64 | `>=3.11` |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
+| Platform | Python Version | `live2d.Model` (Cubism 2.1 + 3.0+) | PyPI |
+|----------|---------------|------------------------------------|------|
+| macOS arm64 | `>=3.11` |:white_check_mark:|:white_check_mark:|
+| Windows x64 | `>=3.11` |:white_check_mark:|:white_check_mark:|
+| Linux x64 | `>=3.11` |:white_check_mark:|:white_check_mark:|
 
 注：
 
