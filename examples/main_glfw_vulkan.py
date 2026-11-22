@@ -30,7 +30,7 @@ live2d.enableLog(True)
 live2d.setLogLevel(live2d.LogLevels.LV_INFO)
 
 
-LIVE2D_VERSION = 2
+LIVE2D_VERSION = 3
 MULTI_MODEL = False
 
 if LIVE2D_VERSION == 2:
@@ -147,11 +147,12 @@ def main():
 
     model = live2d.Model()
     if LIVE2D_VERSION == 3:
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"),
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/DeepSeek/大肥鱼.model3.json"),
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"),
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"),
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/绫地宁宁/nn_min.model3.json"),
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/akane/InariTalk_PSDtool2.model3.json"), 
-                        create_renderer=True)  # Load model without creating renderer
+                        create_renderer=False)  # Load model without creating renderer
     else:
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json"),
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/Epsilon/Epsilon.model.json"),
