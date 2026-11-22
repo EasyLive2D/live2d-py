@@ -32,10 +32,6 @@ size_t ModelTableSize() {
     return sizeof(kModelTable) / sizeof(kModelTable[0]);
 }
 
-std::string U8ToString(const std::u8string& u8) {
-    return std::string(reinterpret_cast<const char*>(u8.data()), u8.size());
-}
-
 std::string FindUpward(const char* relPath) {
     namespace fs = std::filesystem;
     // relPath 为 UTF-8 字面量，必须经 u8path 转换，否则中文路径按 ACP 误解码

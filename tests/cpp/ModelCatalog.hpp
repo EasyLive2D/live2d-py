@@ -10,8 +10,14 @@
 const std::pair<const char*, const char*>* ModelTable();
 size_t ModelTableSize();
 
-/** C++20：u8string() 返回 std::u8string（char8_t），按字节转回 UTF-8 窄字符串 */
-std::string U8ToString(const std::u8string& u8);
+/**
+ * u8string()/generic_u8string() 在 C++17 返回 std::string，C++20（char8_t）返回 std::u8string；
+ * 两者内容都是 UTF-8 字节，统一按字节转回窄字符串。
+ */
+template <typename U8Str>
+std::string U8ToString(const U8Str& u8) {
+    return std::string(reinterpret_cast<const char*>(u8.data()), u8.size());
+}
 
 /** 自 cwd 向上查找 relPath 存在的目录，返回绝对路径；找不到返回空串。 */
 std::string FindUpward(const char* relPath);

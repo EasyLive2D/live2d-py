@@ -100,15 +100,13 @@ Model::~Model() {
 }
 
 void Model::LoadModelJson(const char* filePath, bool createRenderer) {
-    std::filesystem::path p = std::filesystem::u8path(filePath);
-    // C++20：generic_u8string() 返回 std::u8string（char8_t），按字节转回 UTF-8 窄字符串
-    const std::u8string u8Dir = p.parent_path().generic_u8string();
-    const std::string dir(reinterpret_cast<const char*>(u8Dir.data()), u8Dir.size());
-    mModelHomeDir = dir.c_str();
-    mModelHomeDir += "/";
+    const std::string pathStr(filePath ? filePath : "");
+    // 资源根目录 = json 所在目录（含尾部分隔符）。与 V2 一致，直接按 UTF-8 字节截取，
+    // 不做 filesystem 编码转换，避免依赖 char8_t（manylinux GCC 8 不支持）
+    mModelHomeDir = pathStr.substr(0, pathStr.find_last_of("/\\") + 1).c_str();
 
-    LOGD("load modelSetting: %s", filePath);
-    LoadAssets(filePath, [&](csmByte* buffer, csmSizeInt size) {
+    LOGD("load modelSetting: %s", pathStr.c_str());
+    LoadAssets(pathStr, [&](csmByte* buffer, csmSizeInt size) {
         mModelSetting = new CubismModelSettingJson(buffer, size);
     });
 

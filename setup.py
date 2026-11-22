@@ -177,10 +177,11 @@ def setup_directory():
             if os.path.exists(dst_core_path):
                 shutil.rmtree(dst_core_path)
             shutil.move(core_path, DST_DIR)
-            dst_framework_path = os.path.join(DST_DIR, "Framework")
-            if os.path.exists(dst_framework_path):
-                shutil.rmtree(dst_framework_path)
-            shutil.move(framework_path, DST_DIR)
+            # use self-maintained fwk instead
+            # dst_framework_path = os.path.join(DST_DIR, "Framework")
+            # if os.path.exists(dst_framework_path):
+            #     shutil.rmtree(dst_framework_path)
+            # shutil.move(framework_path, DST_DIR)
             print("[download_csmsdk] Setup directory end.")
         except Exception as e:
             print("[download_csmsdk] Setup build directory failed with error:", e)
